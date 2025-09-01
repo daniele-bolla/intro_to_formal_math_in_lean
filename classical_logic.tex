@@ -1,0 +1,392 @@
+
+\section{Introduction to Logic}
+
+Logic is the study of reasoning, branching into various systems.
+We refer to \textbf{classical logic} as the one that underpins much 
+of traditional mathematics. 
+It's the logic of the ancient Greeks (not fair) and truthtables, and it remains 
+used nowadays for pedagogical reasons.
+We first introduce \textbf{propositional logic}, which is the simplest 
+form of classical logic. 
+Later we will extend this to \textbf{first-order logic}, which includes 
+quantifiers and predicates.
+In this setting, a \textbf{proposition} is a statement that is either true or false, 
+and a \textbf{proof} is a logical argument that establishes the truth of a 
+proposition.
+Propositions are constructed via \textbf{formulas} built from 
+\textbf{propositional variables} 
+(also called atomic propositions) combined with logical \textbf{connectives} such as ``and'' ($\wedge$), 
+``or'' ($\vee$), ``not'' ($\neg$), ``implies'' ($\Rightarrow$), and ``if and only if'' ($\Leftrightarrow$). 
+These connectives allow the creation of complex or compound propositions.
+\begin{definition}[Propositional Formula](\cite{thompson1999types})
+A \textbf{propositional formula} is either:
+\begin{itemize}
+    \item A \textbf{propositional variable}: $X_0, X_1, X_2, \ldots$, or
+    \item A \textbf{compound formula} formed by combining formulas using connectives:
+    \[
+        (A \wedge B), \quad (A \Rightarrow B), \quad (A \vee B), \quad \bot, \quad (A \Leftrightarrow B), \quad (\neg A)
+    \]
+    where $A$ and $B$ are formulas themselves.
+\end{itemize}
+\end{definition}
+
+We are going to describe classical logic though a formal framework 
+called \textbf{deduction system} that specifies 
+rules for deriving 
+\textbf{conclusions} from \textbf{premises} (assumptions from other propositions).  
+These rules, called \textbf{inference rules}, determine how new statements follow 
+from existing ones.  
+\begin{example}[Deductive style rule]
+Here is an hypothetical example.
+\begin{prooftree}
+  \AxiomC{$P_1$}
+  \AxiomC{$P_2$}
+  \AxiomC{$\cdots$}
+  \AxiomC{$P_n$}
+  \QuaternaryInfC{$C$}
+\end{prooftree}
+where the premises $P_1, P_2, \ldots, P_n$ and the conclusion $C$.
+\end{example}
+The inference rules needed are:
+\begin{itemize}
+    \item \textbf{Introduction rules} specify how to form compound propositions from simpler ones, and
+    \item \textbf{Elimination rules} specify how to use compound propositions to derive information about their components.
+\end{itemize}
+Let's look at how we can define some connectives.
+\paragraph{Conjunction ($\land$)}
+\begin{itemize}
+    \item Introduction
+    \begin{prooftree}
+        \AxiomC{$A$}
+        \AxiomC{$B$}
+        \RightLabel{$\land$-Intro}
+        \BinaryInfC{$A \land B$}
+    \end{prooftree}
+    \item Elimination
+    \begin{prooftree}
+        \AxiomC{$A \land B$}
+        \RightLabel{$\land$-Elim$_1$}
+        \UnaryInfC{$A$}
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \AxiomC{$A \land B$}
+        \RightLabel{$\land$-Elim$_2$}
+        \UnaryInfC{$B$}
+    \end{prooftree}
+\end{itemize}
+\paragraph{Disjunction ($\lor$)}
+\begin{itemize}
+    \item Introduction
+    \begin{prooftree}
+        \AxiomC{$A$}
+        \RightLabel{$\lor$-Intro$_1$}
+        \UnaryInfC{$A \lor B$}
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \AxiomC{$B$}
+        \RightLabel{$\lor$-Intro$_2$}
+        \UnaryInfC{$A \lor B$}
+    \end{prooftree}
+    \item Elimination (Proof by cases)
+    \begin{prooftree}
+        \AxiomC{$A \lor B$}
+        \AxiomC{$[A] \vdash C$}
+        \AxiomC{$[B] \vdash C$}
+        \RightLabel{$\lor$-Elim}
+        \TrinaryInfC{$C$}
+    \end{prooftree}
+\end{itemize}
+\paragraph{Implication ($\to$)}
+\begin{itemize}
+    \item Introduction
+    \begin{prooftree}
+        \AxiomC{$[A] \vdash B$}
+        \RightLabel{$\to$-Intro}
+        \UnaryInfC{$A \to B$}
+    \end{prooftree}
+    \item Elimination (Modus Ponens)
+    \begin{prooftree}
+        \AxiomC{$A \to B$}
+        \AxiomC{$A$}
+        \RightLabel{$\to$-Elim}
+        \BinaryInfC{$B$}
+    \end{prooftree}
+\end{itemize}
+
+\begin{notation}
+We use $A \vdash B$ (called turnstile) to designate a deduction of $B$ from $A$. 
+Normally the symbol used is
+\[
+\begin{array}{c}
+A \\
+\vdots \\
+B
+\end{array}
+\]
+There are some minor differences, in fact, which I don't fully understand.
+The square brackets around a premise $[A]$ mean that the premise $A$ is meant to 
+be \textbf{discharged} at the conclusion. The classical example is the 
+introduction rule for the implication connective.
+To prove an implication $A \to B$, we assume $A$ 
+(shown as $[A]$), derive $B$ under this assumption, and then discharge the 
+assumption $A$ to conclude that $A \to B$ holds without the assumption. 
+The turnstile is predominantly used in judgments and type theory with 
+the meaning of ``entails that''. 
+\end{notation}
+
+Lean has its own syntax for connectives and their relative inference rules.
+For instance $A \land B$ can be presented as \lstinline[language=lean]|A ∧ B|,
+\lstinline[language=lean]|And(A, B)|, \lstinline[language=lean]|⟨A, B⟩| or explicitly by the introduction rule
+ \lstinline[language=lean]|And.intro|. The pair $A \land B$ can be then consumed using elimination 
+rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.right|.
+\begin{example}
+    Let's look at our first code example
+  \begin{lstlisting}[language=lean]
+    example (H_A : A) (H_B : B) : (A ∧ B) := And.intro H_A H_B
+  \end{lstlisting}
+Lean aims to resemble the language used in mathematics. 
+For instance, when defining a function or expression, one can use keywords such as 
+\lstinline[language=lean]|theorem| or \lstinline[language=lean]|def|.
+Here, I used \lstinline[language=lean]|example|, which is handy for defining anonymous expressions 
+for demonstration purposes. 
+After that comes the statement to be proved:
+\begin{lstlisting}[language=lean]
+  (H_A : A) (H_B : B) : (A ∧ B) 
+\end{lstlisting}
+Meaning given a proof of $A$ and a proof of $B$ we can form a proof of $(A \land B)$.
+The operator \lstinline[language=lean]|:=| expects a proof of the previous statezment.
+\lstinline[language=lean]|And.intro| is implemented as:
+\begin{lstlisting}[language=lean]
+  And.intro: p → q → (p ∧ q).
+\end{lstlisting}
+It says: if you give me a proof of $p$ and a proof of $q$, 
+then i return a proof of $p \land q$.
+We therefore conclude the proof by directly giving 
+\lstinline[language=lean]|And.intro H_A H_B|.
+Here another way of writing the same statment.
+\begin{lstlisting}[language=lean]
+  example (H_p : p) (H_B : B) : And(A, B) := ⟨H_p, H_B⟩
+\end{lstlisting}
+\end{example}
+
+This system of inference rules allows us to construct proofs in an 
+algorithmic and systematical way, organized in what is called a \textbf{proof tree}. 
+To reduce complexity, we follow a 
+\textbf{top-down} approach (see \cite{thompson1999types} and 
+\cite{nordstrom1990programming}).
+This methodology forms the basis of \textbf{proof assistants} like Lean, 
+Coq, and Agda, which help 
+verify the correctness of mathematical proofs by checking each step 
+against these rules.
+We will see later that Lean, in fact, provides an info view of the proof tree 
+which helps us 
+understand and visualize 
+the proof structure.
+Let's examine a concrete example of a proof.
+\begin{example}[Associativity of Conjunction]
+We prove that $(A \land B) \land C$ implies $A \land (B \land C)$.
+First, from the assumption $(A \land B) \land C$, we can derive $A$:
+\begin{prooftree}
+  \AxiomC{$(A \land B) \land C$}
+  \RightLabel{$\land E_1$}
+  \UnaryInfC{$A \land B$}
+  \RightLabel{$\land E_1$}
+  \UnaryInfC{$A$}
+\end{prooftree}
+Second, we can derive $B \land C$:
+\begin{prooftree}
+  \AxiomC{$(A \land B) \land C$}
+  \RightLabel{$\land E_1$}
+  \UnaryInfC{$A \land B$}
+  \RightLabel{$\land E_2$}
+  \UnaryInfC{$B$}
+  \AxiomC{$(A \land B) \land C$}
+  \RightLabel{$\land E_2$}
+  \UnaryInfC{$C$}
+  \RightLabel{$\land I$}
+  \BinaryInfC{$B \land C$}
+\end{prooftree}
+Finally, combining these derivations we obtain $A \land (B \land C)$:
+\begin{prooftree}
+  \AxiomC{$(A \land B) \land C \vdash A$}
+  \AxiomC{$(A \land B) \land C \vdash B \land C$}
+  \RightLabel{$\land I$}
+  \BinaryInfC{$A \land (B \land C)$}
+\end{prooftree}
+\end{example}
+\begin{example}[Lean Implementation]
+Let us now implement the same proof in Lean.
+\begin{lstlisting}[language=Lean, caption=Associativity of Conjunction in Lean]
+theorem and_associative : (A ∧ B) ∧ C → A ∧ (B ∧ C) :=
+  fun h : (A ∧ B) ∧ C =>
+    -- First, from the assumption (A ∧ B) ∧ C, we can derive A:
+    have ab : A ∧ B := h.left -- extracts (A ∧ B) from the assumption
+    have a : A := ab.left -- extracts A from (A ∧ B)
+    -- Second, we can derive B ∧ C (here we only extra b and c separately and combined them in the next step) 
+    have c : C := h.right
+    have b : B := ab.right
+    -- Finally, combining these derivations we obtain A ∧ (B ∧ C)
+    show A ∧ (B ∧ C) from ⟨a, ⟨b, c⟩⟩
+\end{lstlisting}
+We introduce the \lstinline[language=lean]|theorem| with the name 
+\lstinline[language=lean]|and_associative|, 
+which can be referenced in subsequent proofs. 
+The type signature \lstinline[language=lean]|(A ∧ B) ∧ C → A ∧ (B ∧ C)| 
+represents our logical implication.
+The \lstinline[language=lean]|:=| operator introduces the 
+proof term that establishes the theorem's validity. 
+In the previous code example this proof was directly given.
+Here, we construct it using the a function with the \lstinline[language=lean]|fun| keyword. 
+Why a function? We have already encountered the Curry-Howard correspondence in Lean 
+previously, though without explicitly stating it. 
+According to this correspondence, a proof of an implication can be 
+understood as a function that takes a hypothesis as input and produces 
+the desired conclusion as output. We will revisit this concept in more 
+detail later.
+The \lstinline[language=lean]|have| keyword introduces local 
+lemmas within our proof scope, allowing us to break down complex 
+reasoning into manageable intermediate steps, mirroring our natural deduction proof.
+Finally, the \lstinline[language=lean]|show| keyword presents our final result. 
+\end{example}
+
+To capture more complex mathematical ideas, we extend our system from 
+propositional logic to \textbf{predicate logic}.  
+A \textbf{predicate} is a statement or proposition that depends on a variable.
+In propositional logic we represent a proposition simply by $P$.  
+In predicate logic, this is generalized: a predicate is written as $P(a)$, 
+where $a$ is a variable.
+This extension allows us to introduce \textbf{quantifiers}:  
+$\forall$ (``for all'') and $\exists$ (``there exists'').  
+These quantifiers express that a given formula holds either for every object 
+or for at least one object, respectively. 
+
+When introducing variables into a formal system, typically denoted by lowercase letters, 
+we must keep in mind that the specific choice of a variable name can be substituted without 
+changing the meaning of the predicate or statement. This should feel familiar from mathematics, 
+where the meaning of an expression does not depend on the names we assign to variables.
+Some variables are \textbf{bound} (constrained), while others remain \textbf{free} 
+(arbitrary, in programming often called "dummy" variables). 
+When substituting variables, it is important to ensure that this distinction is preserved.
+This phenomenon,called \textbf{variable capture}, parallels familiar mathematical practice: 
+if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$, then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$,
+ not the ill-defined $\int_1^2 \frac{dt}{t-t}$. The same principle applies to logic.
+Variable capture occurs when a free variable becomes bound by a quantifier during substitution, 
+fundamentally changing the meaning of the expression. For example, consider
+\[
+\exists y.\,(y > x).
+\]
+This states that for a given $x$ there exists a $y$ such that $y > x$. 
+If we naively substitute $y+1$ for $x$, we would obtain
+\[
+\exists y.\,(y > y+1),
+\]
+where the $y$ in $y+1$ has been \textbf{captured} by the quantifier $\exists y$. 
+This transforms the original statement from "there exists some $y$ greater th
+an the free variable $x$" into the always-false statement 
+"there exists some $y$ greater than itself plus one."
+
+To avoid capture, we must use \textbf{capture-avoiding substitution}. 
+In the above example, we would first rename the bound variable to something fresh 
+(say $z$), obtaining $\exists z.\,(z > x)$, and then safely substitute to get $\exists z.\,(z > y+1)$.
+In programming, this concept is also familiar through block-structured code and scope. 
+In Lean, for instance, when you are inside a block such as a function, theorem, or section, 
+all the variables inside this context are bound to this specific scope (block) and cannot 
+be referenced outside. 
+We use the notation $\phi[t/x]$ for \textbf{substitution}, meaning all occurrences of the free 
+variable $x$ in formula $\phi$ are replaced by term $t$. This notation can be read as 
+"$t$ falling over and squishing $x$" — a helpful mnemonic for remembering that $t$ replaces $x$, 
+not the other way around.
+
+We can now present the inference rules for quantifiers.
+
+\paragraph{For all ($\forall$)}
+\begin{itemize}
+    \item Introduction
+    \begin{prooftree}
+    \AxiomC{$A$}
+    \RightLabel{$\forall I$}
+    \UnaryInfC{$\forall x.\,A$}
+    \end{prooftree}
+    \item Elimination
+    \begin{prooftree}
+    \AxiomC{$\forall x.\,A$}
+    \RightLabel{$\forall E$}
+    \UnaryInfC{$A[t/x]$}
+    \end{prooftree}
+\end{itemize}
+\paragraph{Exixst ($\exists$)}
+  \begin{itemize}
+    \item Introduction
+    \begin{prooftree}
+    \AxiomC{$A[t/x]$}
+    \RightLabel{$\exists I$}
+    \UnaryInfC{$\exists x.\,A$}
+    \end{prooftree}
+    \item Elimination
+    \begin{prooftree}
+    \AxiomC{$[A] \vdash B$}
+    \RightLabel{$\forall E$}
+    \UnaryInfC{$B$}
+    \end{prooftree}
+\end{itemize}
+Lean espresses quantifiers with dependent types.
+
+\begin{lstlisting}[language=Lean, caption=For All]
+∀ (x : X), P x
+\end{lstlisting}
+
+
+\textbf{Three syntactic forms:}
+\begin{itemize}
+    \item Explicit: \lstinline[language=lean]|∀ (x : X), P x|
+    \item Type inference: \lstinline[language=lean]|∀ x, P x| (when Lean can infer the type)
+    \item Implicit binding: \lstinline[language=lean]|∀ \{x : X\}, P x| (Lean infers the value automatically)
+\end{itemize}
+
+\textbf{Proof techniques:}
+\begin{itemize}
+    \item \textbf{Introduction}: Use the \lstinline[language=lean]|intro| tactic to introduce an arbitrary element
+    \item \textbf{Elimination}: Apply the hypothesis to a specific value using function application
+    \item \textbf{Specialization}: Use the \lstinline[language=lean]|specialize| tactic to instantiate a general hypothesis
+\end{itemize}
+
+% \textbf{Example:}
+% \begin{verbatim}
+% theorem universal_example : ∀ (n : ℕ), n + 0 = n := by
+%   intro n
+%   rfl
+% \end{verbatim}
+
+% \subsection{Existential Quantifier (\(\exists\))}
+
+% The existential quantifier \(\exists\) states that there exists at least one element of a type for which a property holds. In Lean, it is typed as \texttt{\\exists} with the syntax:
+
+% \begin{verbatim}
+% ∃ (x : X), P x
+% \end{verbatim}
+
+% This reads as "there exists some \texttt{x} of type \texttt{X} such that \texttt{P x} holds."
+
+% \textbf{Important note:} Unlike the universal quantifier, the existential quantifier does not support implicit binding. 
+% Writing \texttt{∃ \{x : X\}, P x} results in an error.
+
+% \textbf{Internal representation:} The existential quantifier is defined as an inductive type:
+% \begin{verbatim}
+% inductive Exists.{u} : {α : Sort u} → (α → Prop) → Prop
+% constructors:
+% Exists.intro : ∀ {α : Sort u} {p : α → Prop} (w : α), p w → Exists p
+% \end{verbatim}
+
+% \textbf{Proof techniques:}
+% \begin{itemize}
+%     \item \textbf{Introduction}: Use \texttt{Exists.intro} with a witness and proof: \texttt{⟨witness, proof⟩}
+%     \item \textbf{Elimination}: Use \texttt{cases} or \texttt{match} to extract the witness and proof
+% \end{itemize}
+
+% \textbf{Example:}
+% \begin{verbatim}
+% theorem existential_example : ∃ (n : ℕ), n > 0 :=
+%   ⟨1, Nat.zero_lt_succ 0⟩
+% \end{verbatim}
