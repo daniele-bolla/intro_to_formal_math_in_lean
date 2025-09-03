@@ -2,6 +2,40 @@
 % Defined by Jeremy Avigad, 2015, by modifying Assia Mahboubi's SSR style.
 % Unicode replacements taken from Olivier Verdier's unixode.sty
 
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, let, const},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{codegray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{codegreen},
+  stringstyle=\color{codepurple},
+  morestring=[b],
+  morestring=[b]",
+  basicstyle=\ttfamily\small
+}
+
+\lstdefinelanguage{TypeScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break,
+            let, const, class, interface, type, public, private, protected, string, number, boolean, any, void, enum,
+            implements, extends, constructor, super, export, import, from, as, get, set},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{codegray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{codegreen},
+  stringstyle=\color{codepurple},
+  morestring=[b],
+  morestring=[b]",
+  basicstyle=\ttfamily\small
+}
+
 \lstdefinelanguage{lean} {
 
 % Anything between $ becomes LaTeX math mode

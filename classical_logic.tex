@@ -31,11 +31,12 @@ A \textbf{propositional formula} is either:
 \end{definition}
 
 We are going to describe classical logic though a formal framework 
-called \textbf{deduction system} that specifies 
+called \textbf{natural deduction system}  developed by
+Gentzen in the 1930s (\cite{wadler2015propositions}). It that specifies 
 rules for deriving 
-\textbf{conclusions} from \textbf{premises} (assumptions from other propositions).  
-These rules, called \textbf{inference rules}, determine how new statements follow 
-from existing ones.  
+\textbf{conclusions} from \textbf{premises} (assumptions from other propositions), 
+called \textbf{inference rules}.
+
 \begin{example}[Deductive style rule]
 Here is an hypothetical example.
 \begin{prooftree}
@@ -117,8 +118,8 @@ Let's look at how we can define some connectives.
 
 \begin{notation}
 We use $A \vdash B$ (called turnstile) to designate a deduction of $B$ from $A$. 
-Normally the symbol used is
-\[
+It is employed in Gentzen’s \emph{sequent calculus} (\cite{girard1989proofs}), 
+whereas in natural deduction the corresponding symbol is\[
 \begin{array}{c}
 A \\
 \vdots \\
@@ -137,12 +138,14 @@ the meaning of ``entails that''.
 \end{notation}
 
 Lean has its own syntax for connectives and their relative inference rules.
-For instance $A \land B$ can be presented as \lstinline[language=lean]|A ∧ B|,
-\lstinline[language=lean]|And(A, B)|, \lstinline[language=lean]|⟨A, B⟩| or explicitly by the introduction rule
- \lstinline[language=lean]|And.intro|. The pair $A \land B$ can be then consumed using elimination 
+For instance $A \land B$ can be presented as \lstinline[language=lean]|And(A, B)| or \lstinline[language=lean]|A ∧ B|,
+. Its untroduction rule is constructed by
+ \lstinline[language=lean]|And.intro _ _| or shortly
+ \lstinline[language=lean]|⟨_, _⟩| (underscore are placeholder for assumptions "functions"). 
+ The pair $A \land B$ can be then consumed using elimination 
 rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.right|.
 \begin{example}
-    Let's look at our first code example
+    Let's look at our first Lean example
   \begin{lstlisting}[language=lean]
     example (H_A : A) (H_B : B) : (A ∧ B) := And.intro H_A H_B
   \end{lstlisting}
@@ -156,7 +159,8 @@ After that comes the statement to be proved:
   (H_A : A) (H_B : B) : (A ∧ B) 
 \end{lstlisting}
 Meaning given a proof of $A$ and a proof of $B$ we can form a proof of $(A \land B)$.
-The operator \lstinline[language=lean]|:=| expects a proof of the previous statezment.
+The operator \lstinline[language=lean]|:=| assigns a value (or return an expression) for the statement which
+ "has to be a proof of it".
 \lstinline[language=lean]|And.intro| is implemented as:
 \begin{lstlisting}[language=lean]
   And.intro: p → q → (p ∧ q).
@@ -222,9 +226,9 @@ Let us now implement the same proof in Lean.
 theorem and_associative : (A ∧ B) ∧ C → A ∧ (B ∧ C) :=
   fun h : (A ∧ B) ∧ C =>
     -- First, from the assumption (A ∧ B) ∧ C, we can derive A:
-    have ab : A ∧ B := h.left -- extracts (A ∧ B) from the assumption
+    have ab : A ∧ B := h.left -- extracts (derive) a proof of (A ∧ B) from the assumption
     have a : A := ab.left -- extracts A from (A ∧ B)
-    -- Second, we can derive B ∧ C (here we only extra b and c separately and combined them in the next step) 
+    -- Second, we can derive B ∧ C (here we only extract b and c and combine them in the next step) 
     have c : C := h.right
     have b : B := ab.right
     -- Finally, combining these derivations we obtain A ∧ (B ∧ C)
@@ -256,22 +260,31 @@ propositional logic to \textbf{predicate logic}.
 A \textbf{predicate} is a statement or proposition that depends on a variable.
 In propositional logic we represent a proposition simply by $P$.  
 In predicate logic, this is generalized: a predicate is written as $P(a)$, 
-where $a$ is a variable.
+where $a$ is a variable. Notice that a predicate is just a fuicntion.
 This extension allows us to introduce \textbf{quantifiers}:  
 $\forall$ (``for all'') and $\exists$ (``there exists'').  
 These quantifiers express that a given formula holds either for every object 
-or for at least one object, respectively. 
+or for at least one object, respectively.
 
-When introducing variables into a formal system, typically denoted by lowercase letters, 
-we must keep in mind that the specific choice of a variable name can be substituted without 
+In Lean if \lstinline[language=lean]|α| is any type, we can represent a 
+unary predicate \lstinline[language=lean]|P| on \lstinline[language=lean]|α|  as 
+an object of type \lstinline[language=lean]|α → Prop|.
+\lstinline[language=lean]|Prop| stands for \emph{proposition}, and it is an 
+essential component of Lean’s type system.
+For now, we can think of it as a special type; somewhat 
+paradoxically, a type of types. ( add a discussion on decidability?)
+Thus given an \lstinline[language=lean]|x : α| (an element with type signature ) should  
+
+When introducing variables into a formal language we must keep in mind that the specific choice 
+of a variable name can be substituted without 
 changing the meaning of the predicate or statement. This should feel familiar from mathematics, 
 where the meaning of an expression does not depend on the names we assign to variables.
 Some variables are \textbf{bound} (constrained), while others remain \textbf{free} 
 (arbitrary, in programming often called "dummy" variables). 
 When substituting variables, it is important to ensure that this distinction is preserved.
-This phenomenon,called \textbf{variable capture}, parallels familiar mathematical practice: 
-if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$, then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$,
- not the ill-defined $\int_1^2 \frac{dt}{t-t}$. The same principle applies to logic.
+This phenomenon, called \textbf{variable capture}, parallels familiar mathematical practice: 
+if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$, then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, 
+not the ill-defined $\int_1^2 \frac{dt}{t-t}$. The same principle applies to logic.
 Variable capture occurs when a free variable becomes bound by a quantifier during substitution, 
 fundamentally changing the meaning of the expression. For example, consider
 \[
@@ -291,16 +304,14 @@ To avoid capture, we must use \textbf{capture-avoiding substitution}.
 In the above example, we would first rename the bound variable to something fresh 
 (say $z$), obtaining $\exists z.\,(z > x)$, and then safely substitute to get $\exists z.\,(z > y+1)$.
 In programming, this concept is also familiar through block-structured code and scope. 
-In Lean, for instance, when you are inside a block such as a function, theorem, or section, 
-all the variables inside this context are bound to this specific scope (block) and cannot 
-be referenced outside. 
+
+% In Lean, for instance, when you are inside a block such as a function, theorem, or section, 
+% all the variables inside this context are bound to this specific scope (block) and cannot 
+% be referenced outside. 
 We use the notation $\phi[t/x]$ for \textbf{substitution}, meaning all occurrences of the free 
-variable $x$ in formula $\phi$ are replaced by term $t$. This notation can be read as 
-"$t$ falling over and squishing $x$" — a helpful mnemonic for remembering that $t$ replaces $x$, 
-not the other way around.
+variable $x$ in formula $\phi$ are replaced by term $t$.
 
 We can now present the inference rules for quantifiers.
-
 \paragraph{For all ($\forall$)}
 \begin{itemize}
     \item Introduction
@@ -331,26 +342,41 @@ We can now present the inference rules for quantifiers.
     \UnaryInfC{$B$}
     \end{prooftree}
 \end{itemize}
-Lean espresses quantifiers with dependent types.
-
-\begin{lstlisting}[language=Lean, caption=For All]
-∀ (x : X), P x
-\end{lstlisting}
+Here i need to explain in words the mewianing odft thje subsitution iin the inference rules, 
+and the froall is a kind of 
+chain of and and exist a chain of or that neds a witness and a predicxatg proving that wirtnteess.
 
 
-\textbf{Three syntactic forms:}
-\begin{itemize}
-    \item Explicit: \lstinline[language=lean]|∀ (x : X), P x|
-    \item Type inference: \lstinline[language=lean]|∀ x, P x| (when Lean can infer the type)
-    \item Implicit binding: \lstinline[language=lean]|∀ \{x : X\}, P x| (Lean infers the value automatically)
-\end{itemize}
+\begin{example}
+  Lean espresses quantifiers with dependent types.
+  \begin{lstlisting}[language=Lean, caption=For All]
+  ∀ (x : X), P x
+  \end{lstlisting}
 
-\textbf{Proof techniques:}
-\begin{itemize}
-    \item \textbf{Introduction}: Use the \lstinline[language=lean]|intro| tactic to introduce an arbitrary element
-    \item \textbf{Elimination}: Apply the hypothesis to a specific value using function application
-    \item \textbf{Specialization}: Use the \lstinline[language=lean]|specialize| tactic to instantiate a general hypothesis
-\end{itemize}
+  \begin{lstlisting}[language=Lean, caption=Exists]
+  ∃ (x : X), P x
+  \end{lstlisting}
+\end{example}
+
+Under the CH correspondence, a we can get a proof of $\forall x. P(x)$ by an arbitrary $P(a)$.
+highlithing tha fact that a proof is just a function
+
+
+Good point for introducing polymorhpism in Lean.
+It could be nice to give a proof of transitivity and what is a relation in type theory. ( a function)
+% \textbf{Three syntactic forms:}
+% \begin{itemize}
+%     \item Explicit: \lstinline[language=lean]|∀ (x : X), P x|
+%     \item Type inference: \lstinline[language=lean]|∀ x, P x| (when Lean can infer the type)
+%     \item Implicit binding: \lstinline[language=lean]|∀ \{x : X\}, P x| (Lean infers the value automatically)
+% \end{itemize}
+
+% \textbf{Proof techniques:}
+% \begin{itemize}
+%     \item \textbf{Introduction}: Use the \lstinline[language=lean]|intro| tactic to introduce an arbitrary element
+%     \item \textbf{Elimination}: Apply the hypothesis to a specific value using function application
+%     \item \textbf{Specialization}: Use the \lstinline[language=lean]|specialize| tactic to instantiate a general hypothesis
+% \end{itemize}
 
 % \textbf{Example:}
 % \begin{verbatim}

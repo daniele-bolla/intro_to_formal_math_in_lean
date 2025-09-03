@@ -10,33 +10,54 @@ To achieve a goal, a programmer must write a program that meets given specificat
 There are two primary approaches: \textbf{program derivation} and \textbf{program verification} 
 ( \cite{nordstrom1990programming} Section 1.1).
 In \textbf{program verification}, the programmer first writes a program and then proves it meets 
-the specifications. This approach checks for errors at \textbf{runtime} when the code executes.
+the specifications. This approach checks for errors at \textbf{run-time} when the code executes.
 In \textbf{program derivation}, the programmer writes a proof that a program with certain properties exists, 
 then extracts a program from that proof. This approach enables specification 
-checking during \textbf{compilation}, catching errors before execution.
+checking at \textbf{compilation-time}, catching errors before execution.
 This distinction corresponds to \textbf{dynamic} versus \textbf{static} \textbf{type systems}. 
-Most programming languages employ both approaches. For example, C checks operations on \texttt{int} 
-at compile time but requires the programmer to ensure correctness with \texttt{void*} at run time.
-Lean emphasizes program derivation.
-Its type system is highly advanced and flexible, allowing the expression and verification 
-of a wide range of mathematical statements, and this is what makes Lean a powerful \textbf{theorem prover}. 
-Lean's type system is based on \textbf{Type Theory}, a branch of marthematics and logic tahta aims to provide a 
-foundation for all mathematics and wich is a programming language itself.
+Most programming languages combine both approaches; providing basic types for annotation and compile-time checking, 
+while leaving the remaining checks to be performed at runtime.
+\begin{example}
+    In a dynamically typed language, like JavaScript, variables can change type after 
+    they are created. For example, a variable defined as a number can later 
+    be reassigned to a string:
+    \begin{lstlisting}[language=JavaScript]
+    let price = 100;
+    price = "100";   // valid in JavaScript
+    \end{lstlisting}
+    TypeScript is a statically typed superset of JavaScript.  
+    Unlike JavaScript, it performs type checking at compile time.  
+    This means we can prevent the previous behavior simply by adding 
+    a type annotation:
+    \begin{lstlisting}[language=TypeScript]
+    let price: number = 100;
+    price = "100";  // Error: Type 'string' is not assignable to type 'number'
+    \end{lstlisting} 
+\end{example}
+Nonetheless, TypeScript, even though it has a quite sophisticated type system, cannot fully 
+capture complex data structures. In many cases, program specifications can 
+only be enforced at runtime.  
+Lean, by contrast, is fully grounded in program derivation and static type checking, 
+which is precisely what makes it a powerful \textbf{theorem prover}.  
+At its core lies an advanced and flexible type system, capable of expressing 
+and verifying a wide range of mathematical statements.  
+This system is built on on \textbf{Type Theory}, a branch of marthematics and logic 
+that aims to provide a foundation for all mathematics and wich is a (abstract) 
+programming language itself.
 
 It's important to note that Type Theory is not a single, unified theory, but rather a family of 
-related theories with various extensions and ongoing developments and rich hiostorical ramifications. 
-Creating a language like Lean require
-careful consideration of which rules and features to include.
+related theories with various extensions, ongoing developments and rich hiostorical ramifications. 
+Creating a language like Lean requirev careful consideration of which rules and features to include.
 We shall give a brief overview of the historical development of type theory, and an a introduction on 
 what comes next.
 
-(From \cite{carneiro2019typetheorylean})
+(The following historical intro is insbyured by \cite{carneiro2019typetheorylean} intro)
 Type theory emerged as a fundamental response to Bertrand Russell's paradox. 
 Considers the set $S = \{x \mid x \notin x\}$ 
 (the set of all sets that do not contain themselves). This is a paradoxical construction, 
 leading to the contradiction $S \in S \iff S \notin S$. 
 Ernst Zermelo and Fraenkel addressed the contradiction by introducing Zermelo-Fraenkel set theory (ZFC), 
-which became the standard axiomatization in modern mathematics. 
+which became the standard in modern mathematics. 
 ZFC provides an untyped but stratified view of the mathematical universe, 
 maintaining classical logical principles while avoiding paradoxes through careful axiomatization.
 Russell chose a fundamentally different path. He recognized expressions 
@@ -44,7 +65,7 @@ like $A(A)$ or $x \in x$ as ill-typed, introducing his theory of types.
 Hs's first systematic response was \textbf{Ramified Type Theory}, wich turned out to be problematic.
 In the 1930s, Alonzo Church developed \textbf{Lambda Calculus} as a foundation for mathematics, 
 initially pursuing a type-free approach. However, Church's original untyped system suffered from 
-inconsistencies. To address these issues, 
+inconsistencies similar to Russell's paradox (\cite{wadler2015propositions}). To address these issues, 
 Church introduced the \textbf{Simply Typed Lambda Calculus} in 1940 (\cite{church1940formulation}).  
 This system is a version of \textbf{Simple Type Theory}, a framework able to replace 
 set-theory and propositional logic.
@@ -53,12 +74,11 @@ functional programming.
 Per Martin-L\"{o}f revolutionized type theory in the 1970s by introducing 
 \textbf{dependent types} that can depend on values of other types.
 Think for instance of a of vectors of length $n$ or a sequnce of $n$ elements.
-\textbf{Dependent Type Theory} extends the expressive power of type systems 
-by allowing the representation of quantifiers, 
-providing a framework capable of replacing set theory and predicate logic.
+\textbf{Dependent Type Theory} extends the expressive power of type systems by allowing the direct representation
+ of predicates and quantifiers (in the sense of Frege),  powerful enough to replace set theory and predicate logic."
 Dependent Type Theory is a derivation of \textbf{Martin-L\"{o}f Type Theory} 
 (also known as \textbf{Intuitionistic Type Theory}).
-Martin-L\"{o}f's system embraced constructive principles, requiring that the existence of mathematical 
+Martin-L\"{o}f's system embraced constructive (intuitionistic) principles, requiring that the existence of mathematical 
 objects be demonstrated through explicit construction rather than classical proof by contradiction. 
 Martin-L\"{o}f Type Theory also introduced \textbf{identity types} to represent equality.
 In the 1980s, Thierry Coquand and G\'{e}rard Huet introduced the \textbf{Calculus of Constructions} (CoC), 
@@ -91,7 +111,7 @@ of the reasons advanced by de Bruijn for the separation between the notions of
 type and prop in the system \cite{thompson1999types}. Lean also adopts this separation .
 \textbf{Per Martin-L\"{o}f's type theory} extended the correspondence to
 dependent types, allowing for the representation of quantifiers and identity types.
-Modern proof assistants like Coq, Lean, Agda, and Isabelle/HOL all leverage 
+Modern proof assistants like Coq, Lean, Agda, and Idris all leverage 
 variants of the Curry-Howard correspondence to enable formal verification of mathematical theorems 
 and software correctness properties.
 
