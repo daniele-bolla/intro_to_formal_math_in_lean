@@ -1,5 +1,5 @@
 
-\section{Introduction to Logic}
+\section{Classical Logic}
 
 Logic is the study of reasoning, branching into various systems.
 We refer to \textbf{classical logic} as the one that underpins much 
@@ -267,13 +267,15 @@ These quantifiers express that a given formula holds either for every object
 or for at least one object, respectively.
 
 In Lean if \lstinline[language=lean]|α| is any type, we can represent a 
-unary predicate \lstinline[language=lean]|P| on \lstinline[language=lean]|α|  as 
+predicate \lstinline[language=lean]|P| on \lstinline[language=lean]|α| as 
 an object of type \lstinline[language=lean]|α → Prop|.
-\lstinline[language=lean]|Prop| stands for \emph{proposition}, and it is an 
+\lstinline[language=lean]|Prop| stands for proposition, and it is an 
 essential component of Lean’s type system.
 For now, we can think of it as a special type; somewhat 
-paradoxically, a type of types. ( add a discussion on decidability?)
-Thus given an \lstinline[language=lean]|x : α| (an element with type signature ) should  
+paradoxically, a type of types. 
+Thus given an \lstinline[language=lean]|x : α| (an element
+with type \lstinline[language=lean]|α| ) 
+\lstinline[language=lean]|P(x) : Prop| would be transfomred to a proposition.
 
 When introducing variables into a formal language we must keep in mind that the specific choice 
 of a variable name can be substituted without 
@@ -303,7 +305,6 @@ an the free variable $x$" into the always-false statement
 To avoid capture, we must use \textbf{capture-avoiding substitution}. 
 In the above example, we would first rename the bound variable to something fresh 
 (say $z$), obtaining $\exists z.\,(z > x)$, and then safely substitute to get $\exists z.\,(z > y+1)$.
-In programming, this concept is also familiar through block-structured code and scope. 
 
 % In Lean, for instance, when you are inside a block such as a function, theorem, or section, 
 % all the variables inside this context are bound to this specific scope (block) and cannot 
@@ -312,7 +313,7 @@ We use the notation $\phi[t/x]$ for \textbf{substitution}, meaning all occurrenc
 variable $x$ in formula $\phi$ are replaced by term $t$.
 
 We can now present the inference rules for quantifiers.
-\paragraph{For all ($\forall$)}
+\paragraph{Universal Quantification ($\forall$)}
 \begin{itemize}
     \item Introduction
     \begin{prooftree}
@@ -320,99 +321,132 @@ We can now present the inference rules for quantifiers.
     \RightLabel{$\forall I$}
     \UnaryInfC{$\forall x.\,A$}
     \end{prooftree}
+    The variable $x$ must be arbitrary in the derivation of $A$. 
+    This rule captures statements like 
+    $\forall x \in \mathbb{N}$, $x$ has a successor, 
+    but would not apply to $\forall x \in \mathbb{N}$, $x$ is prime 
+    (since we cannot derive this for an arbitrary natural number).
+    
     \item Elimination
     \begin{prooftree}
     \AxiomC{$\forall x.\,A$}
     \RightLabel{$\forall E$}
     \UnaryInfC{$A[t/x]$}
     \end{prooftree}
+    The conclusion $A[t/x]$ represents the substitution of term $t$ for variable $x$ in formula $A$. 
+    From a proof of $\forall x.\,A(x)$ we can infer $A(t)$ for any term $t$.
 \end{itemize}
-\paragraph{Exixst ($\exists$)}
-  \begin{itemize}
+
+\paragraph{Existential Quantification ($\exists$)}
+\begin{itemize}
     \item Introduction
     \begin{prooftree}
     \AxiomC{$A[t/x]$}
     \RightLabel{$\exists I$}
     \UnaryInfC{$\exists x.\,A$}
     \end{prooftree}
+    The substitution premise means that if we can find a specific term $t$ for which $A(t)$ holds, 
+    then we can introduce the existential quantifier. 
+    The introduction rule requires a witness $t$ for which the predicate holds.
+    
     \item Elimination
     \begin{prooftree}
+    \AxiomC{$\exists x.\,A$}
     \AxiomC{$[A] \vdash B$}
-    \RightLabel{$\forall E$}
-    \UnaryInfC{$B$}
+    \RightLabel{$\exists E$}
+    \BinaryInfC{$B$}
     \end{prooftree}
+    To eliminate an existential quantifier, we assume $A$ holds for some witness 
+    and derive $B$ without making any assumptions about the specific witness.
 \end{itemize}
-Here i need to explain in words the mewianing odft thje subsitution iin the inference rules, 
-and the froall is a kind of 
-chain of and and exist a chain of or that neds a witness and a predicxatg proving that wirtnteess.
 
+We can give an informal reading of the quantifiers as infinite logical operations:
+\begin{align*}
+\forall x.\,A(x) &\equiv A(a) \land A(b) \land A(c) \land \ldots \\
+\exists x.\,A(x) &\equiv A(a) \lor A(b) \lor A(c) \lor \ldots
+\end{align*}
+
+The expression $\forall x.\, P(x)$ can be understood as  generalized form of implication. 
+If $P$ is any proposition, then $\forall x.\, P$ expresses that $p$ holds 
+regardless of the choice of $x$. When $p$ depends on $x$, this captures the 
+idea that we can derive $p$ from any assumption about $x$.
+Morover, there is a duality between universal and existential quantification.
+We shall develop all this dicussions further after 
+exploring their computational (type theoretical) meaning.
 
 \begin{example}
-  Lean espresses quantifiers with dependent types.
+  Lean espresses quantifiers as follow.
   \begin{lstlisting}[language=Lean, caption=For All]
   ∀ (x : X), P x
+  forall (x : X), P x -- another notation
   \end{lstlisting}
 
   \begin{lstlisting}[language=Lean, caption=Exists]
   ∃ (x : X), P x
+  exist (x : X), P x -- another notation
   \end{lstlisting}
+  Where \lstinline[language=lean]|x| is a varible with a type \lstinline[language=lean]|X|,
+  and \lstinline[language=lean]|P x| is a proposition, or predicate, holding for \lstinline[language=lean]|x|.
+
 \end{example}
 
-Under the CH correspondence, a we can get a proof of $\forall x. P(x)$ by an arbitrary $P(a)$.
-highlithing tha fact that a proof is just a function
+When introducing an \emph{existential} proof, 
+we need a \emph{pair} consisting 
+of a witness and a proof that this witness 
+satisfies the statement.
+
+\begin{lstlisting}[language=lean]
+example (x : Nat) (h : x > 0) : ∃ y, y < x :=
+  Exists.intro 0 h -- or shortly ⟨0, h⟩
+\end{lstlisting}
+The \emph{existential elimination rule} 
+(\texttt{Exists.elim}) performs the opposite operation. 
+It allows us to prove a proposition \(q\) 
+from \(\exists x : \alpha, p\,x\) by showing 
+that \(q\) follows from \(p\,w\) for an \emph{arbitrary} 
+value \(w\).
+
+Roughly speaking, since we know there is an \(x\) 
+satisfying \(p\,x\), we \emph{name} it \(w\). 
+If \(q\) does not mention \(w\), then showing that \(q\) 
+follows from \(p\,w\) is tantamount to showing \(q\) 
+follows from the existence of any such \(x\).
+
+The existential rules can be interpreted as an 
+infinite disjunction, so that existential 
+elimination corresponds to a \emph{proof by cases}. 
+In Lean, this is done via the \lstinline|match| 
+construct, known as \emph{pattern matching}, 
+a fundamental concept in functional programming.
+
+The existential rules can be interpreted as an infinite 
+disjunction, 
+so that existential elimination naturally corresponds to a \emph{proof by cases}. 
+In Lean, this reasoning is carried out using the 
+\lstinline|match| construct. 
+This mechanism is known as \emph{pattern matching}, 
+a fundamental concept in functional programming. 
+
+For example:
+\begin{lstlisting}[language=lean]
+example (h : ∃ n : Nat, n > 0) : Prop :=
+  match h with
+  | ⟨witness, proof⟩ => True  -- here we can use 'witness' and 'proof'
+\end{lstlisting}
+
+Conversely, the \emph{universal quantifier} may be regarded as a generalized function. Accordingly, in Lean, the proof of a universally quantified statement is given by constructing a function that produces a proof for each possible instance.
+
+For example:
+\begin{lstlisting}[language=lean]
+example : ∀ n : Nat, n ≥ 0 :=
+  fun n => Nat.zero_le n
+\end{lstlisting}
+
+needs a proof ot forall elminiation
 
 
 Good point for introducing polymorhpism in Lean.
-It could be nice to give a proof of transitivity and what is a relation in type theory. ( a function)
-% \textbf{Three syntactic forms:}
-% \begin{itemize}
-%     \item Explicit: \lstinline[language=lean]|∀ (x : X), P x|
-%     \item Type inference: \lstinline[language=lean]|∀ x, P x| (when Lean can infer the type)
-%     \item Implicit binding: \lstinline[language=lean]|∀ \{x : X\}, P x| (Lean infers the value automatically)
-% \end{itemize}
-
-% \textbf{Proof techniques:}
-% \begin{itemize}
-%     \item \textbf{Introduction}: Use the \lstinline[language=lean]|intro| tactic to introduce an arbitrary element
-%     \item \textbf{Elimination}: Apply the hypothesis to a specific value using function application
-%     \item \textbf{Specialization}: Use the \lstinline[language=lean]|specialize| tactic to instantiate a general hypothesis
-% \end{itemize}
-
-% \textbf{Example:}
-% \begin{verbatim}
-% theorem universal_example : ∀ (n : ℕ), n + 0 = n := by
-%   intro n
-%   rfl
-% \end{verbatim}
-
-% \subsection{Existential Quantifier (\(\exists\))}
-
-% The existential quantifier \(\exists\) states that there exists at least one element of a type for which a property holds. In Lean, it is typed as \texttt{\\exists} with the syntax:
-
-% \begin{verbatim}
-% ∃ (x : X), P x
-% \end{verbatim}
-
-% This reads as "there exists some \texttt{x} of type \texttt{X} such that \texttt{P x} holds."
-
-% \textbf{Important note:} Unlike the universal quantifier, the existential quantifier does not support implicit binding. 
-% Writing \texttt{∃ \{x : X\}, P x} results in an error.
-
-% \textbf{Internal representation:} The existential quantifier is defined as an inductive type:
-% \begin{verbatim}
-% inductive Exists.{u} : {α : Sort u} → (α → Prop) → Prop
-% constructors:
-% Exists.intro : ∀ {α : Sort u} {p : α → Prop} (w : α), p w → Exists p
-% \end{verbatim}
-
-% \textbf{Proof techniques:}
-% \begin{itemize}
-%     \item \textbf{Introduction}: Use \texttt{Exists.intro} with a witness and proof: \texttt{⟨witness, proof⟩}
-%     \item \textbf{Elimination}: Use \texttt{cases} or \texttt{match} to extract the witness and proof
-% \end{itemize}
-
-% \textbf{Example:}
-% \begin{verbatim}
-% theorem existential_example : ∃ (n : ℕ), n > 0 :=
-%   ⟨1, Nat.zero_lt_succ 0⟩
-% \end{verbatim}
+I also can talk about type ionference since i 
+haven't introduce Prop bnut used before.
+It could be nice to give a proof of transitivity and what 
+is a relation in type theory.
