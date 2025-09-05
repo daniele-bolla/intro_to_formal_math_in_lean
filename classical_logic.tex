@@ -64,32 +64,39 @@ Let's look at how we can define some connectives.
         \BinaryInfC{$A \land B$}
     \end{prooftree}
     \item Elimination
-    \begin{prooftree}
-        \AxiomC{$A \land B$}
-        \RightLabel{$\land$-Elim$_1$}
-        \UnaryInfC{$A$}
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        \AxiomC{$A \land B$}
-        \RightLabel{$\land$-Elim$_2$}
-        \UnaryInfC{$B$}
-    \end{prooftree}
+    \noindent
+      \begin{minipage}[t]{0.5\textwidth}
+        \begin{prooftree}
+          \AxiomC{$A \land B$}
+          \RightLabel{$\land$-Elim$_1$}
+          \UnaryInfC{$A$}
+        \end{prooftree}
+      \end{minipage}\hfill
+      \begin{minipage}[t]{0.5\textwidth}
+        \begin{prooftree}
+          \AxiomC{$A \land B$}
+          \RightLabel{$\land$-Elim$_2$}
+          \UnaryInfC{$B$}
+        \end{prooftree}
+      \end{minipage}
 \end{itemize}
 \paragraph{Disjunction ($\lor$)}
 \begin{itemize}
     \item Introduction
+          \begin{minipage}[t]{0.5\textwidth}
     \begin{prooftree}
         \AxiomC{$A$}
         \RightLabel{$\lor$-Intro$_1$}
         \UnaryInfC{$A \lor B$}
     \end{prooftree}
-    \qquad
+      \end{minipage}\hfill
+      \begin{minipage}[t]{0.5\textwidth}
     \begin{prooftree}
         \AxiomC{$B$}
         \RightLabel{$\lor$-Intro$_2$}
         \UnaryInfC{$A \lor B$}
     \end{prooftree}
+      \end{minipage}
     \item Elimination (Proof by cases)
     \begin{prooftree}
         \AxiomC{$A \lor B$}
@@ -144,7 +151,7 @@ For instance $A \land B$ can be presented as \lstinline[language=lean]|And(A, B)
  \lstinline[language=lean]|⟨_, _⟩| (underscore are placeholder for assumptions "functions"). 
  The pair $A \land B$ can be then consumed using elimination 
 rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.right|.
-\begin{example}
+\begin{example}\label{ex:conj_intro}
     Let's look at our first Lean example
   \begin{lstlisting}[language=lean]
     example (H_A : A) (H_B : B) : (A ∧ B) := And.intro H_A H_B
@@ -405,48 +412,50 @@ It allows us to prove a proposition \(q\)
 from \(\exists x : \alpha, p\,x\) by showing 
 that \(q\) follows from \(p\,w\) for an \emph{arbitrary} 
 value \(w\).
-
 Roughly speaking, since we know there is an \(x\) 
 satisfying \(p\,x\), we \emph{name} it \(w\). 
 If \(q\) does not mention \(w\), then showing that \(q\) 
 follows from \(p\,w\) is tantamount to showing \(q\) 
 follows from the existence of any such \(x\).
-
-The existential rules can be interpreted as an 
-infinite disjunction, so that existential 
-elimination corresponds to a \emph{proof by cases}. 
-In Lean, this is done via the \lstinline|match| 
-construct, known as \emph{pattern matching}, 
-a fundamental concept in functional programming.
-
 The existential rules can be interpreted as an infinite 
 disjunction, 
 so that existential elimination naturally corresponds to a \emph{proof by cases}. 
 In Lean, this reasoning is carried out using the 
-\lstinline|match| construct. 
+\lstinline[language=lean]|match| construct. 
 This mechanism is known as \emph{pattern matching}, 
 a fundamental concept in functional programming. 
-
 For example:
 \begin{lstlisting}[language=lean]
-example (h : ∃ n : Nat, n > 0) : Prop :=
+example (h : ∃ n : Nat, n > 0) : ∃ n : Nat, n > 0 :=
   match h with
-  | ⟨witness, proof⟩ => True  -- here we can use 'witness' and 'proof'
+  | ⟨witness, proof⟩ => ⟨witness, proof⟩
 \end{lstlisting}
 
-Conversely, the \emph{universal quantifier} may be regarded as a generalized function. Accordingly, in Lean, the proof of a universally quantified statement is given by constructing a function that produces a proof for each possible instance.
-
+Conversely, the \emph{universal quantifier} may be regarded as a generalized function.
+Accordingly, In Lean, universal elimination is simply function application.
 For example:
 \begin{lstlisting}[language=lean]
 example : ∀ n : Nat, n ≥ 0 :=
   fun n => Nat.zero_le n
 \end{lstlisting}
 
-needs a proof ot forall elminiation
+We will see later that functions are primitive objects in type theory.
+Interestingly enough a relation is expressed as ...
 
+% (Good point for introducing polymorhpism, type inference?)
 
-Good point for introducing polymorhpism in Lean.
-I also can talk about type ionference since i 
-haven't introduce Prop bnut used before.
-It could be nice to give a proof of transitivity and what 
-is a relation in type theory.
+% In the latter examples, we explicitly introduce variables with type 
+% annotations such as \lstinline[language=lean]|n : Nat|. 
+% In earlier examples, this annotation was omitted. 
+% Indeed, Lean has a powerful type inference system that allows it to 
+% infer the types of objects automatically.
+% For instance, consider Example~\ref{ex:conj_intro}:
+% \begin{lstlisting}[language=lean]
+% example (H_A : A) (H_B : B) : (A ∧ B) := And.intro H_A H_B
+% \end{lstlisting}
+% Here, the types \(A, B\) and \(A \land B\) 
+% are all inferred by Lean to belong to \(\mathtt{Prop}\).
+% Another powerfull feature is polymorhpism.
+% Given we can now express quantifier it may sometimes being usefull create 
+% expression involving quantiifers for differen t types and not just Nat for instance.
+% Polymorphims is a way to have types as vcariable. Meaning theyt can be replaced.
