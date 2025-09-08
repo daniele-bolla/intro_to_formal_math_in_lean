@@ -8,7 +8,7 @@ It's the logic of the ancient Greeks (not fair) and truthtables, and it remains
 used nowadays for pedagogical reasons.
 We first introduce \textbf{propositional logic}, which is the simplest 
 form of classical logic. 
-Later we will extend this to \textbf{first-order logic}, which includes 
+Later we will extend this to \textbf{predicate (or first-order) logic}, which includes 
 quantifiers and predicates.
 In this setting, a \textbf{proposition} is a statement that is either true or false, 
 and a \textbf{proof} is a logical argument that establishes the truth of a 
@@ -32,13 +32,13 @@ A \textbf{propositional formula} is either:
 
 We are going to describe classical logic though a formal framework 
 called \textbf{natural deduction system}  developed by
-Gentzen in the 1930s (\cite{wadler2015propositions}). It that specifies 
+Gentzen in the 1930s (\cite{wadler2015propositions}). It specifies 
 rules for deriving 
 \textbf{conclusions} from \textbf{premises} (assumptions from other propositions), 
 called \textbf{inference rules}.
 
 \begin{example}[Deductive style rule]
-Here is an hypothetical example.
+Here is an hypothetical example of inference rule.
 \begin{prooftree}
   \AxiomC{$P_1$}
   \AxiomC{$P_2$}
@@ -46,7 +46,7 @@ Here is an hypothetical example.
   \AxiomC{$P_n$}
   \QuaternaryInfC{$C$}
 \end{prooftree}
-where the premises $P_1, P_2, \ldots, P_n$ and the conclusion $C$.
+Where the $P_1, P_2, \ldots, P_n$, above the line, are hypothetical premises and, the hypothetical conclusion $C$ is below the line.
 \end{example}
 The inference rules needed are:
 \begin{itemize}
@@ -125,7 +125,7 @@ Let's look at how we can define some connectives.
 
 \begin{notation}
 We use $A \vdash B$ (called turnstile) to designate a deduction of $B$ from $A$. 
-It is employed in Gentzen’s \emph{sequent calculus} (\cite{girard1989proofs}), 
+It is employed in Gentzen’s \textbf{sequent calculus} (\cite{girard1989proofs}), 
 whereas in natural deduction the corresponding symbol is\[
 \begin{array}{c}
 A \\
@@ -148,7 +148,7 @@ Lean has its own syntax for connectives and their relative inference rules.
 For instance $A \land B$ can be presented as \lstinline[language=lean]|And(A, B)| or \lstinline[language=lean]|A ∧ B|,
 . Its untroduction rule is constructed by
  \lstinline[language=lean]|And.intro _ _| or shortly
- \lstinline[language=lean]|⟨_, _⟩| (underscore are placeholder for assumptions "functions"). 
+ \lstinline[language=lean]|⟨_, _⟩| (underscore are placeholder for assumptions or "propositional functions"). 
  The pair $A \land B$ can be then consumed using elimination 
 rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.right|.
 \begin{example}\label{ex:conj_intro}
@@ -249,7 +249,7 @@ represents our logical implication.
 The \lstinline[language=lean]|:=| operator introduces the 
 proof term that establishes the theorem's validity. 
 In the previous code example this proof was directly given.
-Here, we construct it using the a function with the \lstinline[language=lean]|fun| keyword. 
+Here, we construct it using a function with the \lstinline[language=lean]|fun| keyword. 
 Why a function? We have already encountered the Curry-Howard correspondence in Lean 
 previously, though without explicitly stating it. 
 According to this correspondence, a proof of an implication can be 
@@ -258,7 +258,7 @@ the desired conclusion as output. We will revisit this concept in more
 detail later.
 The \lstinline[language=lean]|have| keyword introduces local 
 lemmas within our proof scope, allowing us to break down complex 
-reasoning into manageable intermediate steps, mirroring our natural deduction proof.
+reasoning into manageable intermediate steps, mirroring our natural deduction proof of before.
 Finally, the \lstinline[language=lean]|show| keyword presents our final result. 
 \end{example}
 
@@ -267,12 +267,11 @@ propositional logic to \textbf{predicate logic}.
 A \textbf{predicate} is a statement or proposition that depends on a variable.
 In propositional logic we represent a proposition simply by $P$.  
 In predicate logic, this is generalized: a predicate is written as $P(a)$, 
-where $a$ is a variable. Notice that a predicate is just a fuicntion.
+where $a$ is a variable. Notice that a predicate is just a function.
 This extension allows us to introduce \textbf{quantifiers}:  
 $\forall$ (``for all'') and $\exists$ (``there exists'').  
 These quantifiers express that a given formula holds either for every object 
 or for at least one object, respectively.
-
 In Lean if \lstinline[language=lean]|α| is any type, we can represent a 
 predicate \lstinline[language=lean]|P| on \lstinline[language=lean]|α| as 
 an object of type \lstinline[language=lean]|α → Prop|.
@@ -282,7 +281,7 @@ For now, we can think of it as a special type; somewhat
 paradoxically, a type of types. 
 Thus given an \lstinline[language=lean]|x : α| (an element
 with type \lstinline[language=lean]|α| ) 
-\lstinline[language=lean]|P(x) : Prop| would be transfomred to a proposition.
+\lstinline[language=lean]|P(x) : Prop| would be representative of a proposition holding for \lstinline[language=lean]|x|.
 
 When introducing variables into a formal language we must keep in mind that the specific choice 
 of a variable name can be substituted without 
@@ -293,9 +292,7 @@ Some variables are \textbf{bound} (constrained), while others remain \textbf{fre
 When substituting variables, it is important to ensure that this distinction is preserved.
 This phenomenon, called \textbf{variable capture}, parallels familiar mathematical practice: 
 if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$, then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, 
-not the ill-defined $\int_1^2 \frac{dt}{t-t}$. The same principle applies to logic.
-Variable capture occurs when a free variable becomes bound by a quantifier during substitution, 
-fundamentally changing the meaning of the expression. For example, consider
+not the ill-defined $\int_1^2 \frac{dt}{t-t}$. The same principle applies to predicate logic. For example, consider
 \[
 \exists y.\,(y > x).
 \]
@@ -305,20 +302,12 @@ If we naively substitute $y+1$ for $x$, we would obtain
 \exists y.\,(y > y+1),
 \]
 where the $y$ in $y+1$ has been \textbf{captured} by the quantifier $\exists y$. 
-This transforms the original statement from "there exists some $y$ greater th
-an the free variable $x$" into the always-false statement 
+This transforms the original statement from "there exists some $y$ greater than the free variable $x$" into the always-false statement 
 "there exists some $y$ greater than itself plus one."
-
-To avoid capture, we must use \textbf{capture-avoiding substitution}. 
-In the above example, we would first rename the bound variable to something fresh 
-(say $z$), obtaining $\exists z.\,(z > x)$, and then safely substitute to get $\exists z.\,(z > y+1)$.
-
-% In Lean, for instance, when you are inside a block such as a function, theorem, or section, 
-% all the variables inside this context are bound to this specific scope (block) and cannot 
-% be referenced outside. 
+To avoid the probelm, in the above example, we would first rename the bound variable to something fresh 
+say $z$, obtaining $\exists z.\,(z > x)$, and then safely substitute to get $\exists z.\,(z > y+1)$.
 We use the notation $\phi[t/x]$ for \textbf{substitution}, meaning all occurrences of the free 
-variable $x$ in formula $\phi$ are replaced by term $t$.
-
+variable $x$ in formulab (or expression) $\phi$ are replaced by term $t$.
 We can now present the inference rules for quantifiers.
 \paragraph{Universal Quantification ($\forall$)}
 \begin{itemize}
@@ -333,7 +322,6 @@ We can now present the inference rules for quantifiers.
     $\forall x \in \mathbb{N}$, $x$ has a successor, 
     but would not apply to $\forall x \in \mathbb{N}$, $x$ is prime 
     (since we cannot derive this for an arbitrary natural number).
-    
     \item Elimination
     \begin{prooftree}
     \AxiomC{$\forall x.\,A$}
@@ -343,7 +331,6 @@ We can now present the inference rules for quantifiers.
     The conclusion $A[t/x]$ represents the substitution of term $t$ for variable $x$ in formula $A$. 
     From a proof of $\forall x.\,A(x)$ we can infer $A(t)$ for any term $t$.
 \end{itemize}
-
 \paragraph{Existential Quantification ($\exists$)}
 \begin{itemize}
     \item Introduction
@@ -355,7 +342,6 @@ We can now present the inference rules for quantifiers.
     The substitution premise means that if we can find a specific term $t$ for which $A(t)$ holds, 
     then we can introduce the existential quantifier. 
     The introduction rule requires a witness $t$ for which the predicate holds.
-    
     \item Elimination
     \begin{prooftree}
     \AxiomC{$\exists x.\,A$}
@@ -372,9 +358,8 @@ We can give an informal reading of the quantifiers as infinite logical operation
 \forall x.\,A(x) &\equiv A(a) \land A(b) \land A(c) \land \ldots \\
 \exists x.\,A(x) &\equiv A(a) \lor A(b) \lor A(c) \lor \ldots
 \end{align*}
-
 The expression $\forall x.\, P(x)$ can be understood as  generalized form of implication. 
-If $P$ is any proposition, then $\forall x.\, P$ expresses that $p$ holds 
+If $P$ is any proposition, then $\forall x.\, P$ expresses that $P$ holds 
 regardless of the choice of $x$. When $p$ depends on $x$, this captures the 
 idea that we can derive $p$ from any assumption about $x$.
 Morover, there is a duality between universal and existential quantification.
@@ -387,51 +372,47 @@ exploring their computational (type theoretical) meaning.
   ∀ (x : X), P x
   forall (x : X), P x -- another notation
   \end{lstlisting}
-
   \begin{lstlisting}[language=Lean, caption=Exists]
   ∃ (x : X), P x
   exist (x : X), P x -- another notation
   \end{lstlisting}
   Where \lstinline[language=lean]|x| is a varible with a type \lstinline[language=lean]|X|,
   and \lstinline[language=lean]|P x| is a proposition, or predicate, holding for \lstinline[language=lean]|x|.
-
 \end{example}
 
-When introducing an \emph{existential} proof, 
-we need a \emph{pair} consisting 
+When introducing an \textbf{existential} proof, 
+we need a \textbf{pair} consisting 
 of a witness and a proof that this witness 
 satisfies the statement.
-
 \begin{lstlisting}[language=lean]
 example (x : Nat) (h : x > 0) : ∃ y, y < x :=
   Exists.intro 0 h -- or shortly ⟨0, h⟩
 \end{lstlisting}
-The \emph{existential elimination rule} 
-(\texttt{Exists.elim}) performs the opposite operation. 
+The \textbf{existential elimination rule} 
+( \lstinline[language=lean]|Exists.elim|) performs the opposite operation. 
 It allows us to prove a proposition \(q\) 
 from \(\exists x : \alpha, p\,x\) by showing 
-that \(q\) follows from \(p\,w\) for an \emph{arbitrary} 
+that \(q\) follows from \(p\,w\) for an \textbf{arbitrary} 
 value \(w\).
 Roughly speaking, since we know there is an \(x\) 
-satisfying \(p\,x\), we \emph{name} it \(w\). 
+satisfying \(p\,x\), we \textbf{name} it \(w\). 
 If \(q\) does not mention \(w\), then showing that \(q\) 
 follows from \(p\,w\) is tantamount to showing \(q\) 
 follows from the existence of any such \(x\).
 The existential rules can be interpreted as an infinite 
 disjunction, 
-so that existential elimination naturally corresponds to a \emph{proof by cases}. 
-In Lean, this reasoning is carried out using the 
-\lstinline[language=lean]|match| construct. 
-This mechanism is known as \emph{pattern matching}, 
-a fundamental concept in functional programming. 
-For example:
+so that existential elimination naturally corresponds to a \textbf{proof by cases} (with only one single case). 
+In Lean, this reasoning is carried out using \textbf{pattern matching}, 
+a known mechanism in functional programming for dealing with cases,  
+with \lstinline[language=lean]|let| or \lstinline[language=lean]|match|, as well as by using \lstinline[language=lean]|cases| or 
+\lstinline[language=lean]|rcases| construct. 
+For example
 \begin{lstlisting}[language=lean]
 example (h : ∃ n : Nat, n > 0) : ∃ n : Nat, n > 0 :=
   match h with
   | ⟨witness, proof⟩ => ⟨witness, proof⟩
 \end{lstlisting}
-
-Conversely, the \emph{universal quantifier} may be regarded as a generalized function.
+The \textbf{universal quantifier} may be regarded as a generalized function.
 Accordingly, In Lean, universal elimination is simply function application.
 For example:
 \begin{lstlisting}[language=lean]
@@ -439,9 +420,20 @@ example : ∀ n : Nat, n ≥ 0 :=
   fun n => Nat.zero_le n
 \end{lstlisting}
 
-We will see later that functions are primitive objects in type theory.
-Interestingly enough a relation is expressed as ...
+Functions are primitive objects in type theory.
+For example it is interesting to note that a relation is expressed as a function.
+\lstinline[language=lean]|R : α → α → Prop|.
+Let's 
 
+\begin{lstlisting}[language=lean]
+def Transitive (α : Type) (R : α → α → Prop) : Prop :=
+  ∀ x y z, R x y → R y z → R x z
+\end{lstlisting}
+Proof of transitivity for the less-than relation on \(\mathbb{N}\):
+\begin{lstlisting}[language=lean]
+theorem lt_trans_proof : Transitive (· < · : Nat → Nat → Prop) :=
+  fun x y z h1 h2 => Nat.lt_trans h1 h2
+\end{lstlisting}
 % (Good point for introducing polymorhpism, type inference?)
 
 % In the latter examples, we explicitly introduce variables with type 

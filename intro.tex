@@ -51,15 +51,14 @@ Creating a language like Lean requirev careful consideration of which rules and 
 We shall give a brief overview of the historical development of type theory, and an a introduction on 
 what comes next.
 
-(The following historical intro is insbyured by \cite{carneiro2019typetheorylean} intro)
+(From \cite{carneiro2019typetheorylean} Introduction)
 Type theory emerged as a fundamental response to Bertrand Russell's paradox. 
 Considers the set $S = \{x \mid x \notin x\}$ 
 (the set of all sets that do not contain themselves). This is a paradoxical construction, 
 leading to the contradiction $S \in S \iff S \notin S$. 
 Ernst Zermelo and Fraenkel addressed the contradiction by introducing Zermelo-Fraenkel set theory (ZFC), 
 which became the standard in modern mathematics. 
-ZFC provides an untyped but stratified view of the mathematical universe, 
-maintaining classical logical principles while avoiding paradoxes through careful axiomatization.
+ZFC maintains Set theory and \textbf{classical logical} principles while avoiding paradoxes through careful axiomatization.
 Russell chose a fundamentally different path. He recognized expressions 
 like $A(A)$ or $x \in x$ as ill-typed, introducing his theory of types.
 Hs's first systematic response was \textbf{Ramified Type Theory}, wich turned out to be problematic.
@@ -74,12 +73,14 @@ Lambda calculus influenced the development of many programming languages as bein
 functional programming.
 Per Martin-L\"{o}f revolutionized type theory in the 1970s by introducing 
 \textbf{dependent types} that can depend on values of other types.
-Think for instance of a of vectors of length $n$ or a sequnce of $n$ elements.
-\textbf{Dependent Type Theory} extends the expressive power of type systems by allowing the direct representation
- of predicates and quantifiers (in the sense of Frege),  powerful enough to replace set theory and predicate logic."
+Think for instance of a of vectors of length $n$ or a sequence of $n$ elements.
+\textbf{Dependent Type Theory} extends the expressive power of type systems by allowing the 
+direct representation of predicates and quantifiers (in the sense of Frege), 
+powerful enough to replace set theory and predicate logic.
 Dependent Type Theory is a derivation of \textbf{Martin-L\"{o}f Type Theory} 
 (also known as \textbf{Intuitionistic Type Theory}).
-Martin-L\"{o}f's system embraced constructive (intuitionistic) principles, requiring that the existence of mathematical 
+Martin-L\"{o}f's system embraced constructive (intuitionistic) principles, 
+requiring that the existence of mathematical 
 objects be demonstrated through explicit construction rather than classical proof by contradiction. 
 Martin-L\"{o}f Type Theory also introduced \textbf{identity types} to represent equality.
 In the 1980s, Thierry Coquand and G\'{e}rard Huet introduced the \textbf{Calculus of Constructions} (CoC), 
@@ -109,7 +110,7 @@ which was the first working proof checker and demonstrated the practical viabili
 proof verification. Amongst its technical innovations are a discussion of the
 irrelevance of proofs when working in a classical context, which is one
 of the reasons advanced by de Bruijn for the separation between the notions of 
-type and prop in the system \cite{thompson1999types}. Lean also adopts this separation .
+\textbf{type} and \textbf{prop} in the system \cite{thompson1999types}. Lean also adopts this separation.
 \textbf{Per Martin-L\"{o}f's type theory} extended the correspondence to
 dependent types, allowing for the representation of quantifiers and identity types.
 Modern proof assistants like Coq, Lean, Agda, and Idris all leverage 
