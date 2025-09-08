@@ -261,7 +261,6 @@ lemmas within our proof scope, allowing us to break down complex
 reasoning into manageable intermediate steps, mirroring our natural deduction proof of before.
 Finally, the \lstinline[language=lean]|show| keyword presents our final result. 
 \end{example}
-
 To capture more complex mathematical ideas, we extend our system from 
 propositional logic to \textbf{predicate logic}.  
 A \textbf{predicate} is a statement or proposition that depends on a variable.
@@ -352,7 +351,6 @@ We can now present the inference rules for quantifiers.
     To eliminate an existential quantifier, we assume $A$ holds for some witness 
     and derive $B$ without making any assumptions about the specific witness.
 \end{itemize}
-
 We can give an informal reading of the quantifiers as infinite logical operations:
 \begin{align*}
 \forall x.\,A(x) &\equiv A(a) \land A(b) \land A(c) \land \ldots \\
@@ -365,7 +363,6 @@ idea that we can derive $p$ from any assumption about $x$.
 Morover, there is a duality between universal and existential quantification.
 We shall develop all this dicussions further after 
 exploring their computational (type theoretical) meaning.
-
 \begin{example}
   Lean espresses quantifiers as follow.
   \begin{lstlisting}[language=Lean, caption=For All]
@@ -379,7 +376,6 @@ exploring their computational (type theoretical) meaning.
   Where \lstinline[language=lean]|x| is a varible with a type \lstinline[language=lean]|X|,
   and \lstinline[language=lean]|P x| is a proposition, or predicate, holding for \lstinline[language=lean]|x|.
 \end{example}
-
 When introducing an \textbf{existential} proof, 
 we need a \textbf{pair} consisting 
 of a witness and a proof that this witness 
@@ -394,11 +390,6 @@ It allows us to prove a proposition \(q\)
 from \(\exists x : \alpha, p\,x\) by showing 
 that \(q\) follows from \(p\,w\) for an \textbf{arbitrary} 
 value \(w\).
-Roughly speaking, since we know there is an \(x\) 
-satisfying \(p\,x\), we \textbf{name} it \(w\). 
-If \(q\) does not mention \(w\), then showing that \(q\) 
-follows from \(p\,w\) is tantamount to showing \(q\) 
-follows from the existence of any such \(x\).
 The existential rules can be interpreted as an infinite 
 disjunction, 
 so that existential elimination naturally corresponds to a \textbf{proof by cases} (with only one single case). 
@@ -419,35 +410,64 @@ For example:
 example : ∀ n : Nat, n ≥ 0 :=
   fun n => Nat.zero_le n
 \end{lstlisting}
-
 Functions are primitive objects in type theory.
-For example it is interesting to note that a relation is expressed as a function.
-\lstinline[language=lean]|R : α → α → Prop|.
-Let's 
-
+For instance, the type of the identity function is written as 
+\lstinline[language=lean]|α → α|, where 
+\lstinline[language=lean]|α| is a type variable. 
+This indicates that the function is polymorphic: it has the same type for 
+both its domain and codomain. In practice, this means it can be 
+applied to booleans (returning a boolean), numbers (returning a number), 
+functions (returning a function), and so on.
+In the same spirit, we can define a transitivity proof of a polymorphic relation as follows:
 \begin{lstlisting}[language=lean]
 def Transitive (α : Type) (R : α → α → Prop) : Prop :=
   ∀ x y z, R x y → R y z → R x z
 \end{lstlisting}
-Proof of transitivity for the less-than relation on \(\mathbb{N}\):
+To use \lstinline[language=lean]|Transitive|, we must provide both the type \lstinline[language=lean]|α| and the relation itself. For example, here is a proof of transitivity for the less-than relation on $\mathbb{N}$:
 \begin{lstlisting}[language=lean]
-theorem lt_trans_proof : Transitive (· < · : Nat → Nat → Prop) :=
+theorem lt_trans_proof : Transitive Nat (· ≤ · : Nat → Nat → Prop) :=
   fun x y z h1 h2 => Nat.lt_trans h1 h2
 \end{lstlisting}
-% (Good point for introducing polymorhpism, type inference?)
+Looking at this code, we immediately notice that explicitly passing the type argument \lstinline[language=lean]|Nat| is somewhat repetitive. Lean allows us to omit it by letting the type inference mechanism fill it in automatically. This is achieved by using \emph{implicit arguments} with curly brackets:
+\begin{lstlisting}[language=lean]
+def Transitive {α : Type} (R : α → α → Prop) : Prop :=
+  ∀ x y z, R x y → R y z → R x z
+\end{lstlisting}
+With this change, the same example becomes more concise:
+\begin{lstlisting}[language=lean]
+theorem lt_trans_proof : Transitive (· ≤ · : Nat → Nat → Prop) :=
+  fun x y z h1 h2 => Nat.lt_trans h1 h2
+\end{lstlisting}
+Lean's type inference system is quite powerful: in many cases, types can be completely inferred without explicit annotations. For instance, in earlier examples, Lean automatically inferred that the types of $A$, $B$, and $C$ were \lstinline[language=lean]|Prop|.
+Let us now revisit the transitivity proof, but this time for the less-than relation on the real numbers instead of the natural numbers:
+\begin{lstlisting}[language=lean]
+theorem real_lt_trans_proof : Transitive (· ≤ · : ℝ → ℝ → Prop) :=
+  fun x y z h1 h2 => le_trans h1 h2
+\end{lstlisting}
+Here, \lstinline[language=lean]|ℝ| denotes the real numbers in Lean 
+, and \lstinline[language=lean]|lt_trans| is the general transitivity theorem 
+for the less-than relation.
 
-% In the latter examples, we explicitly introduce variables with type 
-% annotations such as \lstinline[language=lean]|n : Nat|. 
-% In earlier examples, this annotation was omitted. 
-% Indeed, Lean has a powerful type inference system that allows it to 
-% infer the types of objects automatically.
-% For instance, consider Example~\ref{ex:conj_intro}:
+% We can discuss preorders in mathlib 
+% \url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html#Preorder}:
+
 % \begin{lstlisting}[language=lean]
-% example (H_A : A) (H_B : B) : (A ∧ B) := And.intro H_A H_B
+% theorem le_trans {α : Type u_1} [Preorder α] {a b c : α} :
+%   a ≤ b → b ≤ c → a ≤ c
+%  -- The relation ≤ on a preorder is transitive.
 % \end{lstlisting}
-% Here, the types \(A, B\) and \(A \land B\) 
-% are all inferred by Lean to belong to \(\mathtt{Prop}\).
-% Another powerfull feature is polymorhpism.
-% Given we can now express quantifier it may sometimes being usefull create 
-% expression involving quantiifers for differen t types and not just Nat for instance.
-% Polymorphims is a way to have types as vcariable. Meaning theyt can be replaced.
+
+% The \textbf{square brackets} \lstinline[language=lean]|[Preorder α]| in this theorem represent \emph{type class instances}. These are implicit arguments that Lean automatically infers through its type class inference system. When you write \lstinline[language=lean]|[Preorder α]|, you're telling Lean: ``find an instance of the \lstinline[language=lean]|Preorder| type class for type \lstinline[language=lean]|α|.''
+
+% Type classes in Lean provide a way to define overloaded 
+% operations and structured mathematical objects. 
+% The \lstinline[language=lean]|Preorder| class 
+% defines a reflexive and transitive relation 
+% \lstinline[language=lean]|≤| along with the derived strict 
+% ordering \lstinline[language=lean]|≤|. When Lean encounters 
+% \lstinline[language=lean]|[Preorder α]|, it automatically s
+% earches for and provides the appropriate preorder structure for 
+% the specific type \lstinline[language=lean]|α| you're working with.
+
+% \textbf{Mathlib} is the community-driven mathematical library for Lean 4, containing nearly two million lines of formalized mathematics. It provides:
+
