@@ -276,8 +276,10 @@ predicate \lstinline[language=lean]|P| on \lstinline[language=lean]|α| as
 an object of type \lstinline[language=lean]|α → Prop|.
 \lstinline[language=lean]|Prop| stands for proposition, and it is an 
 essential component of Lean’s type system.
-For now, we can think of it as a special type; somewhat 
+For now, we can think of it as a special type whose 
+inhabitants are proofs; somewhat 
 paradoxically, a type of types. 
+\lstinline|Prop| stands for \emph{proposition}, and it is an essential component of Lean’s type system.
 Thus given an \lstinline[language=lean]|x : α| (an element
 with type \lstinline[language=lean]|α| ) 
 \lstinline[language=lean]|P(x) : Prop| would be representative of a proposition holding for \lstinline[language=lean]|x|.
@@ -305,8 +307,10 @@ This transforms the original statement from "there exists some $y$ greater than 
 "there exists some $y$ greater than itself plus one."
 To avoid the probelm, in the above example, we would first rename the bound variable to something fresh 
 say $z$, obtaining $\exists z.\,(z > x)$, and then safely substitute to get $\exists z.\,(z > y+1)$.
-We use the notation $\phi[t/x]$ for \textbf{substitution}, meaning all occurrences of the free 
-variable $x$ in formulab (or expression) $\phi$ are replaced by term $t$.
+\begin{notation}
+  We use the notation $\phi[t/x]$ for \textbf{substitution}, meaning all occurrences of the free 
+  variable $x$ in formula (or expression) $\phi$ are replaced by term $t$.
+\end{notation}
 We can now present the inference rules for quantifiers.
 \paragraph{Universal Quantification ($\forall$)}
 \begin{itemize}
@@ -358,8 +362,8 @@ We can give an informal reading of the quantifiers as infinite logical operation
 \end{align*}
 The expression $\forall x.\, P(x)$ can be understood as  generalized form of implication. 
 If $P$ is any proposition, then $\forall x.\, P$ expresses that $P$ holds 
-regardless of the choice of $x$. When $p$ depends on $x$, this captures the 
-idea that we can derive $p$ from any assumption about $x$.
+regardless of the choice of $x$. When $P$ is a predicate, depending on $x$, this captures the 
+idea that we can derive $P$ from any assumption about $x$.
 Morover, there is a duality between universal and existential quantification.
 We shall develop all this dicussions further after 
 exploring their computational (type theoretical) meaning.
@@ -386,10 +390,10 @@ example (x : Nat) (h : x > 0) : ∃ y, y < x :=
 \end{lstlisting}
 The \textbf{existential elimination rule} 
 ( \lstinline[language=lean]|Exists.elim|) performs the opposite operation. 
-It allows us to prove a proposition \(q\) 
-from \(\exists x : \alpha, p\,x\) by showing 
-that \(q\) follows from \(p\,w\) for an \textbf{arbitrary} 
-value \(w\).
+It allows us to prove a proposition $Q$ 
+from $\exists x, P(x)$ by showing 
+that $Q$  follows from $P(w)$  for an \textbf{arbitrary} 
+value $w$.
 The existential rules can be interpreted as an infinite 
 disjunction, 
 so that existential elimination naturally corresponds to a \textbf{proof by cases} (with only one single case). 
@@ -411,14 +415,19 @@ example : ∀ n : Nat, n ≥ 0 :=
   fun n => Nat.zero_le n
 \end{lstlisting}
 Functions are primitive objects in type theory.
-For instance, the type of the identity function is written as 
+For example, it is interesting to note that a relation can be expressed as a function:
+\lstinline[language=lean]|R : α → α → Prop|.
+Similarly, when defining a predicate we must first declare 
+\lstinline[language=lean]|α : Type| to be some arbitrary type. 
+This is what is called \textbf{polymorphism}.
+The type of the identity function is written as 
 \lstinline[language=lean]|α → α|, where 
 \lstinline[language=lean]|α| is a type variable. 
-This indicates that the function is polymorphic: it has the same type for 
-both its domain and codomain. In practice, this means it can be 
+It has the same type for 
+both its domain and codomain, this means it can be 
 applied to booleans (returning a boolean), numbers (returning a number), 
 functions (returning a function), and so on.
-In the same spirit, we can define a transitivity proof of a polymorphic relation as follows:
+In the same spirit, we can define a transitivity property of a relation as follows:
 \begin{lstlisting}[language=lean]
 def Transitive (α : Type) (R : α → α → Prop) : Prop :=
   ∀ x y z, R x y → R y z → R x z
