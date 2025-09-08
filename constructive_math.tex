@@ -1,64 +1,58 @@
 
-\section{Constructive mathematics}
+\section{Constructive Mathematics}
 
 Mathematicians have traditionally worked within \textbf{classical logic}, 
 using \textbf{sets} as the primary means of structuring mathematical objects. 
 In contrast, \textbf{type theory} does not take sets as its primitive notion, 
-nor is it built by first positing logic and then adding structure. 
-Instead, logic is internal to type theory and based on \textbf{constructive logic} 
-(also known as \textbf{intuitionistic logic}, 
-introduced by Brouwer and formalized by Heyting from \cite{girard1989proofs}).
-
+nor is it built by first applying logic and then adding structure. 
+Instead, logic is internal to type theory and is based on constructive (intuitionistic) 
+logic, introduced by Brouwer, formalized by Heyting (see, e.g., \cite{girard1989proofs}).
 A major point of departure from classical logic is that, in constructive logic, 
 statements cannot simply be classified as true or false; 
 their truth depends on whether a proof exists. 
-Indeed, there are many theorems for which we do not know whether such a 
-proof can be found ands thuis we don't know whterh they can be truwe or false statemnats.
-
-
-Consequentely constructiver logic does not universally accept principles such as the \textbf{the axiom of choice} or  \textbf{law of excluded middle} 
-(every proposition is either true or false)as axioms. 
-As a consequence a proof by conmtraddiction will not work in this setting.
-Constructive logic emphasizes that a statement is only considered true if we can explicitly construct 
+There are many conjectures, such as the Riemann Hypothesis, 
+for which we do not yet know whether a proof or disproof exists, 
+so we cannot say whether they are true or false.
+Consequentely constructiver logic does not universally accept principles such 
+as the \textbf{the axiom of choice} or \textbf{law of excluded middle} 
+(every proposition is either true or false) as axioms. 
+As a consequence a proof by contraddiction will not work in this setting.
+Constructive logic emphasizes that a statement is only 
+considered true if we can explicitly construct 
 a proof or provide a \textbf{witness} for it.
 This is what makes constructive mathematics inherently \textbf{computable}, 
 and it has important consequences for how we work in type theory and, by extension, 
 in Lean.
-
+We already touched on this concept in the previous section. 
+In particular, we presented the logical connectives via the 
+Brouwer–Heyting–Kolmogorov (BHK) interpretation and emphasized that, constructively, 
+a proof of existence consists of a pair: 
+a witness together with a proof that the stated property holds for that witness.
 \begin{example}
     We give a constructive proof in Lean that there exist natural numbers $a$ and $b$ such that $a + b = 7$:
-
     \begin{lstlisting}[language=Lean]
     example : ∃ a b : Nat, a + b = 7 := by
       use 3
       use 4
     \end{lstlisting}
-
-    \textit{use} is a tactic (to be explained shortly) that must be imported from the external 
+    \textit{use} is a tactic that must be imported from the external 
     library \textbf{Mathlib}. It assigns the value $3$ to $a$ and $4$ to $b$.  
     Lean will then automatically evaluate the expression and verify that both sides are equal.  
     This example is simple enough for Lean to infer the final step on its own.
-
 \end{example}
 This example should be readable even if you have never worked with Lean.
-\lstinline|Nat| stands for the Natural numbers amd we can interpreted 
-the semin colon as the familiar membership symbol $\in$, 
-and read it as $\exists a, b \in \mathbb{N}$ such that $a + b = 7$.
+It reads: $\exists a, b \in \mathbb{N}$ such that $a + b = 7$.
 The operator \lstinline|:=| expect a proof of such a statment.
 Using \lstinline|by| we enter Lean \textbf{tactic mode}.
-This mode comes with an info view showing the goal to solve and proof structure.
-Tactics like \lstinline|use| are command or instructions programmed
-
-In classical mathematics, one might attempt a proof by contradiction. However, this approach is not 
-directly accepted in constructive mathematics, as it doesn't provide explicit witnesses for the claimed objects.
-
-Nonetheless, Lean includes a powerful \textbf{tactic mode} and a growing ecosystem of 
-user-contributed extensions that simplify proof development and reduce repetition. 
-While constructive at its core, Lean allows users to invoke classical principles, 
+\lstinline|use| is a tactic used for dealing with existential quantifiers imported from Mathlib.
+In classical mathematics, one might attempt a proof by contradiction. 
+However, this approach is not 
+directly accepted in constructive mathematics, as it doesn't provide 
+explicit witnesses for the claimed objects.
+Nonetheless, while constructive at its core, Lean allows users to invoke classical principles, 
 such as contraposition or proof by contradiction, through tactics like \lstinline|exfalso|. 
 Thanks to these functionalities, Lean ensures that such reasoning can be translated 
 into a constructive form aka term mode. 
-
 \begin{example}
 Here an example of proving something by contraddiction:
    \begin{lstlisting}[language=Lean]
@@ -67,21 +61,19 @@ Here an example of proving something by contraddiction:
       · exact h
 \end{lstlisting} 
 The \textbf{example} takes a proposition $p$ to prove and a false hypothesis $h$.  
-If we move our cursor just after the \textbf{by} keyword, Lean's infoview will show that the current goal is to prove the proposition $p$, i.e., $\vdash p$.  
+If we move our cursor just after the \textbf{by} keyword, Lean's infoview will show 
+that the current goal is to prove the proposition $p$, i.e., $\vdash p$.  
 The tactic \textbf{exfalso} transforms the goal into $\vdash \mathsf{False}$, which means we now need to derive a contradiction, in other words, we must provide something that leads to $\mathsf{False}$.  
 For the sake of the example, we already have a false hypothesis $h$, which can be "applied" using the \textbf{exact} tactic.
-
 \end{example}
 
-Some key principles of constructive math include:
+Some key principles of constructive math include: (From Naive Type Theory)
 \begin{itemize}
     \item $P \lor \neg P$ is not allowed in general.
     \item $\forall (x: \mathbb{N}) . (\text{isPrime}(x) \lor \neg \text{isPrime}(x))$ works because primality is a decidable property.
     \item $\forall (x: \mathbb{N}) . (\text{isProgram}(x) \lor \neg \text{isProgram}(x))$ is not decidable.
     \item $\neg \neg P \to P$ is allowed because it can be constructively proven (Negative Translation).
 \end{itemize}
-
-
-Bower showed thet there are amany historical probelm also in real analysuis using the axiom of 
-choice form instance. and dewmostratesd that it can be anyway siolved still elegenatly wiothj constructive reasonins
-\cite{thompson1999types}
+% Bower showed thet there are amany historical probelm also in real analysuis using the axiom of 
+% choice form instance. and dewmostratesd that it can be anyway siolved still elegenatly wiothj constructive reasonins
+% \cite{thompson1999types}

@@ -1,5 +1,5 @@
 
-\section{Classical Logic}
+\section{Propositional and Predicate Logic}
 
 Logic is the study of reasoning, branching into various systems.
 We refer to \textbf{classical logic} as the one that underpins much 
@@ -380,40 +380,45 @@ exploring their computational (type theoretical) meaning.
   Where \lstinline[language=lean]|x| is a varible with a type \lstinline[language=lean]|X|,
   and \lstinline[language=lean]|P x| is a proposition, or predicate, holding for \lstinline[language=lean]|x|.
 \end{example}
-When introducing an \textbf{existential} proof, 
-we need a \textbf{pair} consisting 
-of a witness and a proof that this witness 
-satisfies the statement.
-\begin{lstlisting}[language=lean]
+
+\begin{example}[Existential introduction in Lean]
+  When introducing an \textbf{existential} proof, 
+  we need a \textbf{pair} consisting 
+  of a witness and a proof that this witness 
+  satisfies the statement.
+  \begin{lstlisting}[language=lean]
 example (x : Nat) (h : x > 0) : ∃ y, y < x :=
   Exists.intro 0 h -- or shortly ⟨0, h⟩
 \end{lstlisting}
+\end{example}
 The \textbf{existential elimination rule} 
 ( \lstinline[language=lean]|Exists.elim|) performs the opposite operation. 
 It allows us to prove a proposition $Q$ 
 from $\exists x, P(x)$ by showing 
 that $Q$  follows from $P(w)$  for an \textbf{arbitrary} 
 value $w$.
-The existential rules can be interpreted as an infinite 
-disjunction, 
-so that existential elimination naturally corresponds to a \textbf{proof by cases} (with only one single case). 
-In Lean, this reasoning is carried out using \textbf{pattern matching}, 
-a known mechanism in functional programming for dealing with cases,  
-with \lstinline[language=lean]|let| or \lstinline[language=lean]|match|, as well as by using \lstinline[language=lean]|cases| or 
-\lstinline[language=lean]|rcases| construct. 
-For example
-\begin{lstlisting}[language=lean]
-example (h : ∃ n : Nat, n > 0) : ∃ n : Nat, n > 0 :=
-  match h with
-  | ⟨witness, proof⟩ => ⟨witness, proof⟩
-\end{lstlisting}
-The \textbf{universal quantifier} may be regarded as a generalized function.
+\begin{example}[Existential elimination in Lean]
+  The existential rules can be interpreted as an infinite 
+  disjunction, 
+  so that existential elimination naturally corresponds to a \textbf{proof by cases} (with only one single case). 
+  In Lean, this reasoning is carried out using \textbf{pattern matching}, 
+  a known mechanism in functional programming for dealing with cases,  
+  with \lstinline[language=lean]|let| or \lstinline[language=lean]|match|, as well as by using \lstinline[language=lean]|cases| or 
+  \lstinline[language=lean]|rcases| construct. 
+  \begin{lstlisting}[language=lean]
+  example (h : ∃ n : Nat, n > 0) : ∃ n : Nat, n > 0 :=
+    match h with
+    | ⟨witness, proof⟩ => ⟨witness, proof⟩
+  \end{lstlisting}
+\end{example}
+\begin{example}
+  The \textbf{universal quantifier} may be regarded as a generalized function.
 Accordingly, In Lean, universal elimination is simply function application.
-For example:
 \begin{lstlisting}[language=lean]
 example : ∀ n : Nat, n ≥ 0 :=
   fun n => Nat.zero_le n
 \end{lstlisting}
+\end{example}
 Functions are primitive objects in type theory.
 For example, it is interesting to note that a relation can be expressed as a function:
 \lstinline[language=lean]|R : α → α → Prop|.
@@ -437,46 +442,60 @@ To use \lstinline[language=lean]|Transitive|, we must provide both the type \lst
 theorem lt_trans_proof : Transitive Nat (· ≤ · : Nat → Nat → Prop) :=
   fun x y z h1 h2 => Nat.lt_trans h1 h2
 \end{lstlisting}
-Looking at this code, we immediately notice that explicitly passing the type argument \lstinline[language=lean]|Nat| is somewhat repetitive. Lean allows us to omit it by letting the type inference mechanism fill it in automatically. This is achieved by using \emph{implicit arguments} with curly brackets:
+Looking at this code, we immediately notice that explicitly 
+passing the type argument \lstinline[language=lean]|Nat| is somewhat repetitive. 
+Lean allows us to omit it by letting the type inference mechanism fill it in automatically.
+ This is achieved by using \emph{implicit arguments} with curly brackets:
 \begin{lstlisting}[language=lean]
 def Transitive {α : Type} (R : α → α → Prop) : Prop :=
   ∀ x y z, R x y → R y z → R x z
-\end{lstlisting}
-With this change, the same example becomes more concise:
-\begin{lstlisting}[language=lean]
+
 theorem lt_trans_proof : Transitive (· ≤ · : Nat → Nat → Prop) :=
-  fun x y z h1 h2 => Nat.lt_trans h1 h2
+  fun x y z h1 h2 => Nat.le_trans h1 h2 -- le_trans constructs the transitivity proof as an instance from Nat.  
 \end{lstlisting}
-Lean's type inference system is quite powerful: in many cases, types can be completely inferred without explicit annotations. For instance, in earlier examples, Lean automatically inferred that the types of $A$, $B$, and $C$ were \lstinline[language=lean]|Prop|.
-Let us now revisit the transitivity proof, but this time for the less-than relation on the real numbers instead of the natural numbers:
+Lean's type inference system is quite powerful: in many cases, types can be completely 
+inferred without explicit annotations. For instance, in earlier examples, Lean automatically 
+inferred that the types of $A$, $B$, and $C$ were \lstinline[language=lean]|Prop|.
+Let us now revisit the transitivity proof, but this time for the less-than-equal relation on 
+the real numbers instead.
 \begin{lstlisting}[language=lean]
-theorem real_lt_trans_proof : Transitive (· ≤ · : ℝ → ℝ → Prop) :=
-  fun x y z h1 h2 => le_trans h1 h2
+import Mathlib
+
+theorem real_lt_trans : Transitive (· ≤ · : ℝ → ℝ → Prop) :=
+  fun _ _ _ h1 h2 => le_trans h1 h2
 \end{lstlisting}
-Here, \lstinline[language=lean]|ℝ| denotes the real numbers in Lean 
-, and \lstinline[language=lean]|lt_trans| is the general transitivity theorem 
-for the less-than relation.
+Here, \lstinline[language=lean]|ℝ| denotes the real numbers in Lean, 
+and \lstinline[language=lean]|le_trans| is the general transitivity lemma 
+for \lstinline[language=lean]|≤| (it works for any Ordered Set). 
+We import Mathlib to access \lstinline[language=lean]|ℝ| and \lstinline[language=lean]|le_trans|. Mathlib is the community‑driven mathematical 
+library for Lean, containing a large body of formalized mathematics and ongoing development.
+Notice that we used a function to discharge the universal 
+quantifiers required by transitivity. The underscores indicate 
+unnamed variables that we do not use later. If we had named 
+them, say \lstinline|x y z|, then:
+\lstinline[language=lean]|h1| would be a proof of \lstinline[language=lean]|x ≤ y|,
+\lstinline[language=lean]|h2| would be a proof of \lstinline[language=lean]|y ≤ z|,
+and \lstinline[language=lean]|le_trans h1 h2| produces a proof of \lstinline[language=lean]|x ≤ z|.
 
-% We can discuss preorders in mathlib 
-% \url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html#Preorder}:
+\begin{example}
+  The code can be made more readable using tactic mode. 
+  This mode comes with an info view showing the goal to solve and proof structure.
+  In this mode, you use tactics, commands provided by Lean or defined by users,
+  to carry out proof steps succinctly, avoid code repetition, 
+  and automate common patterns. 
+  This often yields shorter, clearer proofs than writing the full term by hand.
+  \begin{lstlisting}[language=lean]
+  import Mathlib
 
-% \begin{lstlisting}[language=lean]
-% theorem le_trans {α : Type u_1} [Preorder α] {a b c : α} :
-%   a ≤ b → b ≤ c → a ≤ c
-%  -- The relation ≤ on a preorder is transitive.
-% \end{lstlisting}
-
-% The \textbf{square brackets} \lstinline[language=lean]|[Preorder α]| in this theorem represent \emph{type class instances}. These are implicit arguments that Lean automatically infers through its type class inference system. When you write \lstinline[language=lean]|[Preorder α]|, you're telling Lean: ``find an instance of the \lstinline[language=lean]|Preorder| type class for type \lstinline[language=lean]|α|.''
-
-% Type classes in Lean provide a way to define overloaded 
-% operations and structured mathematical objects. 
-% The \lstinline[language=lean]|Preorder| class 
-% defines a reflexive and transitive relation 
-% \lstinline[language=lean]|≤| along with the derived strict 
-% ordering \lstinline[language=lean]|≤|. When Lean encounters 
-% \lstinline[language=lean]|[Preorder α]|, it automatically s
-% earches for and provides the appropriate preorder structure for 
-% the specific type \lstinline[language=lean]|α| you're working with.
-
-% \textbf{Mathlib} is the community-driven mathematical library for Lean 4, containing nearly two million lines of formalized mathematics. It provides:
+  theorem real_le_trans : Transitive (· ≤ · : ℝ → ℝ → Prop) := by
+    intro x y z hxy hyz
+    exact le_trans hxy hyz
+  \end{lstlisting}
+  This proof performs the same steps but is much easier to read. 
+  Using \lstinline[language=lean]|by| we enter Lean’s tactic mode, which (with the info view) 
+  shows the current goal and context. The tactic \lstinline[language=lean]|intro| introduces 
+  the variables and hypotheses corresponding to the universal quantifiers 
+  and assumptions, and \lstinline[language=lean]|exact| closes the goal 
+  by supplying the term \lstinline[language=lean]|le_trans hxy hyz|.
+\end{example}
 
