@@ -422,10 +422,10 @@ example : ∀ n : Nat, n ≥ 0 :=
 Functions are primitive objects in type theory.
 For example, it is interesting to note that a relation can be expressed as a function:
 \lstinline[language=lean]|R : α → α → Prop|.
-Similarly, when defining a predicate we must first declare 
+Similarly, when defining a predicate (\lstinline[language=lean]|P : α → Prop|) we must first declare 
 \lstinline[language=lean]|α : Type| to be some arbitrary type. 
 This is what is called \textbf{polymorphism}.
-The type of the identity function is written as 
+A canonical example is the identity function, written as 
 \lstinline[language=lean]|α → α|, where 
 \lstinline[language=lean]|α| is a type variable. 
 It has the same type for 
@@ -437,46 +437,55 @@ In the same spirit, we can define a transitivity property of a relation as follo
 def Transitive (α : Type) (R : α → α → Prop) : Prop :=
   ∀ x y z, R x y → R y z → R x z
 \end{lstlisting}
-To use \lstinline[language=lean]|Transitive|, we must provide both the type \lstinline[language=lean]|α| and the relation itself. For example, here is a proof of transitivity for the less-than relation on $\mathbb{N}$:
+To use \lstinline[language=lean]|Transitive|, we must provide both the type 
+\lstinline[language=lean]|α| and the relation itself. 
+For example, here is a proof of transitivity for the less-than relation on
+ $\mathbb{N}$ ( in Lean \lstinline[language=lean]|Nat| or \lstinline[language=lean]|ℕ|):
 \begin{lstlisting}[language=lean]
-theorem lt_trans_proof : Transitive Nat (· ≤ · : Nat → Nat → Prop) :=
-  fun x y z h1 h2 => Nat.lt_trans h1 h2
+theorem le_trans_proof : Transitive Nat (· ≤ · : Nat → Nat → Prop) :=
+  fun x y z h1 h2 => Nat.le_trans h1 h2 -- this lemma is provided by Lean 
 \end{lstlisting}
 Looking at this code, we immediately notice that explicitly 
 passing the type argument \lstinline[language=lean]|Nat| is somewhat repetitive. 
 Lean allows us to omit it by letting the type inference mechanism fill it in automatically.
- This is achieved by using \emph{implicit arguments} with curly brackets:
+ This is achieved by using \textbf{implicit arguments} with curly brackets:
 \begin{lstlisting}[language=lean]
 def Transitive {α : Type} (R : α → α → Prop) : Prop :=
   ∀ x y z, R x y → R y z → R x z
 
-theorem lt_trans_proof : Transitive (· ≤ · : Nat → Nat → Prop) :=
-  fun x y z h1 h2 => Nat.le_trans h1 h2 -- le_trans constructs the transitivity proof as an instance from Nat.  
+theorem le_trans_proof : Transitive (· ≤ · : Nat → Nat → Prop) :=
+  fun x y z h1 h2 => Nat.le_trans h1 h2 
 \end{lstlisting}
 Lean's type inference system is quite powerful: in many cases, types can be completely 
 inferred without explicit annotations. For instance, in earlier examples, Lean automatically 
 inferred that the types of $A$, $B$, and $C$ were \lstinline[language=lean]|Prop|.
 Let us now revisit the transitivity proof, but this time for the less-than-equal relation on 
-the real numbers instead.
+the rational numbers (\lstinline[language=lean]|Rat| or \lstinline[language=lean]|ℚ|) instead.
 \begin{lstlisting}[language=lean]
 import Mathlib
 
-theorem real_lt_trans : Transitive (· ≤ · : ℝ → ℝ → Prop) :=
-  fun _ _ _ h1 h2 => le_trans h1 h2
+theorem rat_le_trans : Transitive (· ≤ · :   Rat → Rat → Prop) :=
+  fun _ _ _ h1 h2 => Rat.le_trans h1 h2
 \end{lstlisting}
-Here, \lstinline[language=lean]|ℝ| denotes the real numbers in Lean, 
-and \lstinline[language=lean]|le_trans| is the general transitivity lemma 
-for \lstinline[language=lean]|≤| (it works for any Ordered Set). 
-We import Mathlib to access \lstinline[language=lean]|ℝ| and \lstinline[language=lean]|le_trans|. Mathlib is the community‑driven mathematical 
-library for Lean, containing a large body of formalized mathematics and ongoing development.
+Here, \lstinline[language=lean]|Rat| denotes the rational numbers in Lean, 
+and \lstinline[language=lean]|Rat.le_trans| is the transitivity lemma 
+for \lstinline[language=lean]|≤| on rational numbers, provided by Mathlib.
+We import Mathlib to access \lstinline[language=lean]|Rat| 
+and \lstinline[language=lean]|le_trans|. 
+Mathlib is the community‑driven mathematical 
+library for Lean, containing a large body of formalized mathematics 
+and ongoing development.
+It is the de
+facto standard library for both programming and proving
+in Lean \cite{mathlib2020}, we will dig into it as we go along.
 Notice that we used a function to discharge the universal 
 quantifiers required by transitivity. The underscores indicate 
 unnamed variables that we do not use later. If we had named 
 them, say \lstinline|x y z|, then:
 \lstinline[language=lean]|h1| would be a proof of \lstinline[language=lean]|x ≤ y|,
 \lstinline[language=lean]|h2| would be a proof of \lstinline[language=lean]|y ≤ z|,
-and \lstinline[language=lean]|le_trans h1 h2| produces a proof of \lstinline[language=lean]|x ≤ z|.
-
+and \lstinline[language=lean]|Rat.le_trans h1 h2| produces a proof of \lstinline[language=lean]|x ≤ z|.
+The \lstinline[language=lean]|Transitive| definition is imported from Mathlib and similarly defined as before. 
 \begin{example}
   The code can be made more readable using tactic mode. 
   This mode comes with an info view showing the goal to solve and proof structure.
@@ -487,15 +496,307 @@ and \lstinline[language=lean]|le_trans h1 h2| produces a proof of \lstinline[lan
   \begin{lstlisting}[language=lean]
   import Mathlib
 
-  theorem real_le_trans : Transitive (· ≤ · : ℝ → ℝ → Prop) := by
+  theorem rat_le_trans : Transitive (· ≤ · : Rat → Rat → Prop) := by
     intro x y z hxy hyz
     exact le_trans hxy hyz
   \end{lstlisting}
   This proof performs the same steps but is much easier to read. 
-  Using \lstinline[language=lean]|by| we enter Lean’s tactic mode, which (with the info view) 
-  shows the current goal and context. The tactic \lstinline[language=lean]|intro| introduces 
+  Using \lstinline[language=lean]|by| we enter Lean’s tactic mode, 
+  which (with the info view) 
+  shows the current goal and context. 
+  Move your cursosr just before \lstinline[language=lean]|by|
+  and observe the info view change. 
+  The goal is shwon displayed \lstinline[language=lean]|⊢ Transitive fun x1 x2 ↦ x1 ≤ x2| at first.
+  The tactic \lstinline[language=lean]|intro| introduces 
   the variables and hypotheses corresponding to the universal quantifiers 
-  and assumptions, and \lstinline[language=lean]|exact| closes the goal 
-  by supplying the term \lstinline[language=lean]|le_trans hxy hyz|.
+  and assumptions.
+  Now position your cursor just before \lstinline[language=lean]|exact|
+  and observe the info view again. 
+  The goal is now \lstinline[language=lean]|⊢ x ≤ z|, with the context 
+  showing the variables ans hypothesis introduced by the previous tactic.
+  \lstinline[language=lean]|exact| closes the goal 
+  by supplying the term \lstinline[language=lean]|Rat.le_trans hxy hyz| that matches with the goal
+  (the specification of \lstinline[language=lean]|Trqansitive|  ).
+  You can over each tactic to see its definition and documentation.
 \end{example}
+In these examples we havec used predeined lemmas such as 
+\lstinline[language=lean]|Nat.le_trans| and
+\lstinline[language=lean]|Rat.le_trans|, just to simplify the presentation.
+We can now dig in to the implementation of these lemmas.
+Let’s look at the source code of \lstinline[language=lean]|Rat.le_trans|.
+The Mathlib 4 documentation website is at:
+\url{https://leanprover-community.github.io/mathlib4_docs}, and
+The documentation for 
+\lstinline[language=lean]|Rat.le_trans| is at:
+\url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Order/Ring/Unbundled/Rat.html#Rat.le_trans}
+Click the “source” link there to jump to the implementation in the Mathlib repository. In editors like 
+VS Code you can also jump directly to the definition (Ctrl-click; Cmd-click on macOS).
+Lean has built-in types \texttt{Nat} (natural numbers), \texttt{Int} (integers), 
+and \texttt{Rat} (rational numbers). While Lean provides basic arithmetic and 
+order relations for these types, many advanced properties and theorems live in Mathlib.
+\begin{lstlisting}[language=lean]
+  -- mathlib4/Mathlib/Algebra/Order/Ring/Unbundled/Rat.lean
+variable (a b c : Rat)
+  -- ...
+protected lemma le_trans (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
+  rw [Rat.le_iff_sub_nonneg] at hab hbc
+  have := Rat.add_nonneg hab hbc
+  simp_rw [sub_eq_add_neg, add_left_comm (b + -a) c (-b), add_comm (b + -a) (-b),
+    add_left_comm (-b) b (-a), add_comm (-b) (-a), add_neg_cancel_comm_assoc,
+    ← sub_eq_add_neg] at this
+  rwa [Rat.le_iff_sub_nonneg]
+\end{lstlisting}
+The proof uses several tactics and lemmas from Mathlib. You can follow 
+the proof step by step using the info view in tactic mode, by piositioning the cursor
+on each line and observing the changes in the goal and context.
+The \lstinline[language=lean]|rw| or \lstinline[language=lean]|rewrite| tactic  
+is very common and sintactically similar to
+the mathematical practice of rewriting an expression using an equality.
+In this case, with \lstinline[language=lean]|at|, we use it to rewrite the 
+hypotheses \lstinline[language=lean]|hab| 
+and \lstinline[language=lean]|hbc|
+using the another Mathlib's lemma \lstinline[language=lean]|Rat.le_iff_sub_nonneg|, 
+which states that for any two rational numbers \lstinline[language=lean]|x| and
+\lstinline[language=lean]|y|, \lstinline[language=lean]|x ≤ y| 
+is equivalent to \lstinline[language=lean]|0 ≤ y - x|.
+Thus we now have the hypotheses tranformerd to :  
+\begin{lstlisting}[language=lean]
+  hab : 0 ≤ b - a
+  hbc : 0 ≤ c - b
+\end{lstlisting}
+The \lstinline[language=lean]|have| tactic introduces an intermediate result. If you omit a name, Lean assigns it the default name \lstinline[language=lean]|this|. In our situation, from \lstinline[language=lean]|hab : a ≤ b| and \lstinline[language=lean]|hbc : b ≤ c| we can derive that \lstinline[language=lean]|b - a| and \lstinline[language=lean]|c - b| are nonnegative, hence their sum is nonnegative:
+\begin{lstlisting}[language=lean]
+this : 0 ≤ b - a + (c - b)
+\end{lstlisting}
+The most involved step uses \lstinline[language=lean]|simp_rw| to 
+simplify the expression via a sequence of other existing Mathlib's lemmas. 
+The tactic \lstinline[language=lean]|simp_rw| is a variant of \lstinline[language=lean]|simp|: it performs rewriting using the simp set (and any lemmas you provide), applying the rules in order and in the given direction. Lemmas that \lstinline[language=lean]|simp| can use are typically marked with the \lstinline[language=lean]|@[simp]| attribute. This is particularly useful for simplifying algebraic expressions and equations.
+After these simplifications we obtain:
+\begin{lstlisting}[language=lean]
+this : 0 ≤ c - a
+\end{lstlisting}
+Clearly, the proof relies mostly on \lstinline[language=lean]|Rat.add_nonneg|. 
+Its source code is fairly involved and uses advanced features 
+that are beyond our current scope. Nevertheless, it highlights 
+an important aspect of formal mathematics in Mathlib.
+Mathlib defines \lstinline[language=lean]|Rat| as an instance of 
+a linear ordered field, implemented via a normalized fraction 
+representation: a pair of integers (numerator and denominator) 
+with positive denominator and coprime numerator and denominator \cite{mathlibdoc}. 
+To achieve this, it uses a \textbf{structure}. In Lean, a structure is a dependent record type 
+used to group together related fields or properties as a single data type.
+Unlike ordinary records, the type of later fields may depend on the values of earlier ones.
+Defining a structure automatically introduces a constructor (usually mk) and projection 
+functions that retrieve (deconstruct) the values of its fields.
+Structures may also include proofs expressing properties that the fields must satisfy.
 
+\begin{lstlisting}[language=lean]
+  structure Rat where
+  /-- Constructs a rational number from components.
+  We rename the constructor to `mk'` to avoid a clash with the smart constructor. -/
+  mk' ::
+  /-- The numerator of the rational number is an integer. -/
+  num : Int
+  /-- The denominator of the rational number is a natural number. -/
+  den : Nat := 1
+  /-- The denominator is nonzero. -/
+  den_nz : den ≠ 0 := by decide
+  /-- The numerator and denominator are coprime: it is in "reduced form". -/
+  reduced : num.natAbs.Coprime den := by decide
+  ...
+\end{lstlisting}
+In order to work with rational numbers in Mathlib, we use the
+\lstinline[language=lean]|Rat.mk'| constructor to create a rational number from
+its numerator and denominator.
+The fields \lstinline[language=lean]|den_nz| and \lstinline[language=lean]|reduced| are proofs that 
+the denominator is nonzero and that the numerator and denominator are coprime, respectively. 
+These proofs are automatically generated by Lean's \lstinline[language=lean]|decide| tactic, which can 
+solve certain decidable propositions (to be discussed in the next section).
+When working with rational numbers, or more generally with structures, we must provide the 
+required proofs as arguments to the constructor.
+In the case of rationals, Mathlib unfolds the definition through
+\lstinline[language=lean]|Rat.numDenCasesOn|. This principle states that, to prove a property of an 
+arbitrary rational number, it suffices to consider numbers of the form \lstinline[language=lean]|n /. d| 
+in canonical (normalized) form, with \lstinline[language=lean]|d > 0| and \lstinline[language=lean]|gcd n d = 1|.
+This reduction allows mathlib to transform proofs about \lstinline[language=lean]|ℚ| 
+into proofs about \lstinline[language=lean]|ℤ| and \lstinline[language=lean]|ℕ|, 
+and then lift the result back to rationals.
+\begin{example}
+  I will present a simplified version of this implementation.
+  \begin{lstlisting}[language=lean]
+import Mathlib
+
+open Rat 
+
+lemma add_nonneg_simplified : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
+  intro ha hb
+  -- Convert hypotheses to numerator conditions
+  rw [← num_nonneg] at ha hb
+  -- Express rationals in divInt form and apply addition formula
+  rw [← num_divInt_den a, ← num_divInt_den b, divInt_add_divInt]
+  -- Use divInt_nonneg_iff_of_pos_right to reduce to integer arithmetic
+  · rw [divInt_nonneg_iff_of_pos_right]
+    · -- Prove numerator ≥ 0
+      exact Int.add_nonneg (Int.mul_nonneg ha (Int.natCast_nonneg _))
+                           (Int.mul_nonneg hb (Int.natCast_nonneg _))
+    · -- Prove denominator > 0
+      norm_cast
+      exact Nat.mul_pos (Nat.pos_of_ne_zero a.den_nz) (Nat.pos_of_ne_zero b.den_nz)
+  · norm_cast; exact a.den_nz
+  norm_cast; exact b.den_nz
+
+\end{lstlisting}
+In this version, we open the 
+\lstinline[language=lean]|Rat| \textbf{namespace} to access its definitions and lemmas directly (Notice that i use \lstinline[language=lean]|num_nonneg| instead of 
+\lstinline[language=lean]|Rat.le_iff_sub_nonneg| in the next line).
+The proof begins by introducing the hypotheses \lstinline[language=lean]|ha| and \lstinline[language=lean]|hb|
+that \lstinline[language=lean]|a| and \lstinline[language=lean]|b| are nonnegative.
+The \lstinline[language=lean]|rw| tactic rewrites these hypotheses using the lemma
+\lstinline[language=lean]|num_nonneg|, which states that a rational number
+is nonnegative if and only if its numerator is nonnegative. 
+We use \lstinline[language=lean]|←| to indicate the direction of rewriting (from right to left).
+Next, we express the rational numbers in terms of their numerator and denominator using
+\lstinline[language=lean]|num_divInt_den|, and apply the addition formula
+for rational numbers represented as \lstinline[language=lean]|divInt_add_divInt|.
+The goal is then to prove that the resulting numerator is nonnegative.
+\lstinline[language=lean]|num_divInt_den| transofms a rational number \lstinline[language=lean]|r| 
+into the form \lstinline[language=lean]|r.num /. ↑r.den|. The ↑ symbol denotes
+the coercion from natural numbers to integers. 
+We use \lstinline[language=lean]|divInt_nonneg_iff_of_pos_right| to reduce this to proving that the 
+numerator is nonnegative, given that the denominator is positive.
+This requires two subgoals: proving the numerator is nonnegative and the denominator is positive.
+For the numerator, we use \lstinline[language=lean]|Int.add_nonneg|
+to show that the sum of two nonnegative integers is nonnegative.
+For the denominator, we first translate the problem from integers to natural numbers, using \lstinline[language=lean]|norm_cast|.
+and use \lstinline[language=lean]|Nat.mul_pos| to show that the product of two positive natural numbers is positive.
+Finally, we use \lstinline[language=lean]|norm_cast| to handle the necessary type casts between integers 
+and natural numbers automatically.
+Lean encourages the separate subgoals with \lstinline[language=lean]|·| and proper indentation, 
+making the corresponding proof more readable.
+\end{example}
+We made extensive use of type casting and coercions in this proof, handled by 
+the \lstinline[language=lean]|norm_cast| tactic,wich requires some explanation (\cite{lewis_madelaine_simplifying_casts_coercions_2020}).
+Lean type system lack of subtypes means that types like \lstinline[language=lean]|Nat|, 
+\lstinline[language=lean]|Int|, and \lstinline[language=lean]|Rat|
+are distinct and do not have a subtype relationship.
+In order to translate between these types, we need to use explicit type casts or coercions.
+For example, natural numbers (\lstinline[language=lean]|Nat|) can be coerced to integers (\lstinline[language=lean]|Int|) and integers can be coerced
+to rational numbers (\lstinline[language=lean]|Rat|).
+The \lstinline[language=lean]|norm_cast| tactic simplifies expressions involving such coercions
+by normalizing them, making it easier to reason about mixed-type expressions.
+It  will be otherwise a long and tedious process to manually insert and manage 
+these coercions throughout the proof.
+\lstinline[language=lean]|norm_cast| is another example of a tactic that leverages 
+Lean's metaprogramming capabilities to automate common proof patterns. 
+(I CAN DISCUSS THIS FURTHER IF NEEDED).
+
+The theorem previously used with natural numbers, \lstinline[language=lean]|Nat.le_trans|, 
+is part of Lean’s internal library at /lean/Init/Prelude.lean. 
+Mathlib is built on top of this base library.
+More generally, the transitivity property holds not only for naturals but also for integers, 
+reals, and, in fact, for any partially ordered set. 
+Mathlib provides a general lemma \lstinline[language=lean]|le_trans| for any type 
+\lstinline[language=lean]|α| equipped with the appropriate \lstinline[language=lean]|[Preorder]| structure .
+This is achieved through type classes, Lean’s mechanism for defining and working with 
+abstract algebraic structures in an ad hoc polymorphic manner.
+Type classes provide a powerful and flexible way to specify properties and 
+operations that can be shared across different types, thereby enabling 
+polymorphism and code reuse.
+Ad hoc polymorphism arises when a function is defined over several distinct types, 
+with behavior that varies depending on the type. A standard example (\cite{wadler_blott_ad_hoc_polymorphism_1988}) is overloaded 
+multiplication: the same symbol denotes multiplication of integers 
+(e.g. \lstinline[language=lean]|3 * 3|) and of floating-point numbers 
+(e.g. \lstinline[language=lean]|3.14 * 3.14|).
+By contrast, parametric polymorphism occurs when a function is defined over a 
+range of types but acts uniformly on each of them. For instance, the length 
+function applies in the same way to a list of integers and to a list of 
+floatingpoints.
+under the hood a Type classe is a structure. an importastn aspoect of strucutres,
+ad nd hence type classes, is that they are powerdd bu hierarchy and composition.
+For example, a group is a monoid with inverses, and a ring is an abelian group with a second 
+operation that distributes over the first. In Lean, we can express this
+by defining a \lstinline[language=lean]|Group| structure that extends 
+the \lstinline[language=lean]|Monoid| structure, 
+and a \lstinline[language=lean]|Ring| structure 
+that extends the \lstinline[language=lean]|Group| structure. 
+using the \lstinline[language=lean]|extends| keyword.
+\begin{lstlisting}[language=lean, caption=Group and Ring Structures in Lean]
+structure Monoid (α : Type*) where
+  mul : α → α → α
+  one : α
+  mul_assoc : ∀ a b c : α, mul (mul a b) c = mul a (mul b c)
+  one_mul : ∀ a : α, mul one a = a
+  mul_one : ∀ a : α, mul a one = a  
+
+structure Group (α : Type*) extends Monoid α where
+  inv : α → α
+  mul_left_inv : ∀ a : α, mul (inv a) a = one     
+  -- Additional group axioms can be added here  
+structure Ring (α : Type*) extends Group α where
+  add : α → α → α
+  zero : α
+  add_assoc : ∀ a b c : α, add (add a b) c = add a (add b c)
+  zero_add : ∀ a : α, add zero
+  add_zero : ∀ a : α, add a zero = a
+  add_comm : ∀ a b : α, add a b = add b a     
+
+  mul_add : ∀ a b c : α, mul a (add b c) = add (mul a b) (mul a c)
+  add_mul : ∀ a b c : α, mul (add a b) c = add (mul a c) (mul b c)
+  zero_mul : ∀ a :  α, mul zero a = zero
+  mul_zero : ∀ a : α, mul a zero = zero                               
+
+\end{lstlisting}
+This hierarchical approach allows us to build complex algebraic structures from simpler ones,
+reusing definitions and theorems along the way.
+Type classes are defined using the \lstinline[language=lean]|class| keyword, which is syntactic sugar for defining a structure.
+They can include fields (data) and methods (functions or properties) that instances of the class
+must implement.
+Instances of a type class can be automatically inferred by Lean's type inference system,
+allowing for concise and expressive code.
+This mechanism is particularly useful for defining and working with algebraic structures,
+such as groups, rings, and fields, as well as order structures like preorders and partial
+
+A partially ordered set consists of a set \lstinline[language=lean]|P| and a binary relation \lstinline[language=lean]|≤| 
+on P that is transitive and reflexive (\cite{mathinlean} Structures)
+
+\begin{lstlisting}[language=lean, caption=Preorder Type Class in Lean]
+-- A preorder is a reflexive, transitive relation `≤` with `a < b` defined in the obvious way.
+class Preorder (α : Type*) extends LE α, LT α where
+  le_refl : ∀ a : α, a ≤ a
+  le_trans : ∀ a b c : α, a ≤ b → b ≤ c → a ≤ c
+  lt := fun a b => a ≤ b ∧ ¬ b ≤ a
+  lt_iff_le_not_ge : ∀ a b : α, a < b ↔ a ≤ b ∧ ¬ b ≤ a := by intros; rfl
+
+instance [Preorder α] : Lean.Grind.Preorder α where
+  le_refl := Preorder.le_refl
+  le_trans := Preorder.le_trans _ _ _
+  lt_iff_le_not_le := Preorder.lt_iff_le_not_ge _ _
+\end{lstlisting}
+
+\subsection*{Explanation}
+
+\begin{itemize}
+ \item The \texttt{class Preorder} declares a type class over a type 
+ \(\alpha\), bundling the \(\leq\) and \(<\) relations 
+ (inherited via \texttt{extends LE alpha, LT alpha}) with the
+  preorder axioms: reflexivity (\texttt{le\_refl}) and 
+  transitivity (\texttt{le\_trans}).
+ \item The strict order \texttt{lt} is defined by 
+ \(a \le b \iff a \leq b \land \neg(b \leq a)\).
+ \item The theorem \texttt{lt\_iff\_le\_not\_ge} provides a characterization of the strict order, proved automatically (\texttt{by intros; rfl}).
+ \item The \texttt{instance} declaration connects the \texttt{Preorder} class to Lean’s \texttt{Grind} tactic automation, which allows automatic reasoning with preorder properties.
+ \item Type classes facilitate \emph{automatic instance inference} in Lean, enabling overloaded notations and highly reusable mathematical abstractions.
+\end{itemize}
+
+This design pattern is the foundation of Lean’s powerful mathematical library, allowing complex abstract algebraic and order structures to be expressed succinctly and compositionally.
+
+\section*{References}
+
+\begin{enumerate}
+ \item \textit{Lean Reference Manual: Type Classes}. \url{https://lean-lang.org/doc/reference/latest/Type-Classes/} [Accessed Sep 2025] \label{ref:lean-type-classes}
+ \item Floris Van Doorn, \textit{Functional Programming in Lean: Type Classes and Polymorphism}. \url{https://leanprover.github.io/functional_programming_in_lean/type-classes/polymorphism.html} [Accessed Sep 2025] \label{ref:fp-lean-typeclasses}
+ \item Mathlib Documentation, \textit{Mathlib.Order.Defs}, Lean community. \url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html} [Accessed Sep 2025] \label{ref:mathlib-order-defs}
+ \item \textit{Lean 4.23.0 Release Notes}. \url{https://lean-lang.org/doc/reference/4.23.0-rc2/releases/v4.23.0/} [Accessed Sep 2025] \label{ref:lean-release}
+ \item M. Carneiro et al., \textit{Use and abuse of instance parameters in the Lean Mathematical Library}, 2022. \url{https://arxiv.org/pdf/2202.01629.pdf} [Accessed Sep 2025] \label{ref:instance-abuse}
+ \item Lean.Meta.Tactic.Grind Documentation. \url{https://leanprover-community.github.io/mathlib4_docs/Init/Grind/Tactics.html} [Accessed Sep 2025] \label{ref:grind-tactic}
+\end{enumerate}

@@ -77,3 +77,21 @@ Some key principles of constructive math include: (From Naive Type Theory)
 % Bower showed thet there are amany historical probelm also in real analysuis using the axiom of 
 % choice form instance. and dewmostratesd that it can be anyway siolved still elegenatly wiothj constructive reasonins
 % \cite{thompson1999types}
+
+I can connect the discssion to Mathlib and Lean:
+ - computability and decidability in Lean ( the decidable typeclass in Mathlib )
+ decide tactics noncomputable keyword
+  - constructive proofs and classical reasoning in Lean
+  - constructive analysis in Lean ( real numbers in Mathlib, constructive reals in Lean 4 )
+  - discuss Set in Lean 4 and Mathlib 
+  - inverse function and axiom of choise
+  - extensional vs intensional?
+  - FinSet in Mathlib that relates to computability and decidability
+
+Reasoning about finite sets computationally requires having a procedure to test equality
+on \lstinline[language=lean]|α|, which is why the snippet below 
+includes the assumption \lstinline[language=lean]|[DecidableEq α]|. 
+For concrete data types like N, Z,
+and Q, the assumption is satisfied automatically. 
+When reasoning about the real numbers, it can be satisfied using classical
+logic and abandoning the computational interpretation
