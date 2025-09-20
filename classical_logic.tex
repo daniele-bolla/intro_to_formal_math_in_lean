@@ -745,21 +745,23 @@ using the \lstinline[language=lean]|extends| keyword.
 structure Semigroup (α : Type*) where
   mul : α → α → α
   mul_assoc : ∀ a b c : α, mul (mul a b) c = mul a (mul b c)
-
 -- A monoid extends semigroup with an identity element  
 structure Monoid (α : Type*) extends Semigroup α where
   one : α
   one_mul : ∀ a : α, mul one a = a
   mul_one : ∀ a : α, mul a one = a  
-
 -- A group extends monoid with inverses
 structure Group (α : Type*) extends Monoid α where
   inv : α → α
   mul_left_inv : ∀ a : α, mul (inv a) a = one     
 \end{lstlisting}
 
-This hierarchical approach allows us to build complex algebraic structures from simpler ones,
-reusing definitions and theorems along the way.
+The symbol \lstinline[language=lean]|*| on  \lstinline[language=lean]|(α : Type*)| 
+indicates a universe variable (we will discuss universes later). Sometimes, 
+in order to avoid
+inconsistencies between types (like Girard's paradox), universes must be specified explicitly. 
+This is an example
+of universe polymorphism, thus we have seen all the polymorphism flavors in Lean.
 Type classes are defined using the \lstinline[language=lean]|class| keyword, 
 which is syntactic sugar for defining a structure.
 The differnce is that type classes support \textbf{instance resolution}, using the keyword 
@@ -792,7 +794,6 @@ instance [Preorder α] : Lean.Grind.Preorder α where
   lt_iff_le_not_le := Preorder.lt_iff_le_not_ge _ _
 \end{lstlisting}
 
-
   The \texttt{class Preorder} declares a type class over a type 
  \(\alpha\), bundling the \(\leq\) and \(<\) relations 
  (inherited via \texttt{extends LE alpha, LT alpha}) with the
@@ -806,13 +807,13 @@ instance [Preorder α] : Lean.Grind.Preorder α where
 This design pattern is the foundation of Lean’s powerful mathematical library, 
 allowing complex abstract algebraic and order structures to be expressed succinctly and compositionally.
 
-\section*{References}
+% \section*{References}
 
-\begin{enumerate}
- \item \textit{Lean Reference Manual: Type Classes}. \url{https://lean-lang.org/doc/reference/latest/Type-Classes/} [Accessed Sep 2025] \label{ref:lean-type-classes}
- \item Floris Van Doorn, \textit{Functional Programming in Lean: Type Classes and Polymorphism}. \url{https://leanprover.github.io/functional_programming_in_lean/type-classes/polymorphism.html} [Accessed Sep 2025] \label{ref:fp-lean-typeclasses}
- \item Mathlib Documentation, \textit{Mathlib.Order.Defs}, Lean community. \url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html} [Accessed Sep 2025] \label{ref:mathlib-order-defs}
- \item \textit{Lean 4.23.0 Release Notes}. \url{https://lean-lang.org/doc/reference/4.23.0-rc2/releases/v4.23.0/} [Accessed Sep 2025] \label{ref:lean-release}
- \item M. Carneiro et al., \textit{Use and abuse of instance parameters in the Lean Mathematical Library}, 2022. \url{https://arxiv.org/pdf/2202.01629.pdf} [Accessed Sep 2025] \label{ref:instance-abuse}
- \item Lean.Meta.Tactic.Grind Documentation. \url{https://leanprover-community.github.io/mathlib4_docs/Init/Grind/Tactics.html} [Accessed Sep 2025] \label{ref:grind-tactic}
-\end{enumerate}
+% \begin{enumerate}
+%  \item \textit{Lean Reference Manual: Type Classes}. \url{https://lean-lang.org/doc/reference/latest/Type-Classes/} [Accessed Sep 2025] \label{ref:lean-type-classes}
+%  \item Floris Van Doorn, \textit{Functional Programming in Lean: Type Classes and Polymorphism}. \url{https://leanprover.github.io/functional_programming_in_lean/type-classes/polymorphism.html} [Accessed Sep 2025] \label{ref:fp-lean-typeclasses}
+%  \item Mathlib Documentation, \textit{Mathlib.Order.Defs}, Lean community. \url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html} [Accessed Sep 2025] \label{ref:mathlib-order-defs}
+%  \item \textit{Lean 4.23.0 Release Notes}. \url{https://lean-lang.org/doc/reference/4.23.0-rc2/releases/v4.23.0/} [Accessed Sep 2025] \label{ref:lean-release}
+%  \item M. Carneiro et al., \textit{Use and abuse of instance parameters in the Lean Mathematical Library}, 2022. \url{https://arxiv.org/pdf/2202.01629.pdf} [Accessed Sep 2025] \label{ref:instance-abuse}
+%  \item Lean.Meta.Tactic.Grind Documentation. \url{https://leanprover-community.github.io/mathlib4_docs/Init/Grind/Tactics.html} [Accessed Sep 2025] \label{ref:grind-tactic}
+% \end{enumerate}
