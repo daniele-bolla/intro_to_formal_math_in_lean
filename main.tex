@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage{hyperref}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -8,13 +9,13 @@
 \usepackage{mathtools}
 \usepackage{bussproofs} % for natural deduction rules
 \usepackage{color}
-
+\usepackage[backend=biber,style=alphabetic]{biblatex}
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
-\usepackage[backend=biber,style=alphabetic]{biblatex}
+
 \addbibresource{bibliography.bib}
 
 \definecolor{keywordcolor}{rgb}{0.7, 0.1, 0.1}   % red
@@ -34,7 +35,8 @@
 \newtheorem{example}[theorem]{Example}
 \newtheorem{notation}[theorem]{Notation}
 \numberwithin{figure}{theorem}
-\title{A Gentle Introduction to Dependent Type Theory and Lean}
+
+\title{An introduction to formal mathematics in Lean}
 \author{Daniele Bolla}
 \begin{document}
 
@@ -42,8 +44,8 @@
 \tableofcontents
 
 \input{intro}
-\input{classical_logic}
-\input{constructive_math}
+% \input{classical_logic}
+% \input{constructive_math}
 % \input{types_tems_judgments}
 % \input{function_types}
 % \input{product_types}  
