@@ -452,7 +452,6 @@ Lean allows us to omit it by letting the type inference mechanism fill it in aut
 \begin{lstlisting}[language=lean]
 def Transitive {α : Type} (R : α → α → Prop) : Prop :=
   ∀ x y z, R x y → R y z → R x z
-
 theorem le_trans_proof : Transitive (· ≤ · : Nat → Nat → Prop) :=
   fun x y z h1 h2 => Nat.le_trans h1 h2 
 \end{lstlisting}
@@ -762,14 +761,54 @@ in order to avoid
 inconsistencies between types (like Girard's paradox), universes must be specified explicitly. 
 This is an example
 of universe polymorphism, thus we have seen all the polymorphism flavors in Lean.
-Type classes are defined using the \lstinline[language=lean]|class| keyword, 
+On the other hand, Type classes are defined using the \lstinline[language=lean]|class| keyword, 
 which is syntactic sugar for defining a structure.
-The differnce is that type classes support \textbf{instance resolution}, using the keyword 
-\lstinline[language=lean]|instance| to declare that a particular type is an instance of a type class, wich inherits 
+Thus the previuous example can be rewritten similarly, using type classes:
+\begin{lstlisting}[language=lean]
+-- A semigroup has an associative binary operation
+class Semigroup (α : Type*) where
+  mul : α → α → α
+  mul_assoc : ∀ a b c : α, mul (mul a b) c = mul a (mul b c)
+-- A monoid extends semigroup with an identity element  
+class Monoid (α : Type*) extends Semigroup α where
+  one : α
+  one_mul : ∀ a : α, mul one a = a
+  mul_one : ∀ a : α, mul a one = a  
+-- A group extends monoid with inverses
+class Group (α : Type*) extends Monoid α where
+  inv : α → α
+  mul_left_inv : ∀ a : α, mul (inv a) a = one     
+\end{lstlisting}
+The main diffrence is that type classes support \textbf{instance resolution}, using the keyword 
+\lstinline[language=lean]|instance| to declare that a particular type is an instance of a type class, 
+wich inherits 
 the properties and operations defined in the type class.
-Morover a class can extend other classes, allowing for the composition of properties and operations.
-For example, we can define a type class for a preorder, which is a set equipped with
-a reflexive and transitive relation derived from the less-than-or-equal and less-than type classes.
+
+Let's look at a more concrete example, say we would like to define a a generic \lstinline[language=lean]|Transitive| 
+structure with field \lstinline[language=lean]|le_trans|:
+\begin{lstlisting}[language=lean]
+structure TransitiveProperty (α : Type) where
+  le_trans : α → α → α
+\end{lstlisting}
+Now in overload differnt typeds such as Rat, INtn and NAt we would define:
+\begin{lstlisting}[language=lean]
+  def polymorphic_le_trans (s : TransitiveProperty α) (x : α) : α :=
+  TransitiveProperty.le_trans x x
+
+  #eval double { add := Nat.le_trans } 10
+  20 30 -- true
+
+  #eval double { add := Int.mul } -10
+  20 -- false
+
+  #eval double { add := Int.add } 10
+  20
+\end{lstlisting}
+
+This idea is extensively used in Mathlib to define and work with algebraic structures.
+% Morover a class can extend other classes, allowing for the composition of properties and operations.
+% For example, we can define a type class for a preorder, which is a set equipped with
+% a reflexive and transitive relation derived from the less-than-or-equal and less-than type classes.
 
 Instances of a type class can be automatically inferred by Lean's type inference system,
 allowing for concise and expressive code.
