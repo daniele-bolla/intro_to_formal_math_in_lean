@@ -121,30 +121,28 @@ Under this interpretation, a term $x : X$ can be understood in two more ways:
     \item As a \textbf{computational object}: $x$ is a program or data structure of type $X$
     \item As a \textbf{logical object}: $x$ is a proof of the proposition $X$
 \end{itemize}
-Lean is a concrete realization of the propositions-as-types principle.
-In Lean, proving a theorem amounts to constructing a term of the appropriate type. 
-When we write \lstinline[language=lean]|theorem_name : proposition|, we are declaring that 
-\lstinline[language=lean]|theorem_name| is a proof (term) of \lstinline[language=lean]|proposition| (type). 
-
+Lean is a concrete realization of the propositions-as-types principle, 
+proving a theorem, within the language, amounts to constructing a term of the appropriate type. 
+When we write \lstinline[language=lean]|theorem_name : Proposition|, we are declaring that 
+\lstinline[language=lean]|theorem_name| is a proof (term) of \lstinline[language=lean]|Proposition| (type). 
 For example, consider proving that $2 + 2 = 4$:
-
 \begin{example}\mbox{}
 
 \begin{lstlisting}[language=Lean]
-theorem two_plus_two_eq_four : 2 + 2 = 4 := rfl
+    theorem two_plus_two_eq_four : 2 + 2 = 4 := rfl
 \end{lstlisting}
-
 Lean's syntax is designed to resemble the language of mathematics. 
 Here, we use the \lstinline[language=lean]|theorem| keyword to encapsulate our proof, 
+of the statement/proposition $2 + 2 = 4$, 
 giving it the name \lstinline[language=lean]|two_plus_two_eq_four|. 
 This allows us to reference and reuse this result later in our code.
-After the semicolon \lstinline[language=lean]|:| we introduce the
-statement \lstinline[language=lean]|2 + 2 = 4|.
-The \lstinline[language=lean]|:=| operator introduces the 
+After the semicolon, \lstinline[language=lean]|:|, we introduce the
+statement; \lstinline[language=lean]|2 + 2 = 4|.
+The \lstinline[language=lean]|:=| operator expects the 
 proof term that establishes the theorem's validity. 
 The proof itself consists of a single term: \lstinline[language=lean]|rfl| 
 (short for \textbf{reflexivity}). This is a proof term that works by 
-\textbf{definitional equality}, Lean's kenerl automatically reduces both sides of the equation 
+\textbf{definitional equality}, Lean's kernel automatically reduces both sides of the equation 
 to their normal (definitional) form and verifies they are identical. 
 Since $2 + 2$ computes to $4$, the proof succeeds immediately.
 We can now use this theorem in subsequent proofs. For instance:
@@ -155,17 +153,17 @@ Well, this example is simple enough for Lean to evaluate by itself:
 \lstinline[language=lean]|1 + 1 + 1 + 1 = 2 + 2 = 4|
 and conclude with \lstinline[language=lean]|two_plus_two_eq_four|. 
 Actually, \lstinline[language=lean]|rfl| would solve the equation similarly, 
-so this is just applying \lstinline[language=lean]|rfl| again (it's a bit of cheating, 
-but just for demonstration purposes).
+so this is just applying \lstinline[language=lean]|rfl| again (it's a bit of cheating).
 Here, I used \lstinline[language=lean]|example|, which is handy for defining anonymous 
 expressions for demonstration purposes.
-Before diving into the discussion, here is another keyword, \lstinline[language=lean]|def|, used to introduce definitions and functions.
+Before diving into the discussion, here is another keyword, \lstinline[language=lean]|def|, 
+used to introduce definitions and functions.
 
 \begin{lstlisting}[language=Lean]
     def addOne (n : Nat) : Nat := n + 1
 \end{lstlisting}
 This definition expects a natural number as its parameter, written \lstinline[language=lean]|(n : Nat)|
-and returns a natural numebr.
+and returns a natural number.
 [\href{https://live.lean-lang.org/\#codez=YOUR_ENCODED_URL_HERE}{Run in browser}]
 \end{example}
 Let's now turn to how logic is handled in Lean and how the Curry-Howard 
