@@ -48,7 +48,7 @@ Lean's type system is based on \textbf{dependent type theory}, specifically the
 \textbf{Calculus of Inductive Constructions} (CIC) with various extensions. 
 It's important to note that \textbf{type theory} is not a single, unified theory, but rather a family of 
 related theories with various extensions, ongoing developments, and rich historical ramifications. 
-Creating a language like Lean requires careful consideration of which rules and features to include.
+% Creating a language like Lean  careful consideration of which rules and features to include.
 
 Type theory emerged as an alternative foundation for mathematics, addressing paradoxes 
 that arose in naive set theory. Consider Russell's famous paradox: 
@@ -73,12 +73,11 @@ A fundamental design feature of Lean is its \textbf{universe hierarchy} of types
 (the proposition type) as a distinguished universe at the bottom. 
 The \textbf{Prop} universe exhibits two 
 special properties: \textbf{impredicativity} and \textbf{proof irrelevance}. 
-Proof irrelevance means that all proofs of the same proposition are considered equivalent—what matters 
+Proof irrelevance means that all proofs of the same proposition are considered equivalent. What matters 
 is whether a proposition can be proven, not which specific proof is given. 
 This separation between propositions (\textbf{Prop}) and data types (\textbf{Type}) was first 
 introduced in \textbf{N.G. de Bruijn's AUTOMATH system} (1967) 
-(\cite{thompson1999types}). This design choice has significant practical implications 
-for how we write and work with proofs in Lean.
+(\cite{thompson1999types}). 
 
 For our purposes, we do not need to delve deeply into the theoretical foundations; 
 instead, we will introduce the relevant concepts as needed while working with Lean. 
@@ -93,7 +92,7 @@ For example, \lstinline[language=lean]|2 : ℕ| annotates $2$ as a natural numbe
 or more precisely, as a term of the natural number type. 
 Lean has internally defined types such as \lstinline[language=lean]|Nat| or \lstinline[language=lean]|ℕ| 
 (you can type \texttt{\textbackslash Nat} to get the Unicode symbol). 
-The command \lstinline[language=lean]|#check| allows us to inspect the type of any term or variable.
+The command \lstinline[language=lean]|#check| allows us to inspect the type of any espression, term or variable.
 \begin{example}\mbox{}
 
     \begin{lstlisting}
@@ -117,13 +116,11 @@ The crucial insight is the \textbf{Curry-Howard correspondence},
 also known as the \textbf{propositions-as-types} principle. 
 This correspondence establishes a deep connection between mathematical proofs and programs: 
 \textbf{propositions correspond to types}, and \textbf{proofs correspond to terms} inhabiting those types. 
-
 Under this interpretation, a term $x : X$ can be understood in two more ways:
 \begin{itemize}
     \item As a \textbf{computational object}: $x$ is a program or data structure of type $X$
     \item As a \textbf{logical object}: $x$ is a proof of the proposition $X$
 \end{itemize}
-
 Lean is a concrete realization of the propositions-as-types principle.
 In Lean, proving a theorem amounts to constructing a term of the appropriate type. 
 When we write \lstinline[language=lean]|theorem_name : proposition|, we are declaring that 
