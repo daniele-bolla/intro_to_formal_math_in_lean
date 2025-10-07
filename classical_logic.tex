@@ -9,34 +9,49 @@ used nowadays for pedagogical reasons.
 We first introduce \textbf{propositional logic}, which is the simplest 
 form of classical logic. 
 Later we will extend this to \textbf{predicate (or first-order) logic}, which includes 
-quantifiers and predicates.
+\textbf{predicates} and \textbf{quantifiers}.
 In this setting, a \textbf{proposition} is a statement that is either true or false, 
 and a \textbf{proof} is a logical argument that establishes the truth of a 
 proposition.
-Propositions are constructed via \textbf{formulas} built from 
-\textbf{propositional variables} 
-(also called atomic propositions) combined with logical \textbf{connectives} such as ``and'' ($\wedge$), 
-``or'' ($\vee$), ``not'' ($\neg$), ``implies'' ($\Rightarrow$), and ``if and only if'' ($\Leftrightarrow$). 
+Propositions can be combined with logical \textbf{connectives} such as ``and'' ($\wedge$), 
+``or'' ($\vee$), ``not'' ($\neg$),``false'' ($\bot$), ,``true'' ($\top$) ``implies'' ($\Rightarrow$),  and ``if and only if'' ($\Leftrightarrow$). 
 These connectives allow the creation of complex or compound propositions.
-\begin{definition}[Propositional Formula](\cite{thompson1999types})
-A \textbf{propositional formula} is either:
-\begin{itemize}
-    \item A \textbf{propositional variable}: $X_0, X_1, X_2, \ldots$, or
-    \item A \textbf{compound formula} formed by combining formulas using connectives:
-    \[
-        (A \wedge B), \quad (A \Rightarrow B), \quad (A \vee B), \quad \bot, \quad (A \Leftrightarrow B), \quad (\neg A)
-    \]
-    where $A$ and $B$ are formulas themselves.
-\end{itemize}
-\end{definition}
 
-We are going to describe classical logic though a formal framework 
-called \textbf{natural deduction system}  developed by
-Gentzen in the 1930s (\cite{wadler2015propositions}). It specifies 
-rules for deriving 
+Here how connectives are defined in Lean:\
+\begin{example}[LogicaL connectives in Lean]\mbox{}
+  \begin{lstlisting}[language=lean]
+    #check And (a b : Prop) : Prop
+    #check Or (a b : Prop) : Prop
+    #check True : Prop
+    #check False : Prop
+    #check Not (a : Prop) : Prop
+    #check Iff (a b : Prop) : Prop
+  \end{lstlisting}
+  \lstinline[language=lean]|Prop| stands for proposition, and it is an 
+  essential component of Lean’s type system.
+  For now, we can think of it as a special type whose 
+  inhabitants are proofs; somewhat 
+  paradoxically, a type of types. 
+\end{example}
+
+% \begin{definition}[Propositional Formula](\cite{thompson1999types})
+% A \textbf{propositional formula} is either:
+% \begin{itemize}
+%     \item A \textbf{propositional variable}: $X_0, X_1, X_2, \ldots$, or
+%     \item A \textbf{compound formula} formed by combining formulas using connectives:
+%     \[
+%         (A \wedge B), \quad (A \Rightarrow B), \quad (A \vee B), \quad \bot, \quad (A \Leftrightarrow B), \quad (\neg A)
+%     \]
+%     where $A$ and $B$ are formulas themselves.
+% \end{itemize}
+% \end{definition}
+
+Logic is often formalized through a framework known as the \textbf{natural deduction system}, 
+developed by Gentzen in the 1930s (\cite{wadler2015propositions}). 
+This approach brings logic closer to a computable, algorithmic system.
+It specifies rules for deriving 
 \textbf{conclusions} from \textbf{premises} (assumptions from other propositions), 
 called \textbf{inference rules}.
-
 \begin{example}[Deductive style rule]
 Here is an hypothetical example of inference rule.
 \begin{prooftree}
@@ -53,7 +68,107 @@ The inference rules needed are:
     \item \textbf{Introduction rules} specify how to form compound propositions from simpler ones, and
     \item \textbf{Elimination rules} specify how to use compound propositions to derive information about their components.
 \end{itemize}
+
+Type theory employs this porocedure too, by referring to deduction 
+rules as judments, and each elemtns of a with terms ans types. 
+here an examople:
+\begin{example}
+  \begin{prooftree}
+    \AxiomC{$\Gamma, $}
+    \AxiomC{$p_1:P_1$}
+    \AxiomC{$p_2:P_2$}
+    \AxiomC{$\cdots$}
+    \AxiomC{$P_n$}
+  \QuinaryInfC{$C$}
+  \end{prooftree}
+\end{example}
+\begin{notation}
+We use $A \vdash B$ (called turnstile) to designate a deduction of $B$ from $A$. 
+It is employed in Gentzen’s \textbf{sequent calculus} (\cite{girard1989proofs}) 
+and moslty used in type theory.
+The square brackets around a premise $[A]$ mean that the premise $A$ is meant to 
+be \textbf{discharged} at the conclusion. The classical example is the 
+introduction rule for the implication connective.
+To prove an implication $A \to B$, we assume $A$ 
+(shown as $[A]$), derive $B$ under this assumption, and then discharge the 
+assumption $A$ to conclude that $A \to B$ holds without the assumption. 
+The turnstile is predominantly used in judgments and type theory with 
+the meaning of ``entails that''. 
+\end{notation}
+
+\begin{example}[Type Theory Judgments and Contexts]
+In type theory, \textbf{judgments} are formal statements about the well-formedness of types and terms. 
+There are typically four fundamental kinds of judgments \cite{web:1}:
+
+\begin{enumerate}
+    \item $\Gamma \vdash A \text{ type}$ -- ``$A$ is a well-formed type in context $\Gamma$''
+    \item $\Gamma \vdash t : A$ -- ``$t$ is a term of type $A$ in context $\Gamma$''
+    \item $\Gamma \vdash A \equiv B \text{ type}$ -- ``types $A$ and $B$ are judgmentally equal in context $\Gamma$''
+    \item $\Gamma \vdash t_1 \equiv t_2 : A$ -- ``terms $t_1$ and $t_2$ are judgmentally equal of type $A$ in context $\Gamma$''
+\end{enumerate}
+
+The \textbf{context} $\Gamma$ (Greek capital gamma) represents a finite list of type declarations for variables, 
+formally written as $\Gamma = x_1:A_1, x_2:A_2, \ldots, x_n:A_n$ \cite{web:2}. 
+The context encodes the \textbf{assumptions} or \textbf{hypotheses} under which a judgment is made.
+
+For example, consider these concrete judgments:
+\begin{align}
+&\vdash \mathbb{N} \text{ type} \quad \text{(natural numbers form a type)}\\
+&x:\mathbb{N} \vdash x : \mathbb{N} \quad \text{(variable $x$ has type $\mathbb{N}$ when declared)}\\
+&x:\mathbb{N}, y:\mathbb{N} \vdash x + y : \mathbb{N} \quad \text{(addition of naturals yields a natural)}\\
+&\vdash \lambda x:\mathbb{N}.\ x + 1 : \mathbb{N} \to \mathbb{N} \quad \text{(successor function)}
+\end{align}
+\end{example}
+
+\begin{example}[Context Formation Rules]
+The context itself must be well-formed according to specific rules \cite{web:41}:
+
+\begin{prooftree}
+  \AxiomC{}
+  \UnaryInfC{$\diamond \text{ ctx}$}
+\end{prooftree}
+\textbf{Empty context rule}: The empty context $\diamond$ (or $\emptyset$) is always well-formed.
+
+\begin{prooftree}
+  \AxiomC{$\Gamma \text{ ctx}$}
+  \AxiomC{$\Gamma \vdash A \text{ type}$}
+  \BinaryInfC{$\Gamma, x:A \text{ ctx}$}
+\end{prooftree}
+\textbf{Context extension rule}: If $\Gamma$ is a well-formed context and $A$ is a well-formed type in $\Gamma$, 
+then extending $\Gamma$ with a fresh variable $x$ of type $A$ yields a well-formed context.
+\end{example}
+
+\begin{example}[Typing Rules with Contexts]
+Here are fundamental typing rules that show how contexts work in practice:
+
+\begin{prooftree}
+  \AxiomC{$\Gamma, x:A, \Delta \text{ ctx}$}
+  \UnaryInfC{$\Gamma, x:A, \Delta \vdash x : A$}
+\end{prooftree}
+\textbf{Variable rule}: A variable $x$ has its declared type $A$ in any context where it appears.
+
+\begin{prooftree}
+  \AxiomC{$\Gamma \vdash f : A \to B$}
+  \AxiomC{$\Gamma \vdash a : A$}
+  \BinaryInfC{$\Gamma \vdash f(a) : B$}
+\end{prooftree}
+\textbf{Application rule}: Function application preserves typing under the same context assumptions.
+
+\begin{prooftree}
+  \AxiomC{$\Gamma, x:A \vdash b : B$}
+  \UnaryInfC{$\Gamma \vdash \lambda x:A.\ b : A \to B$}
+\end{prooftree}
+\textbf{Lambda abstraction rule}: To form a function of type $A \to B$, assume $x:A$ and derive $b:B$.
+\end{example}
+
+
 Let's look at how we can define some connectives.
+The inference rules needed are:
+\begin{itemize}
+    \item \textbf{Introduction rules} specify how to form compound propositions from simpler ones, and
+    \item \textbf{Elimination rules} specify how to use compound propositions to derive information about their components.
+\end{itemize}
+
 \paragraph{Conjunction ($\land$)}
 \begin{itemize}
     \item Introduction
@@ -123,78 +238,192 @@ Let's look at how we can define some connectives.
     \end{prooftree}
 \end{itemize}
 
-\begin{notation}
-We use $A \vdash B$ (called turnstile) to designate a deduction of $B$ from $A$. 
-It is employed in Gentzen’s \textbf{sequent calculus} (\cite{girard1989proofs}), 
-whereas in natural deduction the corresponding symbol is\[
-\begin{array}{c}
-A \\
-\vdots \\
-B
-\end{array}
-\]
-There are some minor differences, in fact, which I don't fully understand.
-The square brackets around a premise $[A]$ mean that the premise $A$ is meant to 
-be \textbf{discharged} at the conclusion. The classical example is the 
-introduction rule for the implication connective.
-To prove an implication $A \to B$, we assume $A$ 
-(shown as $[A]$), derive $B$ under this assumption, and then discharge the 
-assumption $A$ to conclude that $A \to B$ holds without the assumption. 
-The turnstile is predominantly used in judgments and type theory with 
-the meaning of ``entails that''. 
-\end{notation}
 
-Lean has its own syntax for connectives and their relative inference rules.
-For instance $A \land B$ can be presented as \lstinline[language=lean]|And(A, B)| or \lstinline[language=lean]|A ∧ B|,
-. Its untroduction rule is constructed by
- \lstinline[language=lean]|And.intro _ _| or shortly
- \lstinline[language=lean]|⟨_, _⟩| (underscore are placeholder for assumptions or "propositional functions"). 
- The pair $A \land B$ can be then consumed using elimination 
-rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.right|.
-\begin{example}\label{ex:conj_intro}
-    Let's look at our first Lean example
-  \begin{lstlisting}[language=lean]
-    example (H_A : A) (H_B : B) : (A ∧ B) := And.intro H_A H_B
-  \end{lstlisting}
-Lean aims to resemble the language used in mathematics. 
-For instance, when defining a function or expression, one can use keywords such as 
-\lstinline[language=lean]|theorem| or \lstinline[language=lean]|def|.
-Here, I used \lstinline[language=lean]|example|, which is handy for defining anonymous expressions 
-for demonstration purposes. 
-After that comes the statement to be proved:
-\begin{lstlisting}[language=lean]
-  (H_A : A) (H_B : B) : (A ∧ B) 
-\end{lstlisting}
-Meaning given a proof of $A$ and a proof of $B$ we can form a proof of $(A \land B)$.
-The operator \lstinline[language=lean]|:=| assigns a value (or return an expression) for the statement which
- "has to be a proof of it".
-\lstinline[language=lean]|And.intro| is implemented as:
-\begin{lstlisting}[language=lean]
-  And.intro: p → q → (p ∧ q).
-\end{lstlisting}
-It says: if you give me a proof of $p$ and a proof of $q$, 
-then i return a proof of $p \land q$.
-We therefore conclude the proof by directly giving 
-\lstinline[language=lean]|And.intro H_A H_B|.
-Here another way of writing the same statment.
-\begin{lstlisting}[language=lean]
-  example (H_p : p) (H_B : B) : And(A, B) := ⟨H_p, H_B⟩
-\end{lstlisting}
+
+\section{Judgments and Propositions}
+
+Logic is often formalized through a framework that distinguishes clearly between
+\textbf{judgments} and \textbf{propositions}, following Martin-Löf's foundational approach
+(\cite{martin-lof-1983}, \cite{plato:intuitionistic-type-theory}).
+A \textbf{judgment} represents something we may know — an object of knowledge that becomes
+evident once we have a proof of it.
+
+The most fundamental form of judgment in logic is ``\textit{A is true}'', where \( A \) is a
+proposition. This is formally written as \( A\ \text{true} \).  
+When we derive such judgments under assumptions, we write
+\[
+\Gamma \vdash A\ \text{true},
+\]
+where \( \Gamma \) represents our hypothetical assumptions
+(\cite{pfenning-natded}).
+
+\begin{example}[Judgment-Based Inference Rules]
+All logical reasoning can be expressed through \textbf{introduction} and
+\textbf{elimination} rules for judgments.
+For instance, conjunction is characterized as follows.
+
+\textbf{Introduction:} how to establish the judgment \( A \land B\ \text{true} \):
+
+\begin{prooftree}
+  \AxiomC{\(A\ \text{true}\)}
+  \AxiomC{\(B\ \text{true}\)}
+  \RightLabel{\(\land\text{-I}\)}
+  \BinaryInfC{\(A \land B\ \text{true}\)}
+\end{prooftree}
+
+\textbf{Elimination:} how to use the judgment \( A \land B\ \text{true} \):
+
+\begin{minipage}[t]{0.45\textwidth}
+\begin{prooftree}
+  \AxiomC{\(A \land B\ \text{true}\)}
+  \RightLabel{\(\land\text{-E}_1\)}
+  \UnaryInfC{\(A\ \text{true}\)}
+\end{prooftree}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\begin{prooftree}
+  \AxiomC{\(A \land B\ \text{true}\)}
+  \RightLabel{\(\land\text{-E}_2\)}
+  \UnaryInfC{\(B\ \text{true}\)}
+\end{prooftree}
+\end{minipage}
 \end{example}
 
+\begin{notation}[The Turnstile Symbol]
+The symbol \( \vdash \) (the \textit{turnstile}) separates assumptions from conclusions
+in judgments.  
+\[
+\Gamma \vdash J
+\]
+means that the judgment \( J \) follows from the assumptions \( \Gamma \), or equivalently,
+that \( J \) is evident given evidence for \( \Gamma \).
+
+When assumptions are \textit{discharged} during reasoning, we indicate this with square
+brackets \([A]\).
+For example, to establish an implication \( A \rightarrow B \), we assume \( A \)
+(written \([A]\)), derive \( B \) under this assumption, then discharge \( A \):
+
+\begin{prooftree}
+  \AxiomC{\([A\ \text{true}]^{u}\)}
+  \AxiomC{\(\vdots\)}
+  \AxiomC{\(B\ \text{true}\)}
+  \RightLabel{\(\rightarrow\text{-I}^{u}\)}
+  \TrinaryInfC{\(A \rightarrow B\ \text{true}\)}
+\end{prooftree}
+\end{notation}
+
+This judgment-based framework extends naturally to \textbf{type theory}, where additional
+judgment forms are introduced.  
+While logic focuses on the judgment \( A\ \text{true} \),
+type theory introduces several fundamental forms 
+(\cite{plato:intuitionistic-type-theory}):
+
+\begin{align}
+  &\Gamma \vdash A\ \text{type}
+    && \text{(\(A\) is a well-formed type)} \notag \\
+  &\Gamma \vdash t : A
+    && \text{(\(t\) is a term of type \(A\))} \notag \\
+  &\Gamma \vdash A \equiv B\ \text{type}
+    && \text{(types \(A\) and \(B\) are judgmentally equal)} \notag \\
+  &\Gamma \vdash t_1 \equiv t_2 : A
+    && \text{(terms \(t_1\) and \(t_2\) are judgmentally equal)} \notag
+\end{align}
+
+The \textbf{context} \( \Gamma \) represents a list of assumptions about variables and
+their types:
+\[
+\Gamma = x_1 : A_1,\, x_2 : A_2,\, \ldots,\, x_n : A_n.
+\]
+
+\begin{example}[Unified Introduction/Elimination Pattern]
+Both logical connectives and type constructors follow the same
+\textit{introduction/elimination} pattern.
+For function types (corresponding to implication):
+
+\textbf{Formation:}
+\begin{prooftree}
+  \AxiomC{\(\Gamma \vdash A\ \text{type}\)}
+  \AxiomC{\(\Gamma \vdash B\ \text{type}\)}
+  \BinaryInfC{\(\Gamma \vdash A \rightarrow B\ \text{type}\)}
+\end{prooftree}
+
+\textbf{Introduction:}
+\begin{prooftree}
+  \AxiomC{\(\Gamma, x : A \vdash b : B\)}
+  \RightLabel{\(\rightarrow\text{-I}\)}
+  \UnaryInfC{\(\Gamma \vdash \lambda x : A.\, b : A \rightarrow B\)}
+\end{prooftree}
+
+\textbf{Elimination:}
+\begin{prooftree}
+  \AxiomC{\(\Gamma \vdash f : A \rightarrow B\)}
+  \AxiomC{\(\Gamma \vdash a : A\)}
+  \RightLabel{\(\rightarrow\text{-E}\)}
+  \BinaryInfC{\(\Gamma \vdash f(a) : B\)}
+\end{prooftree}
+
+This correspondence reveals a deep connection:
+logical implication and function types share the same structural rules,
+differing only in focus — whether on truth (\(A \rightarrow B\ \text{true}\))
+or on typing (\(\lambda x.\,b : A \rightarrow B\)).
+\end{example}
+
+\subsection*{References}
+Per Martin-Löf, \textit{Intuitionistic Type Theory}, 1983–1984. \\
+P. Dybjer, \textit{Intuitionistic Type Theory}, \textit{Stanford Encyclopedia of Philosophy}, 2016. \\
+Frank Pfenning, \textit{Logical Frameworks and Natural Deduction}, lecture notes. \\
+Additional formal presentations and lecture notes on type theory and natural deduction, CMU (various).
+
+
+%  \lstinline[language=lean]|And.intro _ _| or shortly
+%  \lstinline[language=lean]|⟨_, _⟩| (underscore are placeholder for assumptions or "propositional functions"). 
+%  The pair $A \land B$ can be then consumed using elimination 
+rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.right|.
+\begin{example}\label{ex:conj_intro}
+Let's look at our first Lean example:
+\begin{lstlisting}[language=lean]
+  example (a b : Prop) (ha : a) (hb : b) : (a ∧ b) := And.intro ha hb
+\end{lstlisting}
+This illustrates the \textbf{introduction rule} for conjunction in Lean.  
+The declaration
+\begin{lstlisting}[language=lean]
+  (a b : Prop) (ha : a) (hb : b) : (a ∧ b)
+\end{lstlisting}
+means that, given proofs \lstinline[language=lean]|ha| and \lstinline[language=lean]|hb|
+of the propositions \lstinline[language=lean]|a| and \lstinline[language=lean]|b|,
+we can construct a proof of \lstinline[language=lean]|(a ∧ b)|.
+Try placing the cursor just before \lstinline[language=lean]|And.intro|.
+Observe how the \textit{infoview} updates to display:
+\begin{lstlisting}[language=lean]
+  a b : Prop
+  ha : a
+  hb : b
+  ⊢ a ∧ b
+\end{lstlisting}
+Here we see again the turnstile symbol (\(\vdash\)), introduced earlier.
+Everything before it represents the \textbf{context} (\(\Gamma\))—our variables and hypotheses—
+while everything after it denotes the \textbf{goal} to be proved.
+Lean implements the constructor \lstinline[language=lean]|And.intro| as:
+\begin{lstlisting}[language=lean]
+  And.intro : p → q → (p ∧ q)
+\end{lstlisting}
+This means: given a proof of \lstinline[language=lean]|p| and a proof of
+\lstinline[language=lean]|q|, Lean can produce a proof of
+\lstinline[language=lean]|(p ∧ q)|.
+We therefore complete the proof by directly providing
+\lstinline[language=lean]|And.intro ha hb|.
+Alternatively, we can express the same statement more compactly:
+\begin{lstlisting}[language=lean]
+  example (a b : Prop) (ha : a) (hb : b) : (a ∧ b) := ⟨ha, hb⟩
+\end{lstlisting}
+Here, \lstinline[language=lean]|⟨ha, hb⟩| is a \textbf{pair} (or product) term—
+you can think of it as a Cartesian pair combining the two proofs into one.
+\end{example}
 This system of inference rules allows us to construct proofs in an 
 algorithmic and systematical way, organized in what is called a \textbf{proof tree}. 
 To reduce complexity, we follow a 
 \textbf{top-down} approach (see \cite{thompson1999types} and 
 \cite{nordstrom1990programming}).
-This methodology forms the basis of \textbf{proof assistants} like Lean, 
-Coq, and Agda, which help 
-verify the correctness of mathematical proofs by checking each step 
-against these rules.
-We will see later that Lean, in fact, provides an info view of the proof tree 
-which helps us 
-understand and visualize 
-the proof structure.
 Let's examine a concrete example of a proof.
 \begin{example}[Associativity of Conjunction]
 We prove that $(A \land B) \land C$ implies $A \land (B \land C)$.
@@ -229,38 +458,63 @@ Finally, combining these derivations we obtain $A \land (B \land C)$:
 \end{example}
 \begin{example}[Lean Implementation]
 Let us now implement the same proof in Lean.
-\begin{lstlisting}[language=Lean, caption=Associativity of Conjunction in Lean]
-theorem and_associative : (A ∧ B) ∧ C → A ∧ (B ∧ C) :=
-  fun h : (A ∧ B) ∧ C =>
-    -- First, from the assumption (A ∧ B) ∧ C, we can derive A:
-    have ab : A ∧ B := h.left -- extracts (derive) a proof of (A ∧ B) from the assumption
-    have a : A := ab.left -- extracts A from (A ∧ B)
-    -- Second, we can derive B ∧ C (here we only extract b and c and combine them in the next step) 
-    have c : C := h.right
-    have b : B := ab.right
-    -- Finally, combining these derivations we obtain A ∧ (B ∧ C)
-    show A ∧ (B ∧ C) from ⟨a, ⟨b, c⟩⟩
+\begin{lstlisting}[language=lean]
+theorem and_associative (a b c : Prop) : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
+fun h : (a ∧ b) ∧ c =>
+-- First, from the assumption (a ∧ b) ∧ c, we can derive a:
+have hab : a ∧ b := h.left -- extracts (derive) a proof of (a ∧ b) from the assumption
+have ha : a := hab.left -- extracts a from (a ∧ b)
+-- Second, we can derive b ∧ c (here we only extract b and c and combine them in the next step)
+have hc : c := h.right
+have hb : b := hab.right
+-- Finally, combining these derivations we obtain a ∧ (b ∧ c)
+show a ∧ (b ∧ c) from ⟨ha, ⟨hb, hc⟩⟩
 \end{lstlisting}
-We introduce the \lstinline[language=lean]|theorem| with the name 
-\lstinline[language=lean]|and_associative|, 
-which can be referenced in subsequent proofs. 
-The type signature \lstinline[language=lean]|(A ∧ B) ∧ C → A ∧ (B ∧ C)| 
+We introduce the \lstinline[language=lean]|theorem| with the name
+\lstinline[language=lean]|and_associative|.
+The type signature \lstinline[language=lean]|(a ∧ b) ∧ c → a ∧ (b ∧ c)|
 represents our logical implication.
-The \lstinline[language=lean]|:=| operator introduces the 
-proof term that establishes the theorem's validity. 
-In the previous code example this proof was directly given.
-Here, we construct it using a function with the \lstinline[language=lean]|fun| keyword. 
-Why a function? We have already encountered the Curry-Howard correspondence in Lean 
-previously, though without explicitly stating it. 
-According to this correspondence, a proof of an implication can be 
-understood as a function that takes a hypothesis as input and produces 
-the desired conclusion as output. We will revisit this concept in more 
+Here, we construct tehe proof term using a function with the \lstinline[language=lean]|fun| keyword.
+Why a function? We have already encountered the Curry-Howard correspondence in Lean
+previously, though without explicitly stating it.
+According to this correspondence, a proof of an implication can be
+understood as a function that takes a hypothesis as input and produces
+the desired conclusion as output. We will revisit this concept in more
 detail later.
-The \lstinline[language=lean]|have| keyword introduces local 
-lemmas within our proof scope, allowing us to break down complex 
-reasoning into manageable intermediate steps, mirroring our natural deduction proof of before.
-Finally, the \lstinline[language=lean]|show| keyword presents our final result. 
+The \lstinline[language=lean]|have| keyword introduces local
+lemmas within our proof scope, allowing us to break down complex
+reasoning into manageable intermediate steps, mirroring our natural deduction proof from before.
+Just before the keyword \lstinline[language=lean]|show|, the info view displays the following 
+context and goal:
+\begin{lstlisting}[language=lean]
+a b c : Prop
+h : (a ∧ b) ∧ c
+hab : a ∧ b
+ha : a
+hc : c
+hb : b
+⊢ a ∧ b ∧ c
+\end{lstlisting}
+Finally, the \lstinline[language=lean]|show| keyword explicitly states what 
+we are proving and verifies that our provided term has the correct type. 
+In this case, \lstinline[language=lean]|show a ∧ (b ∧ c) from ⟨ha, ⟨hb, hc⟩⟩| 
+asserts that we are constructing a proof of \lstinline[language=lean]|a ∧ (b ∧ c)| 
+using the term \lstinline[language=lean]|⟨ha, ⟨hb, hc⟩⟩|. 
+The \lstinline[language=lean]|show| keyword serves two purposes: 
+it makes the proof more readable by explicitly documenting what is being proved at this step, 
+and it performs a type check to ensure the provided proof term matches the stated 
+goal up to \emph{definitional equality}. 
+Two types are definitionally equal in Lean when they are identical after computation 
+and unfolding of definitions—in other words, when Lean's type checker 
+can mechanically verify they are the same without requiring additional proof steps. 
+Here, the goal \lstinline[language=lean]|⊢ a ∧ b ∧ c| is definitionally 
+equal to \lstinline[language=lean]|a ∧ (b ∧ c)| due to how conjunction 
+associates, so \lstinline[language=lean]|show| accepts this statement. 
+If we had tried to use \lstinline[language=lean]|show| with a type that 
+was only \emph{propositionally} equal (requiring a proof to establish equality) 
+but not definitionally equal, Lean would reject it.
 \end{example}
+\subsection{Predicate lgic and dependency}
 To capture more complex mathematical ideas, we extend our system from 
 propositional logic to \textbf{predicate logic}.  
 A \textbf{predicate} is a statement or proposition that depends on a variable.
@@ -274,87 +528,82 @@ or for at least one object, respectively.
 In Lean if \lstinline[language=lean]|α| is any type, we can represent a 
 predicate \lstinline[language=lean]|P| on \lstinline[language=lean]|α| as 
 an object of type \lstinline[language=lean]|α → Prop|.
-\lstinline[language=lean]|Prop| stands for proposition, and it is an 
-essential component of Lean’s type system.
-For now, we can think of it as a special type whose 
-inhabitants are proofs; somewhat 
-paradoxically, a type of types. 
-\lstinline|Prop| stands for \emph{proposition}, and it is an essential component of Lean’s type system.
 Thus given an \lstinline[language=lean]|x : α| (an element
 with type \lstinline[language=lean]|α| ) 
-\lstinline[language=lean]|P(x) : Prop| would be representative of a proposition holding for \lstinline[language=lean]|x|.
+\lstinline[language=lean]|P(x) : Prop| would be representative of a proposition 
+holding for \lstinline[language=lean]|x|.
 
-When introducing variables into a formal language we must keep in mind that the specific choice 
-of a variable name can be substituted without 
-changing the meaning of the predicate or statement. This should feel familiar from mathematics, 
-where the meaning of an expression does not depend on the names we assign to variables.
-Some variables are \textbf{bound} (constrained), while others remain \textbf{free} 
-(arbitrary, in programming often called "dummy" variables). 
-When substituting variables, it is important to ensure that this distinction is preserved.
-This phenomenon, called \textbf{variable capture}, parallels familiar mathematical practice: 
-if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$, then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, 
-not the ill-defined $\int_1^2 \frac{dt}{t-t}$. The same principle applies to predicate logic. For example, consider
-\[
-\exists y.\,(y > x).
-\]
-This states that for a given $x$ there exists a $y$ such that $y > x$. 
-If we naively substitute $y+1$ for $x$, we would obtain
-\[
-\exists y.\,(y > y+1),
-\]
-where the $y$ in $y+1$ has been \textbf{captured} by the quantifier $\exists y$. 
-This transforms the original statement from "there exists some $y$ greater than the free variable $x$" into the always-false statement 
-"there exists some $y$ greater than itself plus one."
-To avoid the probelm, in the above example, we would first rename the bound variable to something fresh 
-say $z$, obtaining $\exists z.\,(z > x)$, and then safely substitute to get $\exists z.\,(z > y+1)$.
-\begin{notation}
-  We use the notation $\phi[t/x]$ for \textbf{substitution}, meaning all occurrences of the free 
-  variable $x$ in formula (or expression) $\phi$ are replaced by term $t$.
-\end{notation}
-We can now present the inference rules for quantifiers.
-\paragraph{Universal Quantification ($\forall$)}
-\begin{itemize}
-    \item Introduction
-    \begin{prooftree}
-    \AxiomC{$A$}
-    \RightLabel{$\forall I$}
-    \UnaryInfC{$\forall x.\,A$}
-    \end{prooftree}
-    The variable $x$ must be arbitrary in the derivation of $A$. 
-    This rule captures statements like 
-    $\forall x \in \mathbb{N}$, $x$ has a successor, 
-    but would not apply to $\forall x \in \mathbb{N}$, $x$ is prime 
-    (since we cannot derive this for an arbitrary natural number).
-    \item Elimination
-    \begin{prooftree}
-    \AxiomC{$\forall x.\,A$}
-    \RightLabel{$\forall E$}
-    \UnaryInfC{$A[t/x]$}
-    \end{prooftree}
-    The conclusion $A[t/x]$ represents the substitution of term $t$ for variable $x$ in formula $A$. 
-    From a proof of $\forall x.\,A(x)$ we can infer $A(t)$ for any term $t$.
-\end{itemize}
-\paragraph{Existential Quantification ($\exists$)}
-\begin{itemize}
-    \item Introduction
-    \begin{prooftree}
-    \AxiomC{$A[t/x]$}
-    \RightLabel{$\exists I$}
-    \UnaryInfC{$\exists x.\,A$}
-    \end{prooftree}
-    The substitution premise means that if we can find a specific term $t$ for which $A(t)$ holds, 
-    then we can introduce the existential quantifier. 
-    The introduction rule requires a witness $t$ for which the predicate holds.
-    \item Elimination
-    \begin{prooftree}
-    \AxiomC{$\exists x.\,A$}
-    \AxiomC{$[A] \vdash B$}
-    \RightLabel{$\exists E$}
-    \BinaryInfC{$B$}
-    \end{prooftree}
-    To eliminate an existential quantifier, we assume $A$ holds for some witness 
-    and derive $B$ without making any assumptions about the specific witness.
-\end{itemize}
+% When introducing variables into a formal language we must keep in mind that the specific choice 
+% of a variable name can be substituted without 
+% changing the meaning of the predicate or statement. This should feel familiar from mathematics, 
+% where the meaning of an expression does not depend on the names we assign to variables.
+% Some variables are \textbf{bound} (constrained), while others remain \textbf{free} 
+% (arbitrary, in programming often called "dummy" variables). 
+% When substituting variables, it is important to ensure that this distinction is preserved.
+% This phenomenon, called \textbf{variable capture}, parallels familiar mathematical practice: 
+% if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$, then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, 
+% not the ill-defined $\int_1^2 \frac{dt}{t-t}$. The same principle applies to predicate logic. For example, consider
+% \[
+% \exists y.\,(y > x).
+% \]
+% This states that for a given $x$ there exists a $y$ such that $y > x$. 
+% If we naively substitute $y+1$ for $x$, we would obtain
+% \[
+% \exists y.\,(y > y+1),
+% \]
+% where the $y$ in $y+1$ has been \textbf{captured} by the quantifier $\exists y$. 
+% This transforms the original statement from "there exists some $y$ greater than the free variable $x$" into the always-false statement 
+% "there exists some $y$ greater than itself plus one."
+% To avoid the probelm, in the above example, we would first rename the bound variable to something fresh 
+% say $z$, obtaining $\exists z.\,(z > x)$, and then safely substitute to get $\exists z.\,(z > y+1)$.
+% \begin{notation}
+%   We use the notation $\phi[t/x]$ for \textbf{substitution}, meaning all occurrences of the free 
+%   variable $x$ in formula (or expression) $\phi$ are replaced by term $t$.
+% \end{notation}
+% We can now present the inference rules for quantifiers.
+% \paragraph{Universal Quantification ($\forall$)}
+% \begin{itemize}
+%     \item Introduction
+%     \begin{prooftree}
+%     \AxiomC{$A$}
+%     \RightLabel{$\forall I$}
+%     \UnaryInfC{$\forall x.\,A$}
+%     \end{prooftree}
+%     The variable $x$ must be arbitrary in the derivation of $A$. 
+%     This rule captures statements like 
+%     $\forall x \in \mathbb{N}$, $x$ has a successor, 
+%     but would not apply to $\forall x \in \mathbb{N}$, $x$ is prime 
+%     (since we cannot derive this for an arbitrary natural number).
+%     \item Elimination
+%     \begin{prooftree}
+%     \AxiomC{$\forall x.\,A$}
+%     \RightLabel{$\forall E$}
+%     \UnaryInfC{$A[t/x]$}
+%     \end{prooftree}
+%     The conclusion $A[t/x]$ represents the substitution of term $t$ for variable $x$ in formula $A$. 
+%     From a proof of $\forall x.\,A(x)$ we can infer $A(t)$ for any term $t$.
+% \end{itemize}
+% \paragraph{Existential Quantification ($\exists$)}
+% \begin{itemize}
+%     \item Introduction
+%     \begin{prooftree}
+%     \AxiomC{$A[t/x]$}
+%     \RightLabel{$\exists I$}
+%     \UnaryInfC{$\exists x.\,A$}
+%     \end{prooftree}
+%     The substitution premise means that if we can find a specific term $t$ for which $A(t)$ holds, 
+%     then we can introduce the existential quantifier. 
+%     The introduction rule requires a witness $t$ for which the predicate holds.
+%     \item Elimination
+%     \begin{prooftree}
+%     \AxiomC{$\exists x.\,A$}
+%     \AxiomC{$[A] \vdash B$}
+%     \RightLabel{$\exists E$}
+%     \BinaryInfC{$B$}
+%     \end{prooftree}
+%     To eliminate an existential quantifier, we assume $A$ holds for some witness 
+%     and derive $B$ without making any assumptions about the specific witness.
+% \end{itemize}
 We can give an informal reading of the quantifiers as infinite logical operations:
 \begin{align*}
 \forall x.\,A(x) &\equiv A(a) \land A(b) \land A(c) \land \ldots \\
@@ -364,16 +613,16 @@ The expression $\forall x.\, P(x)$ can be understood as  generalized form of imp
 If $P$ is any proposition, then $\forall x.\, P$ expresses that $P$ holds 
 regardless of the choice of $x$. When $P$ is a predicate, depending on $x$, this captures the 
 idea that we can derive $P$ from any assumption about $x$.
-Morover, there is a duality between universal and existential quantification.
-We shall develop all this dicussions further after 
-exploring their computational (type theoretical) meaning.
+% Morover, there is a duality between universal and existential quantification.
+% We shall develop all this dicussions further after 
+% exploring their computational (type theoretical) meaning.
 \begin{example}
-  Lean espresses quantifiers as follow.
-  \begin{lstlisting}[language=Lean, caption=For All]
+  Lean expresses quantifiers as follow.
+  \begin{lstlisting}[language=lean, caption=For All]
   ∀ (x : X), P x
   forall (x : X), P x -- another notation
   \end{lstlisting}
-  \begin{lstlisting}[language=Lean, caption=Exists]
+  \begin{lstlisting}[language=lean, caption=Exists]
   ∃ (x : X), P x
   exist (x : X), P x -- another notation
   \end{lstlisting}
@@ -387,10 +636,12 @@ exploring their computational (type theoretical) meaning.
   of a witness and a proof that this witness 
   satisfies the statement.
   \begin{lstlisting}[language=lean]
-example (x : Nat) (h : x > 0) : ∃ y, y < x :=
-  Exists.intro 0 h -- or shortly ⟨0, h⟩
+  example (x : Nat) (h : x > 0) : ∃ y, y < x :=
+    Exists.intro 0 h -- or shortly ⟨0, h⟩
 \end{lstlisting}
 \end{example}
+Notice that \lstinline[language=lean]|⟨0, h⟩| is product type holding a data (⟨witness) 
+and a proof of it.
 The \textbf{existential elimination rule} 
 ( \lstinline[language=lean]|Exists.elim|) performs the opposite operation. 
 It allows us to prove a proposition $Q$ 
@@ -400,10 +651,12 @@ value $w$.
 \begin{example}[Existential elimination in Lean]
   The existential rules can be interpreted as an infinite 
   disjunction, 
-  so that existential elimination naturally corresponds to a \textbf{proof by cases} (with only one single case). 
+  so that existential elimination naturally corresponds to a \textbf{proof by cases} 
+  (with only one single case). 
   In Lean, this reasoning is carried out using \textbf{pattern matching}, 
   a known mechanism in functional programming for dealing with cases,  
-  with \lstinline[language=lean]|let| or \lstinline[language=lean]|match|, as well as by using \lstinline[language=lean]|cases| or 
+  with \lstinline[language=lean]|let| or \lstinline[language=lean]|match|, 
+  as well as by using \lstinline[language=lean]|cases| or 
   \lstinline[language=lean]|rcases| construct. 
   \begin{lstlisting}[language=lean]
   example (h : ∃ n : Nat, n > 0) : ∃ n : Nat, n > 0 :=
@@ -412,19 +665,20 @@ value $w$.
   \end{lstlisting}
 \end{example}
 \begin{example}
-  The \textbf{universal quantifier} may be regarded as a generalized function.
+The \textbf{universal quantifier} may be regarded as a generalized function.
 Accordingly, In Lean, universal elimination is simply function application.
 \begin{lstlisting}[language=lean]
 example : ∀ n : Nat, n ≥ 0 :=
   fun n => Nat.zero_le n
 \end{lstlisting}
 \end{example}
+\subsection{Describing and use properties}
 Functions are primitive objects in type theory.
 For example, it is interesting to note that a relation can be expressed as a function:
 \lstinline[language=lean]|R : α → α → Prop|.
 Similarly, when defining a predicate (\lstinline[language=lean]|P : α → Prop|) we must first declare 
 \lstinline[language=lean]|α : Type| to be some arbitrary type. 
-This is what is called \textbf{polymorphism}.
+This is what is called \textbf{polymorphism}, more specifically \textbf{parametrical polymorphism}.
 A canonical example is the identity function, written as 
 \lstinline[language=lean]|α → α|, where 
 \lstinline[language=lean]|α| is a type variable. 
@@ -448,7 +702,7 @@ theorem le_trans_proof : Transitive Nat (· ≤ · : Nat → Nat → Prop) :=
 Looking at this code, we immediately notice that explicitly 
 passing the type argument \lstinline[language=lean]|Nat| is somewhat repetitive. 
 Lean allows us to omit it by letting the type inference mechanism fill it in automatically.
- This is achieved by using \textbf{implicit arguments} with curly brackets:
+This is achieved by using \textbf{implicit arguments} with curly brackets:
 \begin{lstlisting}[language=lean]
 def Transitive {α : Type} (R : α → α → Prop) : Prop :=
   ∀ x y z, R x y → R y z → R x z
@@ -456,8 +710,7 @@ theorem le_trans_proof : Transitive (· ≤ · : Nat → Nat → Prop) :=
   fun x y z h1 h2 => Nat.le_trans h1 h2 
 \end{lstlisting}
 Lean's type inference system is quite powerful: in many cases, types can be completely 
-inferred without explicit annotations. For instance, in earlier examples, Lean automatically 
-inferred that the types of $A$, $B$, and $C$ were \lstinline[language=lean]|Prop|.
+inferred without explicit annotations. For instance, (NEED TO EXPLAIN TYPE INFERENECE).
 Let us now revisit the transitivity proof, but this time for the less-than-equal relation on 
 the rational numbers (\lstinline[language=lean]|Rat| or \lstinline[language=lean]|ℚ|) instead.
 \begin{lstlisting}[language=lean]
@@ -474,8 +727,7 @@ and \lstinline[language=lean]|le_trans|.
 Mathlib is the community‑driven mathematical 
 library for Lean, containing a large body of formalized mathematics 
 and ongoing development.
-It is the de
-facto standard library for both programming and proving
+It is the defacto standard library for both programming and proving
 in Lean \cite{mathlib2020}, we will dig into it as we go along.
 Notice that we used a function to discharge the universal 
 quantifiers required by transitivity. The underscores indicate 
@@ -484,66 +736,62 @@ them, say \lstinline|x y z|, then:
 \lstinline[language=lean]|h1| would be a proof of \lstinline[language=lean]|x ≤ y|,
 \lstinline[language=lean]|h2| would be a proof of \lstinline[language=lean]|y ≤ z|,
 and \lstinline[language=lean]|Rat.le_trans h1 h2| produces a proof of \lstinline[language=lean]|x ≤ z|.
-The \lstinline[language=lean]|Transitive| definition is imported from Mathlib and similarly defined as before. 
+The \lstinline[language=lean]|Transitive| definition is imported from Mathlib and similarly 
+defined as before. 
 \begin{example}
-  The code can be made more readable using tactic mode. 
-  This mode comes with an info view showing the goal to solve and proof structure.
-  In this mode, you use tactics, commands provided by Lean or defined by users,
-  to carry out proof steps succinctly, avoid code repetition, 
-  and automate common patterns. 
-  This often yields shorter, clearer proofs than writing the full term by hand.
-  \begin{lstlisting}[language=lean]
-  import Mathlib
+The code can be made more readable using tactic mode.
+In this mode, you use tactics—commands provided by Lean or defined by users—to
+carry out proof steps succinctly, avoid code repetition,
+and automate common patterns.
+This often yields shorter, clearer proofs than writing the full term by hand.
+\begin{lstlisting}[language=lean]
+import Mathlib
 
-  theorem rat_le_trans : Transitive (· ≤ · : Rat → Rat → Prop) := by
-    intro x y z hxy hyz
-    exact le_trans hxy hyz
-  \end{lstlisting}
-  This proof performs the same steps but is much easier to read. 
-  Using \lstinline[language=lean]|by| we enter Lean’s tactic mode, 
-  which (with the info view) 
-  shows the current goal and context. 
-  Move your cursosr just before \lstinline[language=lean]|by|
-  and observe the info view change. 
-  The goal is shwon displayed \lstinline[language=lean]|⊢ Transitive fun x1 x2 ↦ x1 ≤ x2| at first.
-  The tactic \lstinline[language=lean]|intro| introduces 
-  the variables and hypotheses corresponding to the universal quantifiers 
-  and assumptions.
-  Now position your cursor just before \lstinline[language=lean]|exact|
-  and observe the info view again. 
-  The goal is now \lstinline[language=lean]|⊢ x ≤ z|, with the context 
-  showing the variables ans hypothesis introduced by the previous tactic.
-  \lstinline[language=lean]|exact| closes the goal 
-  by supplying the term \lstinline[language=lean]|Rat.le_trans hxy hyz| that matches with the goal
-  (the specification of \lstinline[language=lean]|Trqansitive|  ).
-  You can over each tactic to see its definition and documentation.
+theorem rat_le_trans : Transitive (· ≤ · : Rat → Rat → Prop) := by
+intro x y z hxy hyz
+exact Rat.le_trans hxy hyz
+\end{lstlisting}
+This proof performs the same steps but is much easier to read.
+Using \lstinline[language=lean]|by| we enter Lean's tactic mode,
+which (together with the info view)
+shows the current goal and context.
+Move your cursor just before \lstinline[language=lean]|by|
+and observe how the info view changes.
+The goal is initially displayed as \lstinline[language=lean]|⊢ Transitive fun x1 x2 ↦ x1 ≤ x2|.
+The tactic \lstinline[language=lean]|intro| is mainly used to introduce
+variables and hypotheses corresponding to universal quantifiers
+and assumptions into the context (essentially deconstructing universal quantifiers and implications).
+Now position your cursor just before \lstinline[language=lean]|exact|
+and observe the info view again.
+The goal is now \lstinline[language=lean]|⊢ x ≤ z|, with the context
+showing the variables and hypotheses introduced by the previous tactic.
+The \lstinline[language=lean]|exact| tactic closes the goal
+by supplying the term \lstinline[language=lean]|Rat.le_trans hxy hyz| that exactly matches the goal
+(the specification of \lstinline[language=lean]|Transitive|).
+You can hover over each tactic to see its definition and documentation.
 \end{example}
-In these examples we havec used predeined lemmas such as 
+In these examples we cheated and have used predefined lemmas such as
 \lstinline[language=lean]|Nat.le_trans| and
 \lstinline[language=lean]|Rat.le_trans|, just to simplify the presentation.
-We can now dig in to the implementation of these lemmas.
-Let’s look at the source code of \lstinline[language=lean]|Rat.le_trans|.
-The Mathlib 4 documentation website is at:
+We can now dig into the implementation of these lemmas.
+Let's look at the source code of \lstinline[language=lean]|Rat.le_trans|.
+The Mathlib 4 documentation website is at
 \url{https://leanprover-community.github.io/mathlib4_docs}, and
-The documentation for 
-\lstinline[language=lean]|Rat.le_trans| is at:
-\url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Order/Ring/Unbundled/Rat.html#Rat.le_trans}
-Click the “source” link there to jump to the implementation in the Mathlib repository. In editors like 
-VS Code you can also jump directly to the definition (Ctrl-click; Cmd-click on macOS).
-Lean has built-in types \texttt{Nat} (natural numbers), \texttt{Int} (integers), 
-and \texttt{Rat} (rational numbers). While Lean provides basic arithmetic and 
-order relations for these types, many advanced properties and theorems live in Mathlib.
-% \begin{lstlisting}[language=lean]
-% variable (a b c : Rat)
-% protected lemma le_trans (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
-%   rw [Rat.le_iff_sub_nonneg] at hab hbc
-%   have := Rat.add_nonneg hab hbc
-%   simp_rw [sub_eq_add_neg, add_left_comm (b + -a) c (-b), add_comm (b + -a) (-b), add_left_comm (-b) b (-a), add_comm (-b) (-a), add_neg_cancel_comm_assoc, ← sub_eq_add_neg] at this
-%   rwa [Rat.le_iff_sub_nonneg]
-% \end{lstlisting}
-The proof uses several tactics and lemmas from Mathlib. You can follow 
-the proof step by step using the info view in tactic mode, by piositioning the cursor
-on each line and observing the changes in the goal and context.
+the documentation for
+\lstinline[language=lean]|Rat.le_trans| is at
+\url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Order/Ring/Unbundled/Rat.html#Rat.le_trans}.
+Click the "source" link there to jump to the implementation in the Mathlib repository. In editors like
+VS Code you can also jump directly to the definition (Ctrl+click; Cmd+click on macOS).
+Another way to check source code is by using \lstinline[language=lean]|#print Rat.le_trans|.
+\begin{lstlisting}[language=lean]
+variable (a b c : Rat)
+protected lemma le_trans (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
+  rw [Rat.le_iff_sub_nonneg] at hab hbc
+  have := Rat.add_nonneg hab hbc
+  simp_rw [sub_eq_add_neg, add_left_comm (b + -a) c (-b), add_comm (b + -a) (-b), add_left_comm (-b) b (-a), add_comm (-b) (-a), add_neg_cancel_comm_assoc, ← sub_eq_add_neg] at this
+  rwa [Rat.le_iff_sub_nonneg]
+\end{lstlisting}
+The proof uses several tactics and lemmas from Mathlib.
 The \lstinline[language=lean]|rw| or \lstinline[language=lean]|rewrite| tactic  
 is very common and sintactically similar to
 the mathematical practice of rewriting an expression using an equality.
@@ -559,16 +807,24 @@ Thus we now have the hypotheses tranformerd to :
   hab : 0 ≤ b - a
   hbc : 0 ≤ c - b
 \end{lstlisting}
-The \lstinline[language=lean]|have| tactic introduces an intermediate result. If you omit a name, Lean assigns it the default name \lstinline[language=lean]|this|. In our situation, from \lstinline[language=lean]|hab : a ≤ b| and \lstinline[language=lean]|hbc : b ≤ c| we can derive that \lstinline[language=lean]|b - a| and \lstinline[language=lean]|c - b| are nonnegative, hence their sum is nonnegative:
+The \lstinline[language=lean]|have| tactic introduces an intermediate result. 
+If you omit a name, Lean assigns it the default name \lstinline[language=lean]|this|. 
+In our situation, from \lstinline[language=lean]|hab : a ≤ b| and \lstinline[language=lean]|hbc : b ≤ c| 
+we can derive that \lstinline[language=lean]|b - a| and \lstinline[language=lean]|c - b| 
+are nonnegative, hence their sum is nonnegative:
 \begin{lstlisting}[language=lean]
-this : 0 ≤ b - a + (c - b)
+  this : 0 ≤ b - a + (c - b)
 \end{lstlisting}
 The most involved step uses \lstinline[language=lean]|simp_rw| to 
 simplify the expression via a sequence of other existing Mathlib's lemmas. 
-The tactic \lstinline[language=lean]|simp_rw| is a variant of \lstinline[language=lean]|simp|: it performs rewriting using the simp set (and any lemmas you provide), applying the rules in order and in the given direction. Lemmas that \lstinline[language=lean]|simp| can use are typically marked with the \lstinline[language=lean]|@[simp]| attribute. This is particularly useful for simplifying algebraic expressions and equations.
+The tactic \lstinline[language=lean]|simp_rw| is a variant of \lstinline[language=lean]|simp|: 
+it performs rewriting using the simp set (and any lemmas you provide), applying the rules 
+in order and in the given direction. Lemmas that \lstinline[language=lean]|simp| can use 
+are typically marked with the \lstinline[language=lean]|@[simp]| attribute. 
+This is particularly useful for simplifying algebraic expressions and equations.
 After these simplifications we obtain:
 \begin{lstlisting}[language=lean]
-this : 0 ≤ c - a
+  this : 0 ≤ c - a
 \end{lstlisting}
 Clearly, the proof relies mostly on \lstinline[language=lean]|Rat.add_nonneg|. 
 Its source code is fairly involved and uses advanced features 
@@ -578,28 +834,26 @@ Mathlib defines \lstinline[language=lean]|Rat| as an instance of
 a linear ordered field, implemented via a normalized fraction 
 representation: a pair of integers (numerator and denominator) 
 with positive denominator and coprime numerator and denominator \cite{mathlibdoc}. 
-To achieve this, it uses a \textbf{structure}. In Lean, a structure is a dependent record type 
-used to group together related fields or properties as a single data type.
+To achieve this, it uses a \textbf{structure}. In Lean, a structure is a dependent record 
+(or product type) type  used to group together related fields or properties as a single data type.
 Unlike ordinary records, the type of later fields may depend on the values of earlier ones.
 Defining a structure automatically introduces a constructor (usually mk) and projection 
 functions that retrieve (deconstruct) the values of its fields.
 Structures may also include proofs expressing properties that the fields must satisfy.
-
-% \begin{lstlisting}[language=lean]
-%   structure Rat where
-%   /-- Constructs a rational number from components.
-%   We rename the constructor to `mk'` to avoid a clash with the smart constructor. -/
-%   mk' ::
-%   /-- The numerator of the rational number is an integer. -/
-%   num : Int
-%   /-- The denominator of the rational number is a natural number. -/
-%   den : Nat := 1
-%   /-- The denominator is nonzero. -/
-%   den_nz : den ≠ 0 := by decide
-%   /-- The numerator and denominator are coprime: it is in "reduced form". -/
-%   reduced : num.natAbs.Coprime den := by decide
-%   ...
-% \end{lstlisting}
+\begin{lstlisting}[language=lean]
+  structure Rat where
+    /-- Constructs a rational number from components.
+    We rename the constructor to `mk'` to avoid a clash with the smart constructor. -/
+    mk' ::
+    /-- The numerator of the rational number is an integer. -/
+    num : Int
+    /-- The denominator of the rational number is a natural number. -/
+    den : Nat := 1
+    /-- The denominator is nonzero. -/
+    den_nz : den ≠ 0 := by decide
+    /-- The numerator and denominator are coprime: it is in "reduced form". -/
+    reduced : num.natAbs.Coprime den := by decide
+\end{lstlisting}
 In order to work with rational numbers in Mathlib, we use the
 \lstinline[language=lean]|Rat.mk'| constructor to create a rational number from
 its numerator and denominator, if omitted the default would be \lstinline[language=lean]|Rat.mk|.
@@ -609,21 +863,20 @@ These proofs are automatically generated by Lean's \lstinline[language=lean]|dec
 solve certain decidable propositions (to be discussed in the next section).
 \begin{example} 
   Here is how we can define and manipulate rational numbers in Lean.
-  % \begin{lstlisting}[language=lean]
-  % def half : Rat := Rat.mk' 1 2
-  % def third : Rat := Rat.mk' 1 3
-  % -- #eval evaluate the expression and print the result
-  % #eval half.den -- outputs 2
-  % #eval half + third -- outputs 5/6
-  % -- #check prints the type of an expression
-  % #check half.den -- outputs : Nat
-  % #check half -- outputs : Rat
-  % #check half + third -- outputs : Rat
-  % \end{lstlisting}
+  \begin{lstlisting}[language=lean]
+    def half : Rat := Rat.mk' 1 2
+    def third : Rat := Rat.mk' 1 3
+    #eval half.den --outputs 2
+    #eval half + third --outputs 5/6
+    #check half.den --outputs : Nat
+    #check half --outputs : Rat
+    #check half + third -- outputs : Rat
+  \end{lstlisting}
 \end{example}
 When working with rational numbers, or more generally with structures, we must provide the 
 required proofs as arguments to the constructor (or Lean must be able to ensure them).
-For instance \lstinline[language=lean]|Rat.mk' 1 0| or \lstinline[language=lean]|Rat.mk' 2 6| would be rejected.
+For instance \lstinline[language=lean]|Rat.mk' 1 0| or \lstinline[language=lean]|Rat.mk' 2 6| 
+would be rejected.
 In the case of rationals, Mathlib unfolds the definition through
 \lstinline[language=lean]|Rat.numDenCasesOn|. This principle states that, to prove a property of an 
 arbitrary rational number, it suffices to consider numbers of the form \lstinline[language=lean]|n /. d| 
@@ -632,61 +885,85 @@ This reduction allows mathlib to transform proofs about \lstinline[language=lean
 into proofs about \lstinline[language=lean]|ℤ| and \lstinline[language=lean]|ℕ|, 
 and then lift the result back to rationals.
 \begin{example}
-  I will present a simplified version of this implementation.
-%   \begin{lstlisting}[language=lean]
-% import Mathlib
-% open Rat 
+We present a simplified implementation of addition non-negativity for rationals, 
+maintaining a similar approach: projecting everything to the natural numbers and 
+integers first. To illustrate the proof technique clearly, we avoid using existing lemmas 
+from the Rat module in Mathlib.
+Mathlib is indeed organized into modules by mathematical 
+domain (e.g., Nat, Int, Rat). Lemmas are typically namespaced (e.g., Rataddnonneg) 
+and often marked protected to prevent namespace pollution. 
+We start by defining helper lemmas needed in the main proof.
+\textbf{Helper 1: Positive denominators.} Given a natural number 
+(which in this case represents the denominator of a rational number) that is not 
+equal to zero, we prove it must be positive. This follows directly by 
+applying the Mathlib lemma \lstinline[language=lean]|Nat.pos_of_ne_zero|:
+\begin{lstlisting}[language=lean]
+  import Mathlib
 
-% lemma add_nonneg_simplified : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
-%   intro ha hb
-%   -- Convert hypotheses to numerator conditions
-%   rw [← num_nonneg] at ha hb
-%   -- Express rationals in divInt form and apply addition formula
-%   rw [← num_divInt_den a, ← num_divInt_den b, divInt_add_divInt]
-%   -- Use divInt_nonneg_iff_of_pos_right to reduce to integer arithmetic
-%   · rw [divInt_nonneg_iff_of_pos_right]
-%     · -- Prove numerator ≥ 0
-%       exact Int.add_nonneg (Int.mul_nonneg ha (Int.natCast_nonneg _))
-%                            (Int.mul_nonneg hb (Int.natCast_nonneg _))
-%     · -- Prove denominator > 0
-%       norm_cast
-%       exact Nat.mul_pos (Nat.pos_of_ne_zero a.den_nz) (Nat.pos_of_ne_zero b.den_nz)
-%   · norm_cast; exact a.den_nz
-%   norm_cast; exact b.den_nz
+  lemma nat_ne_zero_pos (den : ℕ) (h_den_nz : den ≠ 0) : 0 < den :=
+    Nat.pos_of_ne_zero h_den_nz
+\end{lstlisting}
+The naming convention follows Mathlib best practices aiming to be descriptive by indicating 
+types and properties involved.
+\textbf{Helper 2: Non-negative rationals have non-negative numerators.} 
+The following lemma is slightly more involved. It states that if a rational number num / den 
+is non-negative, then its numerator must also be non-negative:
+\begin{lstlisting}[language=lean]
+  lemma rat_num_nonneg {num : ℤ} {den : ℕ} (hden_pos : 0 < den)
+  (h : (0 : ℚ) ≤ num / den) : 0 ≤ num := by
+  -- Proof by contraposition: assume num < 0, show num / den < 0
+  contrapose! h
+  -- Cast den to ℚ and preserve positivity
+  have hden_pos_to_rat : (0 : ℚ) < den := Nat.cast_pos.mpr hden_pos
+  -- Cast num to ℚ and preserve negativity
+  have hnum_neg_to_rat : num < (0 : ℚ) := Int.cast_lt.mpr h
+  -- Apply division rule: negative / positive = negative
+  exact div_neg_of_neg_of_pos hnum_neg_to_rat hden_pos_to_rat
+\end{lstlisting}
 
-% \end{lstlisting}
-In this version, we open the 
-\lstinline[language=lean]|Rat| \textbf{namespace} to access its definitions and lemmas directly 
-(Notice that i use \lstinline[language=lean]|num_nonneg| instead of 
-\lstinline[language=lean]|Rat.num_nonneg| in the next line).
-The proof begins by introducing the hypotheses \lstinline[language=lean]|ha| and \lstinline[language=lean]|hb|
-that \lstinline[language=lean]|a| and \lstinline[language=lean]|b| are nonnegative.
-The \lstinline[language=lean]|rw ... at| tactic rewrites these hypotheses using the lemma
-\lstinline[language=lean]|num_nonneg|, which states that a rational number
-is nonnegative if and only if its numerator is nonnegative. 
-We use \lstinline[language=lean]|←| to indicate the direction of rewriting (from right to left).
-Next, we express the rational numbers in terms of their numerator and denominator using
-\lstinline[language=lean]|num_divInt_den|, and apply the addition formula
-for rational numbers represented as \lstinline[language=lean]|divInt_add_divInt|.
-The goal is then to prove that the resulting numerator is nonnegative.
-\lstinline[language=lean]|num_divInt_den| transofms a rational number \lstinline[language=lean]|r| 
-into the form \lstinline[language=lean]|r.num /. ↑r.den|. The \lstinline[language=lean]|↑| symbol denotes
-the coercion from natural numbers to integers 
-(remember in our definition of Rat, the numerator is an integer and the denominator a natural number, 
-but here we need to translate everything to integers). 
-We now have 3 goals.
-We use \lstinline[language=lean]|divInt_nonneg_iff_of_pos_right| to reduce this to proving that the 
-numerator is nonnegative, given that the denominator is positive.
-This requires two subgoals: proving the numerator is nonnegative and the denominator is positive.
-For the numerator, we use \lstinline[language=lean]|Int.add_nonneg|
-to show that the sum of two nonnegative integers is nonnegative.
-For the denominator, we first translate the problem from integers to natural numbers, using \lstinline[language=lean]|norm_cast|.
-and use \lstinline[language=lean]|Nat.mul_pos| to show that the product of two positive natural numbers is positive.
-Finally, we use \lstinline[language=lean]|norm_cast| to handle the necessary type casts between integers 
-and natural numbers automatically and close the remaining goals with the 
-nonzero denominator conditions given from the Rat structure (\lstinline[language=lean]|den_nz|).
-Lean encourages to separate subgoals with \lstinline[language=lean]|·| and proper indentation, 
-making the corresponding proof more readable.
+\textbf{Main theorem: Addition preserves non-negativity.} Now we can prove the main result:
+
+\begin{lstlisting}[language=lean]
+  lemma rat_add_nonneg (a b : ℚ) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
+    -- Context: a b : ℚ
+    -- Goal: ⊢ 0 ≤ a → 0 ≤ b → 0 ≤ a + b
+    intro ha hb
+    -- Now (ha : 0 ≤ a) and (hb : 0 ≤ b) are in the context
+    -- Terms of type Rat are structures with fields (num, den, den_nz, cop).
+    -- We deconstruct these structures to access their fields:
+    cases a with | div a_num a_den a_den_nz a_cop =>
+    cases b with | div b_num b_den b_den_nz b_cop =>
+    -- Goal: ⊢ 0 ≤ ↑a_num / ↑a_den + ↑b_num / ↑b_den
+    -- (↑ denotes type coercion from ℤ/ℕ to ℚ)
+    rw [div_add_div]
+    -- Applies the theorem: a/b + c/d = (a*d + b*c)/(b*d)
+    -- This requires proofs that b ≠ 0 and d ≠ 0, creating side goals
+    -- We handle each goal separately using · (entered by typing \·)
+    -- Main goal: ⊢ 0 ≤ (↑a_num * ↑b_den + ↑a_den * ↑b_num) / (↑a_den * ↑b_den)
+    · -- Prove numerator is non-negative
+      have ha_num_nonneg : 0 ≤ a_num := by
+        have ha_den_pos := nat_ne_zero_pos a_den a_den_nz
+        exact rat_num_nonneg ha_den_pos ha
+      have hb_num_nonneg : 0 ≤ b_num := by
+        have hb_den_pos := nat_ne_zero_pos b_den b_den_nz
+        exact rat_num_nonneg hb_den_pos hb
+      -- Show the full numerator is non-negative
+      have hnum_nonneg : (0 : ℚ) ≤ a_num * b_den + a_den * b_num := by
+        apply add_nonneg  -- Works for any OrderedAddCommMonoid
+        · apply mul_nonneg  -- Works for any OrderedSemiring
+          · exact Int.cast_nonneg.mpr ha_num_nonneg
+          · exact Nat.cast_nonneg b_den
+        · apply mul_nonneg
+          · exact Nat.cast_nonneg a_den
+          · exact Int.cast_nonneg.mpr hb_num_nonneg
+      -- Show the denominator is non-negative
+      have hden_nonneg : (0 : ℚ) ≤ a_den * b_den := 
+        Nat.cast_nonneg _
+      -- Apply: non-negative / non-negative = non-negative
+      exact div_nonneg hnum_nonneg hden_nonneg
+    · exact Nat.cast_ne_zero.mpr a_den_nz  -- Goal: ⊢ ↑a_den ≠ 0
+    · exact Nat.cast_ne_zero.mpr b_den_nz  -- Goal: ⊢ ↑b_den ≠ 0
+\end{lstlisting}
 \end{example}
 We made extensive use of type casting and coercions in this proof, handled by 
 the \lstinline[language=lean]|norm_cast| tactic,wich requires some explanation (\cite{lewis_madelaine_simplifying_casts_coercions_2020}).
@@ -782,10 +1059,10 @@ the properties and operations defined in the type class.
 
 Let's look at a more concrete example, say we would like to define a a generic \lstinline[language=lean]|Transitive| 
 structure with field \lstinline[language=lean]|le_trans|:
-\begin{lstlisting}[language=lean]
-structure TransitiveProperty (α : Type) where
-  le_trans : α → α → α
-\end{lstlisting}
+% \begin{lstlisting}[language=lean]
+% % structure TransitiveProperty (α : Type) where
+% %   le_trans : α → α → α
+% \end{lstlisting}
 Now in overload differnt typeds such as Rat, INtn and NAt we would define:
 % \begin{lstlisting}[language=lean]
 %   def polymorphic_le_trans (s : TransitiveProperty α) (x : α) : α :=
