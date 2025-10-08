@@ -783,7 +783,7 @@ the documentation for
 Click the "source" link there to jump to the implementation in the Mathlib repository. In editors like
 VS Code you can also jump directly to the definition (Ctrl+click; Cmd+click on macOS).
 Another way to check source code is by using \lstinline[language=lean]|#print Rat.le_trans|.
-\begin{lstlisting}[language=lean]
+\begin{lstlisting}[language=lean,  float=!htb]
 variable (a b c : Rat)
 protected lemma le_trans (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
   rw [Rat.le_iff_sub_nonneg] at hab hbc
@@ -840,7 +840,7 @@ Unlike ordinary records, the type of later fields may depend on the values of ea
 Defining a structure automatically introduces a constructor (usually mk) and projection 
 functions that retrieve (deconstruct) the values of its fields.
 Structures may also include proofs expressing properties that the fields must satisfy.
-\begin{lstlisting}[language=lean]
+\begin{lstlisting}[language=lean,  float=!htb]
   structure Rat where
     /-- Constructs a rational number from components.
     We rename the constructor to `mk'` to avoid a clash with the smart constructor. -/
@@ -892,7 +892,7 @@ Given a natural number
 (which in this case represents the denominator of a rational number) that is not 
 equal to zero, we prove it must be positive. This follows directly by 
 applying the Mathlib lemma \lstinline[language=lean]|Nat.pos_of_ne_zero|:
-\begin{lstlisting}[language=lean]
+\begin{lstlisting}[language=lean,  float=!htb]
   import Mathlib
 
   lemma nat_ne_zero_pos (den : ℕ) (h_den_nz : den ≠ 0) : 0 < den :=
@@ -904,7 +904,7 @@ types and properties involved.
 The following lemma is slightly more involved. 
 It states that if a rational number num / den 
 is non-negative, then its numerator must also be non-negative:
-\begin{lstlisting}[language=lean]
+\begin{lstlisting}[language=lean,  float=!htb]
   lemma rat_num_nonneg {num : ℤ} {den : ℕ} (hden_pos : 0 < den)
   (h : (0 : ℚ) ≤ num / den) : 0 ≤ num := by
     contrapose! h
@@ -913,7 +913,7 @@ is non-negative, then its numerator must also be non-negative:
     exact div_neg_of_neg_of_pos hnum_neg_to_rat hden_pos_to_rat
 \end{lstlisting}
 Now we can prove the main result:
-\begin{lstlisting}[language=lean]
+\begin{lstlisting}[language=lean,  float=!htb]
 lemma rat_add_nonneg (a b : Rat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
 
   intro ha hb
@@ -927,27 +927,7 @@ lemma rat_add_nonneg (a b : Rat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
 \end{lstlisting}
 
 \newpage
-\begin{lstlisting}[language=lean]
-  have ha_num_nonneg := by
-      have ha_den_pos := nat_ne_zero_pos a_den a_den_nz
-      exact rat_num_nonneg ha_den_pos ha
-    have hb_num_nonneg := by
-      have hb_den_pos := nat_ne_zero_pos b_den b_den_nz
-      exact rat_num_nonneg hb_den_pos hb
-    have hnum_nonneg : (0 : ℚ) ≤ a_num * b_den + a_den * b_num := by
-      apply add_nonneg
-      · apply mul_nonneg
-        · exact Int.cast_nonneg.mpr ha_num_nonneg
-        · exact Nat.cast_nonneg b_den
-      · apply mul_nonneg
-        · exact Nat.cast_nonneg a_den
-        · exact Int.cast_nonneg.mpr hb_num_nonneg
-    have hden_nonneg : (0 : ℚ) ≤ a_den * b_den := 
-      Nat.cast_nonneg _
-    exact div_nonneg hnum_nonneg hden_nonneg
-\end{lstlisting}
 
-\end{example}
 Let us examine this proof step-by-step.
 We first introduce the two hypotheses \lstinline[language=lean]|ha| and \lstinline[language=lean]|hb| into the context using \lstinline[language=lean]|intro|. As mentioned earlier, a structure can be viewed as a product type or a record type with a single constructor. The tactic \lstinline[language=lean]|cases a with| exposes the fields of \lstinline[language=lean]|Rat|: the numerator \lstinline[language=lean]|a_num|, denominator \lstinline[language=lean]|a_den|, the proof that the denominator is non-zero \lstinline[language=lean]|a_den_nz|, and the coprimality condition \lstinline[language=lean]|a_cop|. Notice how the goal transforms the rationals \lstinline[language=lean]|a| and \lstinline[language=lean]|b| into:
 \begin{lstlisting}[language=lean]
@@ -962,9 +942,57 @@ variable [Semifield K] {a b d : K}
 theorem div_add_div (a : K) (c : K) (hb : b ≠ 0) (hd : d ≠ 0) :
     a / b + c / d = (a * d + b * c) / (b * d) := sorry
 \end{lstlisting}
-Notice that we are not using a theorem from \lstinline[language=lean]|Rat| specifically, but rather from \lstinline[language=lean]|Field|. The type \lstinline[language=lean]|K| here is assumed to be a \lstinline[language=lean]|Semifield|. The \lstinline[language=lean]|variable| keyword is a way to declare parameters that are potentially used across multiple theorems or definitions. We will explore Lean's powerful algebraic hierarchy and the meaning of the square brackets \lstinline[language=lean]|[ ]| (which denote typeclass instances) in the next section.
-I have omitted the actual proof using \lstinline[language=lean]|sorry|, which we haven't mentioned before. \lstinline[language=lean]|sorry| is a useful feature of Lean that tells the system to accept an incomplete proof for the time being, allowing you to continue development without proving every detail immediately. Using this rewrite is particularly time-saving, since otherwise one would have to establish the well-definedness of rational addition in terms of the underlying structure---a non-trivial task involving quotient types.
-This theorem requires proofs \lstinline[language=lean]|(hb : b ≠ 0)| and \lstinline[language=lean]|(hd : d ≠ 0)|, generating two additional side goals. We handle each goal separately using the focusing bullet \lstinline[language=lean]|·| (entered by typing \texttt{\textbackslash.} or \texttt{\textbackslash cdot}). The first bullet addresses the main goal (proving the sum is non-negative), while the subsequent bullets discharge the non-zero denominator conditions.
+Notice that we are not using a theorem from \lstinline[language=lean]|Rat| 
+specifically, but rather from \lstinline[language=lean]|Field|. 
+The type \lstinline[language=lean]|K| here is assumed to be a 
+\lstinline[language=lean]|Semifield|. The \lstinline[language=lean]|variable| 
+keyword is a way to declare parameters that are potentially used across 
+multiple theorems or definitions. We will explore Lean's powerful algebraic 
+hierarchy and the meaning of the square brackets \lstinline[language=lean]|[ ]| 
+(which denote typeclass instances) in the next section.
+Using this rewrite is particularly time-saving, since otherwise one would have to 
+establish the well-definedness of rational addition in terms of the underlying 
+structure (a non-trivial task).
+This theorem requires proofs \lstinline[language=lean]|(hb : b ≠ 0)| and 
+\lstinline[language=lean]|(hd : d ≠ 0)|, generating two additional side goals. 
+We handle each goal separately using the focusing bullet \lstinline[language=lean]|·| 
+(entered by typing \texttt{\textbackslash.} or \texttt{\textbackslash cdot}). 
+The first bullet addresses the main goal (proving the sum is non-negative), 
+while the subsequent bullets discharge the non-zero denominator conditions.
+I have omitted the actual proofs, here, using \lstinline[language=lean]|sorry|, 
+which we haven't mentioned before. \lstinline[language=lean]|sorry| is a useful 
+feature of Lean that tells the system to accept an incomplete proof for the time being, 
+allowing you to continue development without proving every detail immediately.
+We can now takle each otehr goals:
+\newpage
+
+\begin{lstlisting}[language=lean, float=!htb]
+  · -- Goal: ⊢ 0 ≤ (↑a_num * ↑b_den + ↑a_den * ↑b_num) / (↑a_den * ↑b_den)
+    have ha_num_nonneg := by
+      have ha_den_pos := nat_ne_zero_pos a_den a_den_nz
+      exact rat_num_nonneg ha_den_pos ha
+    have hb_num_nonneg := by
+      have hb_den_pos := nat_ne_zero_pos b_den b_den_nz
+      exact rat_num_nonneg hb_den_pos hb
+    have hnum_nonneg : (0 : ℚ) ≤ a_num * b_den + a_den * b_num := by
+      apply add_nonneg -- works for any OrderedAddCommMonoid
+      · apply mul_nonneg -- works for any OrderedSemiring
+        · exact Int.cast_nonneg.mpr ha_num_nonneg
+        · exact Nat.cast_nonneg b_den
+      · apply mul_nonneg
+        · exact Nat.cast_nonneg a_den
+        · exact Int.cast_nonneg.mpr hb_num_nonneg
+    have hden_nonneg : (0 : ℚ) ≤ a_den * b_den := by
+      rw [← Nat.cast_mul]
+      exact Nat.cast_nonneg (a_den * b_den)
+    exact div_nonneg hnum_nonneg hden_nonneg
+
+  · exact Nat.cast_ne_zero.mpr a_den_nz -- Goal ⊢ ↑a_den ≠ 0
+  · exact Nat.cast_ne_zero.mpr b_den_nz -- Goal ⊢ ↑b_den ≠ 0
+\end{lstlisting}
+\end{example}
+
+
 
 % We made extensive use of type casting and coercions in this proof, handled by 
 % the \lstinline[language=lean]|norm_cast| tactic,wich requires some explanation (\cite{lewis_madelaine_simplifying_casts_coercions_2020}).
