@@ -557,8 +557,10 @@ rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.righ
 This system of inference rules allows us to construct proofs in an
 algorithmic and systematical way, organized in what is called a \textbf{proof tree}.
 To reduce complexity, we follow a
-\textbf{top-down} approach (see \cite{thompson1999types} and
-\cite{nordstrom1990programming}).
+\textbf{top-down} 
+% approach (see \cite{thompson1999types} and
+% \cite{nordstrom1990programming})
+.
 This methodology forms the basis of \textbf{proof assistants} like Lean,
 Coq, and Agda, which help
 verify the correctness of mathematical proofs by checking each step
@@ -1154,8 +1156,7 @@ theorem div_add_div (a : K) (c : K) (hb : b ≠ 0) (hd : d ≠ 0) :
   structure (a non-trivial task).
   This theorem requires proofs \lstinline[language=lean]|(hb : b ≠ 0)| and
   \lstinline[language=lean]|(hd : d ≠ 0)|, generating two additional side goals.
-  We handle each goal separately using the focusing bullet \lstinline[language=lean]|·|
-  (entered by typing \texttt{\\.} or \texttt{\\cdot}).
+  We handle each goal separately using the focusing bullet \lstinline[language=lean]|·|.
   The first bullet addresses the main goal (proving the sum is non-negative),
   while the subsequent bullets discharge the non-zero denominator conditions.
   I have omitted the actual proofs, here, using \lstinline[language=lean]|sorry|,
@@ -1277,7 +1278,7 @@ we used many generalized lemmas from Mathlib, such as \lstinline[language=lean]|
 which apply to a wide range of types beyond just rational numbers.
 Similarly, in our earlier work with natural numbers, we used \lstinline[language=lean]|Nat.le_trans|,
 a theorem specifically for natural numbers that is part of Lean's core library
-(\texttt{lean/Init/Prelude.lean}). Mathlib is built on top of this base library.
+(\lstinline[language=lean]|lean/Init/Prelude.lean|). Mathlib is built on top of this base library.
 However, the transitivity property holds not only for naturals but also for integers,
 reals, and, in fact, for any partially ordered set.
 Rather than duplicating this theorem for each type, Mathlib provides a general
@@ -1409,20 +1410,202 @@ automatically providing all their theorems.
 
 \section{Example in Topology: A Connected but not Path-Connected Space}
 
-As part of my thesis work, I have formalized a well-known counterexample in topology: the \textbf{topologist’s sine curve}.
+As part of my thesis work, with the help and revision from Prof David Loeffler, 
+I have formalized a well-known counterexample in topology: the \textbf{topologist’s sine curve}.
 This classic example illustrates a space that is \emph{connected} but not \emph{path-connected}.
 It demonstrates the use of type classes, structures, and several tactics in Lean that were discussed earlier.
-In my presentation, I will provide a high-level overview along with some specific examples.
-The proof follows Conrad’s paper~\cite{Conrad_connnotpathconn}, with a few modifications, and the formalization is available in the Mathlib documentation under \href{https://leanprover-community.github.io/mathlib4_docs/Counterexamples/TopologistsSineCurve.html}{\emph{Counterexamples – Topologist’s Sine Curve}}.
+In my presentation, I will provide a high-level overview along with some specific examples, 
+of my original code, wich is way longer than the final result.
+The proof follows Conrad’s paper (\cite{Conrad_connnotpathconn}), with a few modifications, and the formalization is available in the Mathlib documentation under \href{https://leanprover-community.github.io/mathlib4_docs/Counterexamples/TopologistsSineCurve.html}{\emph{Counterexamples – Topologist’s Sine Curve}}.
 
 The topologist's sine curve is defined as the graph of $y = \sin(1/x)$ for $x \in (0, 1]$,
-together with the vertical line segment $\{0\} \times [-1, 1]$:
+together with the vertical line segment $\{0\} \times [-1, 1]$.
+We define three sets in $\mathbb{R}^2$:
+\begin{itemize}
+  \item $S$ the oscillating curve $\{(x, \sin(1/x)) : x > 0\}$
+  \item $Z$ the vertical segment $\{(0, y) : y \in [-1, 1]\}$   
+  \item $T$ their union $S \cup Z$
+\end{itemize}
+In Lean goes as follows:
 
 \begin{lstlisting}[language=lean]
   def S : Set (ℝ × ℝ) := (fun x ↦ (x, sin x⁻¹)) '' Ioi 0
   def Z : Set (ℝ × ℝ) := (fun y ↦ (0, y)) '' Icc (-1) 1
   def T : Set (ℝ × ℝ) := S ∪ Z
 \end{lstlisting}
+
+\lstinline[language=lean]|Set| is the type of sets, defined as predicates
+(i.e., functions from a type to \lstinline[language=lean]|Prop|).
+The notation \lstinline[language=lean]|''| denotes the image of a set under a function,
+and \lstinline[language=lean]|Ioi 0| and \lstinline[language=lean]|Icc (-1) 1|
+denote the intervals $(0, \infty)$ and $[-1, 1]$, respectively.
+The sets are subsets of the product space $\mathbb{R}^2$,
+ represented as \lstinline[language=lean]|ℝ × ℝ|.
+The sin function \lstinline[language=lean]|sin| is defined in the 
+\lstinline[language=lean]|Analysis.SpecialFunctions.Trigonometric|
+The goal is to prove that $T$ is connected but not path-connected.
+
+First of all one can directlly see that  $S$ is path-connected, since it is the
+image of the path-connected set ($(0, \infty)$) under the continuous map
+$x \mapsto (x, \sin(1/x))$. 
+A path connected space is always connected, so $S$ is connected.
+Morover the closure of $S$ is $T$, and the closure of a connected set is connected,
+so $T$ is connected.
+This is how a matehamtician would argue informally, using facts known. 
+Anyway in a formal proof one has to justify each step.
+
+For instance justiyging that $S$ is path-connected requires to prove that the map
+$x \mapsto (x, \sin(1/x))$ is continuous on $(0, \infty)$.
+This is done in two steps: first proving that $x \mapsto \sin(1/x)$ is continuous on $(0, \infty)$,
+then using the fact that the product of two continuous functions is continuous.
+Here is the relevant part of the formalization:
+\begin{lstlisting}[language=lean]
+lemma sine_curve_is_continuous_on_pos_real : ContinuousOn (sine_curve) (Ioi 0) :=
+  ContinuousOn.prodMk continuous_id.continuousOn sin_comp_inv_is_continuous_on_pos_real
+
+lemma pos_real_is_path_conn : IsPathConnected (Ioi 0) := by
+  apply Convex.isPathConnected
+  · exact convex_Ioi 0
+  · use 1
+    unfold pos_real
+    simp
+
+lemma S_is_path_conn : IsPathConnected S := by
+  apply IsPathConnected.image'
+  · exact pos_real_is_path_conn
+  · exact sine_curve_is_continuous_on_pos_real
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[language=lean]
+lemma sine_curve_is_continuous_on_pos_real :
+  ContinuousOn (sine_curve) (Ioi 0) :=
+  ContinuousOn.prodMk continuous_id.continuousOn
+    sin_comp_inv_is_continuous_on_pos_real
+\end{lstlisting}
+The lemma \lstinline[language=lean]|ContinuousOn.prodMk| states that the product of two continuous functions
+is continuous, allowing us to combine the identity map $x \mapsto x$ and the function
+$x \mapsto \sin(1/x)$.
+The type class system in Lean supplies the required \lstinline[language=lean]|TopologicalSpace| instances
+for $\mathbb{R}$ and $\mathbb{R} \times \mathbb{R}$, allowing \lstinline[language=lean]|ContinuousOn| to be used
+without explicitly mentioning the topologies.
+
+Let's digress briefly to examine the definition of \lstinline[language=lean]|ContinuousOn| in Mathlib:
+\begin{lstlisting}[language=lean]
+def ContinuousOn (f : X → Y) (s : Set X) : Prop :=
+  ∀ x ∈ s, ContinuousAt f x
+\end{lstlisting}
+This definition states that a function \lstinline[language=lean]|f : X → Y| is continuous on a set
+\lstinline[language=lean]|s : Set X| if it is continuous at every point in \lstinline[language=lean]|s|.
+The predicate \lstinline[language=lean]|ContinuousAt f x| 
+means that \lstinline[language=lean]|f| is continuous at the point \lstinline[language=lean]|x : X|.
+
+% \subsection{Path-connectedness of the positive reals}
+
+\begin{lstlisting}[language=lean]
+lemma pos_real_is_path_conn : IsPathConnected (Ioi 0) := by
+  apply Convex.isPathConnected
+  · exact convex_Ioi 0
+  · use 1
+    unfold pos_real
+    simp
+\end{lstlisting}
+
+This lemma proves that $(0, \infty)$ is path-connected. The theorem
+\lstinline[language=lean]|Convex.isPathConnected| in \lstinline[language=lean]|mathlib| 
+states that every nonempty convex
+subset of a real vector space is path-connected. We provide two arguments:
+\begin{enumerate}
+  \item \lstinline[language=lean]|convex_Ioi 0| proves that $(0, \infty)$ is convex;
+  \item \lstinline[language=lean]|use 1| provides an explicit point showing nonemptiness.
+\end{enumerate}
+The strucutre\lstinline[language=lean]|IsPathConnected| depends on a \lstinline[language=lean]|TopologicalSpace| 
+instance,
+which is also provided by Lean’s type class inference.
+
+% \subsection{Path-connectedness of the sine curve}
+
+\begin{lstlisting}[language=lean]
+lemma S_is_path_conn : IsPathConnected S := by
+  apply IsPathConnected.image'
+  · exact pos_real_is_path_conn
+  · exact sine_curve_is_continuous_on_pos_real
+\end{lstlisting}
+
+The theorem \lstinline[language=lean]|IsPathConnected.image'| states that if a set $A$ is path-connected
+and $f$ is continuous on $A$, then $f''A$ (the image of $A$ under $f$) is path-connected.
+Combining the previous two lemmas proves that the sine curve $S$ is path-connected.
+
+\begin{lstlisting}[language=lean]
+def IsPathConnected (F : Set X) : Prop :=
+  ∃ x ∈ F, ∀ ⦃y⦄, y ∈ F → JoinedIn F x y
+\end{lstlisting}
+
+% This structure expresses that a subset $S$ of a topological space $X$ is path-connected.
+% It has two fields:
+% \begin{itemize}
+%   \item \lstinline[language=lean]|nonempty : S.Nonempty|, asserting that $S$ is not empty;
+%   \item \lstinline[language=lean]|joined : ∀ x y ∈ S, JoinedIn S x y|, meaning that every pair of points
+%   in $S$ can be joined by a continuous path inside $S$.
+% \end{itemize}
+
+% The auxiliary predicate \lstinline[language=lean]|JoinedIn| is defined as:
+% \begin{lstlisting}[language=lean]
+% def JoinedIn (S : Set X) (x y : X) : Prop :=
+%   ∃ γ : Path x y, ∀ t, γ t ∈ S
+% \end{lstlisting}
+% where \lstinline[language=lean]|Path x y| denotes a continuous map $\gamma : [0,1] \to X$ with
+% $\gamma(0) = x$ and $\gamma(1) = y$.
+
+% \subsection{Global version: \lstinline[language=lean]|PathConnectedSpace}|
+
+There is also a global type class representing that an entire space is path-connected:
+
+\begin{lstlisting}[language=lean]
+class PathConnectedSpace (X : Type*) [TopologicalSpace X] : Prop :=
+(to_isPathConnected_univ : IsPathConnected (Set.univ))
+\end{lstlisting}
+
+% Hence, a \lstinline[language=lean]|PathConnectedSpace| is a space for which
+% \lstinline[language=lean]|IsPathConnected (Set.univ)| holds.
+
+% \subsection{Summary}
+
+% \begin{center}
+% \begin{tikzpicture}[node distance=1.2cm, auto]
+% \node (A) [draw, rounded corners, fill=gray!10, text width=6cm]
+%   {TopologicalSpace $X$};
+% \node (B) [below of=A, draw, rounded corners, fill=gray!10, text width=6.5cm]
+%   {IsPathConnected $S$\\
+%    $\quad\begin{cases}
+%        \text{nonempty} : S.\text{Nonempty} \\
+%        \text{joined} : \forall x,y\in S,\ \exists \gamma:[0,1]\to S
+%      \end{cases}$};
+% \node (C) [below of=B, draw, rounded corners, fill=gray!10, text width=6cm]
+%   {PathConnectedSpace $X$\\
+%    $\qquad\Longleftrightarrow\ \text{IsPathConnected }(\mathrm{univ})$};
+% \draw[->] (A) -- (B);
+% \draw[->] (B) -- (C);
+% \end{tikzpicture}
+% \end{center}
+
+% Lean’s combination of \emph{structures} and \emph{type classes} allows for a highly
+% modular and reusable formalization:
+% \begin{itemize}
+%   \item \lstinline[language=lean]|TopologicalSpace X| provides the ambient topology;
+%   \item \lstinline[language=lean]|ContinuousOn f s| depends on that topology to define continuity;
+%   \item \lstinline[language=lean]|Convex.isPathConnected| relies on algebraic and topological structure;
+%   \item \lstinline[language=lean]|IsPathConnected.image'| uses continuity and topology to preserve
+%   path-connectedness under images.
+% \end{itemize}
+
+% This design makes Lean’s topology library both flexible and highly compositional.
+
+
+
+
+
 % Before presenting the formalization, we introduce the relevant topological concepts as they
 % are implemented in Mathlib. Our development relies on several key modules:
 % \begin{itemize}
