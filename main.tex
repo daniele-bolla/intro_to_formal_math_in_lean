@@ -27,7 +27,6 @@
 \def\lstlanguagefiles{lstlean.tex}
 % set default language
 \lstset{language=lean}
-\lstset{literate={\#}{{\#}}1}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{definition}[theorem]{Definition}  
@@ -38,39 +37,38 @@
 
 \title{An introduction to formal mathematics in Lean}
 \author{Daniele Bolla}
+\date{\today}
 \begin{document}
-
-
 \tableofcontents
 
-% \input{intro}
+\input{intro}
 \input{classical_logic}
 
 \section{TODOs and Next Sections}
 
 \begin{itemize}
     \item Revisit Section 2
-    \begin{itemize}
-        \item Make it more practical by removing most of the rules and type theory details.
-        \item Add more Lean code examples and emphasize the Curry–Howard correspondence.
-    \end{itemize}
+          \begin{itemize}
+              \item Make it more practical by removing most of the rules and type theory details.
+              \item Add more Lean code examples and emphasize the Curry–Howard correspondence.
+          \end{itemize}
     \item Example on Rational Numbers
     \item Overview of \texttt{mathlib}
     \item Lean Tactics
     \item Type Coercions
     \item Structures and Type Classes
     \item Constructive Mathematics (briefly):
-    \begin{itemize}
-        \item Decidable and inherited type classes
-        \item \texttt{noncomputable} theorems/lemmas vs. \texttt{def}, etc.
-    \end{itemize}
+          \begin{itemize}
+              \item Decidable and inherited type classes
+              \item \texttt{noncomputable} theorems/lemmas vs. \texttt{def}, etc.
+          \end{itemize}
     \item Construction of Rationals and the Classical Logic Module
     \item Sets in Lean
     \item Topology in Lean
     \item Filters
     \item Describe the code example submitted  (this will start in the previous sections)
     \item This is the core part of the work; if needed, I can expand it with more
-    type-theoretical discussion, as I spent quite some time studying it.
+          type-theoretical discussion, as I spent quite some time studying it.
 \end{itemize}
 
 % \input{constructive_math}
@@ -153,7 +151,7 @@
 %     rw [Nat.succ_add, Nat.add_succ, ih] -- Normalizes ‘(a + b) + 1‘ to ‘b + (a + 1)‘ and proves ‘b + a + 1 = b + (a + 1)‘
 
 % \end{lstlisting}
-    
+
 % \end{example}
 
 % During type checking, Lean normalizes the proof terms at each step, ensuring that the inductive reasoning is sound and that the final proof term indeed has type \textbf{a + b = b + a}. This demonstrates how all three forms of equality work together: the kernel uses definitional equality to normalize terms, checks syntactic equality for verification, and ultimately establishes propositional equality through the completed proof.

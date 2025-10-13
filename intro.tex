@@ -1,172 +1,172 @@
 \section{Introduction}
-This serves as a brief starting point for understanding how mathematical proofs can be 
-formalized in Lean, as well as being an introduction to the language itself. 
+This serves as a brief starting point for understanding how mathematical proofs can be
+formalized in Lean, as well as being an introduction to the language itself.
 Lean is both a \textbf{functional programming language} and a \textbf{theorem prover}.
-We'll focus primarily on its role as a theorem prover. 
+We'll focus primarily on its role as a theorem prover.
 But what does this mean, and how can that be achieved?
 
-A programming language defines a \textbf{set of rules, semantics, and syntax} for writing programs. 
-To achieve a goal, a programmer must write a program that meets given specifications. 
-There are two primary approaches: \textbf{program derivation} and \textbf{program verification} 
+A programming language defines a \textbf{set of rules, semantics, and syntax} for writing programs.
+To achieve a goal, a programmer must write a program that meets given specifications.
+There are two primary approaches: \textbf{program derivation} and \textbf{program verification}
 (\cite{nordstrom1990programming} Section 1.1).
-In \textbf{program verification}, the programmer first writes a program and then proves it meets 
+In \textbf{program verification}, the programmer first writes a program and then proves it meets
 the specifications. This approach checks for errors at \textbf{run-time} when the code executes.
-In \textbf{program derivation}, the programmer writes a proof that a program with certain properties exists, 
-then extracts a program from that proof. This approach enables specification 
+In \textbf{program derivation}, the programmer writes a proof that a program with certain properties exists,
+then extracts a program from that proof. This approach enables specification
 checking at \textbf{compilation-time}, catching errors while typing, thus, before execution.
-This distinction corresponds to \textbf{dynamic} versus \textbf{static} \textbf{type systems}. 
-Most programming languages combine both approaches; providing basic types for annotation and compile-time checking, 
+This distinction corresponds to \textbf{dynamic} versus \textbf{static} \textbf{type systems}.
+Most programming languages combine both approaches; providing basic types for annotation and compile-time checking,
 while leaving the remaining checks to be performed at runtime.
 
 \begin{example}
-    In a dynamically typed language, like JavaScript, variables can change type after 
-    they are created. For example, a variable defined as a number can later 
-    be reassigned to a string:
-    \begin{lstlisting}[language=JavaScript]
-    let price = 100; // Javascript internal system recognize this variable as a number
-    price = "100";   // "100" transform the number 100 to a string. This is valid in JavaScript
-    \end{lstlisting}
-    TypeScript is a statically typed superset of JavaScript.  
-    Unlike JavaScript, it performs type checking at compile time.  
-    This means we can prevent the previous behavior, while writing our code, simply by adding 
-    a type annotation:
-    \begin{lstlisting}[language=TypeScript]
-    let price: number = 100;
-    price = "100";  // Error: Type 'string' is not assignable to type 'number'
-    \end{lstlisting} 
-    Now converting a variable with type annotation number to a string results into a compile time error.
+  In a dynamically typed language, like JavaScript, variables can change type after
+  they are created. For example, a variable defined as a number can later
+  be reassigned to a string:
+  % \begin{lstlisting}[language=JavaScript]
+  %   let price = 100; // Javascript internal system recognize this variable as a number
+  %   price = "100";   // "100" transform the number 100 to a string. This is valid in JavaScript
+  %   \end{lstlisting}
+  TypeScript is a statically typed superset of JavaScript.
+  Unlike JavaScript, it performs type checking at compile time.
+  This means we can prevent the previous behavior, while writing our code, simply by adding
+  a type annotation:
+  % \begin{lstlisting}[language=TypeScript]
+  %   let price: number = 100;
+  %   price = "100";  // Error: Type 'string' is not assignable to type 'number'
+  %   \end{lstlisting}
+  Now converting a variable with type annotation number to a string results into a compile time error.
 \end{example}
 
-Nonetheless, TypeScript, even though it has a sophisticated type system, cannot fully 
-capture complex mathematical properties. As well as for the most programming languages, 
-program specifications can only be enforced at runtime.  
-Lean, by contrast, uses a much more powerful type system that enables it to 
-express and verify mathematical statements with complete rigor fully during compilation time.  
+Nonetheless, TypeScript, even though it has a sophisticated type system, cannot fully
+capture complex mathematical properties. As well as for the most programming languages,
+program specifications can only be enforced at runtime.
+Lean, by contrast, uses a much more powerful type system that enables it to
+express and verify mathematical statements with complete rigor fully during compilation time.
 This makes it particularly suitable as a \textbf{theorem prover} for formalizing mathematics.
 
-Lean's type system is based on \textbf{dependent type theory}, specifically the 
-\textbf{Calculus of Inductive Constructions} (CIC) with various extensions. 
-It's important to note that \textbf{type theory} is not a single, unified theory, but rather a family of 
-related theories with various extensions, ongoing developments, and rich historical ramifications. 
+Lean's type system is based on \textbf{dependent type theory}, specifically the
+\textbf{Calculus of Inductive Constructions} (CIC) with various extensions.
+It's important to note that \textbf{type theory} is not a single, unified theory, but rather a family of
+related theories with various extensions, ongoing developments, and rich historical ramifications.
 % Creating a language like Lean  careful consideration of which rules and features to include.
 
-Type theory emerged as an alternative foundation for mathematics, addressing paradoxes 
-that arose in naive set theory. Consider Russell's famous paradox: 
-let $S = \{x \mid x \notin x\}$ be the set of all sets that do not contain themselves. 
-This construction is paradoxical, leading to the contradiction $S \in S \iff S \notin S$. 
-Type theory resolves such issues by working with \textbf{types} as primary objects rather than sets, 
+Type theory emerged as an alternative foundation for mathematics, addressing paradoxes
+that arose in naive set theory. Consider Russell's famous paradox:
+let $S = \{x \mid x \notin x\}$ be the set of all sets that do not contain themselves.
+This construction is paradoxical, leading to the contradiction $S \in S \iff S \notin S$.
+Type theory resolves such issues by working with \textbf{types} as primary objects rather than sets,
 and by restricting which constructions are well-formed.
 
-\textbf{Dependent type theory}, the framework underlying Lean, extends basic type systems 
-by allowing types to depend on values. For instance, one can define the type of vectors 
-of length $n$, where $n$ is itself a value. This capability makes dependent type theory 
+\textbf{Dependent type theory}, the framework underlying Lean, extends basic type systems
+by allowing types to depend on values. For instance, one can define the type of vectors
+of length $n$, where $n$ is itself a value. This capability makes dependent type theory
 particularly expressive for formalizing mathematics.
 
-Various proof assistants have been developed based on different variants of type theory, 
-including Agda, Coq, Idris, and Lean. Each system makes different design choices regarding 
-which rules and features to include. Lean adopts the \textbf{Calculus of Inductive Constructions}, 
-which extends the Calculus of Constructions, introduced in Coq, with \textbf{inductive types}. 
-Inductive types allow for the definition of structures 
+Various proof assistants have been developed based on different variants of type theory,
+including Agda, Coq, Idris, and Lean. Each system makes different design choices regarding
+which rules and features to include. Lean adopts the \textbf{Calculus of Inductive Constructions},
+which extends the Calculus of Constructions, introduced in Coq, with \textbf{inductive types}.
+Inductive types allow for the definition of structures
 such as natural numbers, lists, and trees.
 
-A fundamental design feature of Lean is its \textbf{universe hierarchy} of types, with \textbf{Prop} 
-(the proposition type) as a distinguished universe at the bottom. 
-The \textbf{Prop} universe exhibits two 
-special properties: \textbf{impredicativity} and \textbf{proof irrelevance}. 
-Proof irrelevance means that all proofs of the same proposition are considered equivalent. What matters 
-is whether a proposition can be proven, not which specific proof is given. 
-This separation between propositions (\textbf{Prop}) and data types (\textbf{Type}) was first 
-introduced in \textbf{N.G. de Bruijn's AUTOMATH system} (1967) 
-(\cite{thompson1999types}). 
+A fundamental design feature of Lean is its \textbf{universe hierarchy} of types, with \textbf{Prop}
+(the proposition type) as a distinguished universe at the bottom.
+The \textbf{Prop} universe exhibits two
+special properties: \textbf{impredicativity} and \textbf{proof irrelevance}.
+Proof irrelevance means that all proofs of the same proposition are considered equivalent. What matters
+is whether a proposition can be proven, not which specific proof is given.
+This separation between propositions (\textbf{Prop}) and data types (\textbf{Type}) was first
+introduced in \textbf{N.G. de Bruijn's AUTOMATH system} (1967)
+(\cite{thompson1999types}).
 
-For our purposes, we do not need to delve deeply into the theoretical foundations; 
-instead, we will introduce the relevant concepts as needed while working with Lean. 
-The practical aspects of writing proofs in Lean will be our primary focus, 
-and the theoretical machinery will be explained only insofar as it aids understanding 
+For our purposes, we do not need to delve deeply into the theoretical foundations;
+instead, we will introduce the relevant concepts as needed while working with Lean.
+The practical aspects of writing proofs in Lean will be our primary focus,
+and the theoretical machinery will be explained only insofar as it aids understanding
 of how to formalize mathematics effectively.
 \subsection{Lean first steps}
 
-In the language of type theory, and by extension in Lean, we write \lstinline[language=lean]|x : X| 
-to mean that $x$ is a \textbf{term} of type $X$. 
-For example, \lstinline[language=lean]|2 : ℕ| annotates $2$ as a natural number, 
-or more precisely, as a term of the natural number type. 
-Lean has internally defined types such as \lstinline[language=lean]|Nat| or \lstinline[language=lean]|ℕ| 
-(you can type \texttt{\textbackslash Nat} to get the Unicode symbol). 
+In the language of type theory, and by extension in Lean, we write \lstinline[language=lean]|x : X|
+to mean that $x$ is a \textbf{term} of type $X$.
+For example, \lstinline[language=lean]|2 : ℕ| annotates $2$ as a natural number,
+or more precisely, as a term of the natural number type.
+Lean has internally defined types such as \lstinline[language=lean]|Nat| or \lstinline[language=lean]|ℕ|
+(you can type \texttt{\textbackslash Nat} to get the Unicode symbol).
 The command \lstinline[language=lean]|#check| allows us to inspect the type of any espression, term or variable.
 \begin{example}\mbox{}
 
-    \begin{lstlisting}
+  \begin{lstlisting}
         #check 2 -- 2 : Nat
         #check 2 + 2 -- 2 + 2 : Nat
     \end{lstlisting}
-    %  [\href{https://live.lean-lang.org/#codez=MQYwFgpiDWAEBMAoUkYNgagUA}{Try this example in Lean Web Editor}]
-By following the link, you can try out the code in your browser.
-Lean provides a dedicated \textbf{infoview} panel on the right side. 
-Position your cursor after \lstinline[language=lean]|#check 2|, 
-and the infoview will display the output \lstinline[language=lean]|2 : Nat|. 
-This dynamic interaction, where the infoview responds to your cursor position, is 
-what makes Lean an \textbf{interactive theorem prover}. 
-As you move through your code, the infoview continuously updates, 
-showing computations, type information, and proof states at each location.
+  [\href{https://live.lean-lang.org/#codez=MQYwFgpiDWAEBMAoUkYNgagUA}{Try this example in Lean Web Editor}]
+  By following the link, you can try out the code in your browser.
+  Lean provides a dedicated \textbf{infoview} panel on the right side.
+  Position your cursor after \lstinline[language=lean]|#check 2|,
+  and the infoview will display the output \lstinline[language=lean]|2 : Nat|.
+  This dynamic interaction, where the infoview responds to your cursor position, is
+  what makes Lean an \textbf{interactive theorem prover}.
+  As you move through your code, the infoview continuously updates,
+  showing computations, type information, and proof states at each location.
 \end{example}
-At first glance, one might be tempted to view the colon notation as analogous to the membership 
-symbol $\in$ from set theory, treating types as if they were sets. 
-While this intuition can be helpful initially, type theory offers a fundamentally richer perspective. 
-The crucial insight is the \textbf{Curry-Howard correspondence}, 
-also known as the \textbf{propositions-as-types} principle. 
-This correspondence establishes a deep connection between mathematical proofs and programs: 
-\textbf{propositions correspond to types}, and \textbf{proofs correspond to terms} inhabiting those types. 
+At first glance, one might be tempted to view the colon notation as analogous to the membership
+symbol $\in$ from set theory, treating types as if they were sets.
+While this intuition can be helpful initially, type theory offers a fundamentally richer perspective.
+The crucial insight is the \textbf{Curry-Howard correspondence},
+also known as the \textbf{propositions-as-types} principle.
+This correspondence establishes a deep connection between mathematical proofs and programs:
+\textbf{propositions correspond to types}, and \textbf{proofs correspond to terms} inhabiting those types.
 Under this interpretation, a term $x : X$ can be understood in two more ways:
 \begin{itemize}
-    \item As a \textbf{computational object}: $x$ is a program or data structure of type $X$
-    \item As a \textbf{logical object}: $x$ is a proof of the proposition $X$
+  \item As a \textbf{computational object}: $x$ is a program or data structure of type $X$
+  \item As a \textbf{logical object}: $x$ is a proof of the proposition $X$
 \end{itemize}
-Lean is a concrete realization of the propositions-as-types principle, 
-proving a theorem, within the language, amounts to constructing a term of the appropriate type. 
-When we write \lstinline[language=lean]|theorem_name : Proposition|, we are declaring that 
-\lstinline[language=lean]|theorem_name| is a proof (term) of \lstinline[language=lean]|Proposition| (type). 
+Lean is a concrete realization of the propositions-as-types principle,
+proving a theorem, within the language, amounts to constructing a term of the appropriate type.
+When we write \lstinline[language=lean]|theorem_name : Proposition|, we are declaring that
+\lstinline[language=lean]|theorem_name| is a proof (term) of \lstinline[language=lean]|Proposition| (type).
 For example, consider proving that $2 + 2 = 4$:
 \begin{example}\mbox{}
 
-\begin{lstlisting}[language=Lean]
+  \begin{lstlisting}[language=Lean]
     theorem two_plus_two_eq_four : 2 + 2 = 4 := rfl
 \end{lstlisting}
-Lean's syntax is designed to resemble the language of mathematics. 
-Here, we use the \lstinline[language=lean]|theorem| keyword to encapsulate our proof, 
-of the statement/proposition $2 + 2 = 4$, 
-giving it the name \lstinline[language=lean]|two_plus_two_eq_four|. 
-This allows us to reference and reuse this result later in our code.
-After the semicolon, \lstinline[language=lean]|:|, we introduce the
-statement; \lstinline[language=lean]|2 + 2 = 4|.
-The \lstinline[language=lean]|:=| operator expects the 
-proof term that establishes the theorem's validity. 
-The proof itself consists of a single term: \lstinline[language=lean]|rfl| 
-(short for \textbf{reflexivity}). This is a proof term that works by 
-\textbf{definitional equality}, Lean's kernel automatically reduces both sides of the equation 
-to their normal (definitional) form and verifies they are identical. 
-Since $2 + 2$ computes to $4$, the proof succeeds immediately.
-We can now use this theorem in subsequent proofs. For instance:
-\begin{lstlisting}[language=Lean]
+  Lean's syntax is designed to resemble the language of mathematics.
+  Here, we use the \lstinline[language=lean]|theorem| keyword to encapsulate our proof,
+  of the statement/proposition $2 + 2 = 4$,
+  giving it the name \lstinline[language=lean]|two_plus_two_eq_four|.
+  This allows us to reference and reuse this result later in our code.
+  After the semicolon, \lstinline[language=lean]|:|, we introduce the
+  statement; \lstinline[language=lean]|2 + 2 = 4|.
+  The \lstinline[language=lean]|:=| operator expects the
+  proof term that establishes the theorem's validity.
+  The proof itself consists of a single term: \lstinline[language=lean]|rfl|
+  (short for \textbf{reflexivity}). This is a proof term that works by
+  \textbf{definitional equality}, Lean's kernel automatically reduces both sides of the equation
+  to their normal (definitional) form and verifies they are identical.
+  Since $2 + 2$ computes to $4$, the proof succeeds immediately.
+  We can now use this theorem in subsequent proofs. For instance:
+  \begin{lstlisting}[language=Lean]
     example : 1 + 1 + 1 + 1 = 4 := two_plus_two_eq_four
 \end{lstlisting}
-Well, this example is simple enough for Lean to evaluate by itself:
-\lstinline[language=lean]|1 + 1 + 1 + 1 = 2 + 2 = 4|
-and conclude with \lstinline[language=lean]|two_plus_two_eq_four|. 
-Actually, \lstinline[language=lean]|rfl| would solve the equation similarly, 
-so this is just applying \lstinline[language=lean]|rfl| again (it's a bit of cheating).
-Here, I used \lstinline[language=lean]|example|, which is handy for defining anonymous 
-expressions for demonstration purposes.
-Before diving into the discussion, here is another keyword, \lstinline[language=lean]|def|, 
-used to introduce definitions and functions.
+  Well, this example is simple enough for Lean to evaluate by itself:
+  \lstinline[language=lean]|1 + 1 + 1 + 1 = 2 + 2 = 4|
+  and conclude with \lstinline[language=lean]|two_plus_two_eq_four|.
+  Actually, \lstinline[language=lean]|rfl| would solve the equation similarly,
+  so this is just applying \lstinline[language=lean]|rfl| again (it's a bit of cheating).
+  Here, I used \lstinline[language=lean]|example|, which is handy for defining anonymous
+  expressions for demonstration purposes.
+  Before diving into the discussion, here is another keyword, \lstinline[language=lean]|def|,
+  used to introduce definitions and functions.
 
-\begin{lstlisting}[language=Lean]
+  \begin{lstlisting}[language=Lean]
     def addOne (n : Nat) : Nat := n + 1
 \end{lstlisting}
-This definition expects a natural number as its parameter, written \lstinline[language=lean]|(n : Nat)|
-and returns a natural number.
-% [\href{https://live.lean-lang.org/\#codez=YOUR_ENCODED_URL_HERE}{Run in browser}]
+  This definition expects a natural number as its parameter, written \lstinline[language=lean]|(n : Nat)|
+  and returns a natural number.
+    [\href{https://live.lean-lang.org/\#codez=YOUR_ENCODED_URL_HERE}{Run in browser}]
 \end{example}
-Let's now turn to how logic is handled in Lean and how the Curry-Howard 
+Let's now turn to how logic is handled in Lean and how the Curry-Howard
 isomorphism is reflected concretely.
 % \section{Introduction}
 % This serves as a brief starting point for understanding how the Curry-Howard correspondence appears in Lean, 

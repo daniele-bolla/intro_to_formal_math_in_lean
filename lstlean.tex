@@ -2,40 +2,6 @@
 % Defined by Jeremy Avigad, 2015, by modifying Assia Mahboubi's SSR style.
 % Unicode replacements taken from Olivier Verdier's unixode.sty
 
-\lstdefinelanguage{JavaScript}{
-  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, let, const},
-  keywordstyle=\color{blue}\bfseries,
-  ndkeywords={class, export, boolean, throw, implements, import, this},
-  ndkeywordstyle=\color{codegray}\bfseries,
-  identifierstyle=\color{black},
-  sensitive=false,
-  comment=[l]{//},
-  morecomment=[s]{/*}{*/},
-  commentstyle=\color{codegreen},
-  stringstyle=\color{codepurple},
-  morestring=[b],
-  morestring=[b]",
-  basicstyle=\ttfamily\small
-}
-
-\lstdefinelanguage{TypeScript}{
-  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break,
-            let, const, class, interface, type, public, private, protected, string, number, boolean, any, void, enum,
-            implements, extends, constructor, super, export, import, from, as, get, set},
-  keywordstyle=\color{blue}\bfseries,
-  ndkeywords={class, export, boolean, throw, implements, import, this},
-  ndkeywordstyle=\color{codegray}\bfseries,
-  identifierstyle=\color{black},
-  sensitive=false,
-  comment=[l]{//},
-  morecomment=[s]{/*}{*/},
-  commentstyle=\color{codegreen},
-  stringstyle=\color{codepurple},
-  morestring=[b],
-  morestring=[b]",
-  basicstyle=\ttfamily\small
-}
-
 \lstdefinelanguage{lean} {
 
 % Anything between $ becomes LaTeX math mode
@@ -45,37 +11,37 @@ texcl=false,
 
 % keywords, list taken from lean-syntax.el
 morekeywords=[1]{
-import, prelude, protected, private, noncomputable, definition, meta, renaming,
-hiding, parameter, parameters, begin, constant, constants,
-lemma, variable, variables, theory,
-print, theorem, example,
-open, as, export, override, axiom, axioms, inductive, with,
-structure, record, universe, universes,
-alias, help, precedence, reserve, declare_trace, add_key_equivalence,
-match, infix, infixl, infixr, notation, postfix, prefix, instance,
-eval, reduce, check, end, this,
-using, using_well_founded, namespace, section,
-attribute, local, set_option, extends, include, omit, class,
-raw, replacing,
-calc, have, show, suffices, by, in, at, let, forall, Pi, fun,
-exists, if, dif, then, else, assume, obtain, from, register_simp_ext, unless, break, continue,
-mutual, do, def, run_cmd, const,
-partial, mut, where, macro, syntax, deriving,
-return, try, catch, for, macro_rules, declare_syntax_cat, abbrev},
+        import, prelude, protected, private, noncomputable, definition, meta, renaming,
+        hiding, parameter, parameters, begin, constant, constants,
+        lemma, variable, variables, theory,
+        print, theorem, example,
+        open, as, export, override, axiom, axioms, inductive, with,
+        structure, record, universe, universes,
+        alias, help, precedence, reserve, declare_trace, add_key_equivalence,
+        match, infix, infixl, infixr, notation, postfix, prefix, instance,
+        eval, reduce, check, end, this,
+        using, using_well_founded, namespace, section,
+        attribute, local, set_option, extends, include, omit, class,
+        raw, replacing,
+        calc, have, show, suffices, by, in, at, let, forall, Pi, fun,
+        exists, if, dif, then, else, assume, obtain, from, register_simp_ext, unless, break, continue,
+        mutual, do, def, run_cmd, const,
+        partial, mut, where, macro, syntax, deriving,
+        return, try, catch, for, macro_rules, declare_syntax_cat, abbrev},
 
 % Sorts
 morekeywords=[2]{Sort, Type, Prop},
 
 % tactics, list taken from lean-syntax.el
 morekeywords=[3]{
-assumption,
-apply, intro, intros, allGoals,
-generalize, clear, revert, done, exact,
-refine, repeat, cases, rewrite, rw,
-simp, simp_all, contradiction,
-constructor, injection,
-induction,
-},
+        assumption,
+        apply, intro, intros, allGoals,
+        generalize, clear, revert, done, exact,
+        refine, repeat, cases, rewrite, rw,
+        simp, simp_all, contradiction,
+        constructor, injection,
+        induction,
+    },
 
 % modifiers, taken from lean-syntax.el
 % note: 'otherkeywords' is needed because these use a different symbol.
@@ -93,7 +59,7 @@ induction,
 
 % Various symbols
 literate=
-{α}{{\ensuremath{\mathrm{\alpha}}}}1
+    {α}{{\ensuremath{\mathrm{\alpha}}}}1
 {β}{{\ensuremath{\mathrm{\beta}}}}1
 {γ}{{\ensuremath{\mathrm{\gamma}}}}1
 {δ}{{\ensuremath{\mathrm{\delta}}}}1

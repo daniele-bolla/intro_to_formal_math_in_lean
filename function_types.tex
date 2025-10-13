@@ -6,49 +6,49 @@ We can \textbf{apply} a function $f : A \to B$ to an element $a : A$ to obtain a
 
 There are two equivalent ways to construct function types: either by direct definition or by using $\lambda$-abstraction. Introducing a function by definition means that we introduce a function by giving it a name (let's say, $f$) and saying we define $f : A \to B$ by giving an equation
 \begin{equation} \label{lambda_definition}
-f(x) \coloneqq \Phi 
+  f(x) \coloneqq \Phi
 \end{equation}
 where $x$ is a variable and $\Phi$ is an expression which may use $x$. In order for this to be valid, we have to check that $\Phi : B$ assuming $x : A$.
 
 Now we can compute $f(a)$ by replacing the variable $x$ in $\Phi$ with $a$. As an example, consider the function $f : \mathbb{N} \to \mathbb{N}$ which is defined by $f(x) \coloneqq x + x$. Then $f(2)$ is \emph{judgmentally equal} to $2 + 2$.
 
-If we don't want to introduce a name for the function, we can use \textbf{$\lambda$-abstraction}. 
-Given an expression $\Phi$ of type $B$ which may use $x : A$, as above, we write $\lambda(x : A). \Phi$ to 
+If we don't want to introduce a name for the function, we can use \textbf{$\lambda$-abstraction}.
+Given an expression $\Phi$ of type $B$ which may use $x : A$, as above, we write $\lambda(x : A). \Phi$ to
 indicate the same function defined by (\ref{lambda_definition}). Thus, we have
 $$ (\lambda(x : A). \Phi) : A \to B. $$
 
 \begin{example}
-The previously defined function  has the typing judgment
-$$ (\lambda(x : \mathbb{N}). x + x) : \mathbb{N} \to \mathbb{N}. $$
+  The previously defined function  has the typing judgment
+  $$ (\lambda(x : \mathbb{N}). x + x) : \mathbb{N} \to \mathbb{N}. $$
 
-As another example, for any types $A$ and $B$ and any element $y : B$, we have a \textbf{constant function}
-$$ (\lambda(x : A). y) : A \to B. $$
+  As another example, for any types $A$ and $B$ and any element $y : B$, we have a \textbf{constant function}
+  $$ (\lambda(x : A). y) : A \to B. $$
 
-The \textbf{identity function} on any type $A$ is given by
-$$ (\lambda(x : A). x) : A \to A. $$
+  The \textbf{identity function} on any type $A$ is given by
+  $$ (\lambda(x : A). x) : A \to A. $$
 \end{example}
 
 By convention, the ``scope'' of the variable binding ``$\lambda x.$'' is the entire rest of the expression, unless delimited with parentheses. Thus, for instance, $\lambda x. x + x$ should be parsed as $\lambda x.(x + x)$, not as $(\lambda x. x) + x$ .
 
 
 Now a $\lambda$-abstraction is a function, so we can apply it to an argument $a : A$. We then have the following computation rule ($\beta$-reduction), which is a \textbf{definitional equality}:
-$$ (\lambda x. \Phi)(a) \equiv \Phi' $$ 
+$$ (\lambda x. \Phi)(a) \equiv \Phi' $$
 where $\Phi'$ is the expression $\Phi$ in which all occurrences of $x$ have been replaced by $a$.
 \begin{example}
-    Continuing the above example, we have
-    $$ (\lambda x. x + x)(2) \equiv 2 + 2. $$
+  Continuing the above example, we have
+  $$ (\lambda x. x + x)(2) \equiv 2 + 2. $$
 \end{example}
 
-Note that from any function $f : A \to B$, we can construct a lambda abstraction function $\lambda x. f(x)$. 
+Note that from any function $f : A \to B$, we can construct a lambda abstraction function $\lambda x. f(x)$.
 Since this is by definition ``the function that applies $f$ to its argument'' we consider it to be definitionally
- equal to $f$ (\textbf{$\eta$-conversion}):
+equal to $f$ (\textbf{$\eta$-conversion}):
 $$ f \equiv (\lambda x. f(x)). $$
 
 This equality is the uniqueness principle for function types, because it shows that $f$ is uniquely determined by its values.
 
 The introduction of functions by definitions with explicit parameters can be reduced to simple definitions by using $\lambda$-abstraction: i.e., we can read a definition of $f : A \to B$ by
-$$ f(x) \coloneqq \Phi 
-$$ 
+$$ f(x) \coloneqq \Phi
+$$
 as
 $$ f \coloneqq \lambda x. \Phi. $$
 
@@ -76,17 +76,17 @@ $$ f \coloneqq \lambda x. \Phi. $$
 When performing calculations involving variables, we must carefully preserve the \textbf{binding structure} of expressions during substitution. Consider the function $f : \mathbb{N} \to (\mathbb{N} \to \mathbb{N})$ defined as:
 $$ f(x) \coloneqq \lambda y. x + y $$
 
-Suppose we have assumed $y : \mathbb{N}$ somewhere in our context. What is $f(y)$? 
+Suppose we have assumed $y : \mathbb{N}$ somewhere in our context. What is $f(y)$?
 
 A naive approach would replace $x$ with $y$ directly in the expression $\lambda y. x + y$, yielding $\lambda y. y + y$. However, this substitution is \textbf{semantically incorrect} because it causes \textbf{variable capture}: the free variable $y$ (referring to our assumption) becomes bound by the $\lambda$-abstraction, fundamentally altering the expression's meaning.
 
-The correct approach uses \textbf{$\alpha$-conversion} (variable renaming). 
-Since bound variables have only local scope, we can consistently rename them while preserving binding structure. 
+The correct approach uses \textbf{$\alpha$-conversion} (variable renaming).
+Since bound variables have only local scope, we can consistently rename them while preserving binding structure.
 The expression $\lambda y. x + y$ is judgmentally equal to $\lambda z. x + z$ for any fresh variable $z$. Therefore:
 $$ f(y) \equiv \lambda z. y + z $$
 
-This phenomenon parallels familiar mathematical practice: if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$, 
-then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, not the ill-defined $\int_1^2 \frac{dt}{t-t}$. 
+This phenomenon parallels familiar mathematical practice: if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$,
+then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, not the ill-defined $\int_1^2 \frac{dt}{t-t}$.
 Lambda abstractions bind dummy variables exactly as integrals do.
 
 For functions of multiple variables, we employ \textbf{currying} (named after mathematician Haskell Curry). Instead of using product types, we represent a two-argument function as a function returning another function.
@@ -100,30 +100,30 @@ Given $a : A$ and $b : B$, we apply $f$ sequentially: first to $a$, then the res
 To simplify notation and avoid excessive parentheses, we adopt several conventions. We write $f(a)(b)$ as $f(a, b)$ for abbreviated application. Without parentheses entirely, $f \, a \, b$ means $(f \, a) \, b$ following left-associative application. For multi-parameter definitions, we write $f(x, y) \coloneqq \Phi$ where $\Phi : C$ under assumptions $x : A$ and $y : B$.
 
 Using $\lambda$-abstraction, such definitions correspond to:
-$$ f \coloneqq \lambda x. \lambda y. \Phi $$ 
+$$ f \coloneqq \lambda x. \lambda y. \Phi $$
 
 Alternative notation using map symbols:
 $$ f \coloneqq x \mapsto y \mapsto \Phi $$
 
 This currying approach extends naturally to functions of three or more arguments, allowing us to represent any multi-argument function as a sequence of single-argument functions.
 \begin{example}[Functions in Lean]
-    \begin{lstlisting}[language=Lean]
+  \begin{lstlisting}[language=Lean]
 -- A simple function
 def double : Nat -> Nat := x + x
 
 #eval double 3     -- Output: 6
 
 \end{lstlisting}
-in steps
-\begin{align}
-  double 3 \\
-  &\equiv (x + x) [x:= 3] \text{substitution}\\ 
-  &\equiv 3 + 3 \\
-  &\equiv 6
-\end{align}
+  in steps
+  \begin{align}
+    double 3                                      \\
+     & \equiv (x + x) [x:= 3] \text{substitution} \\
+     & \equiv 3 + 3                               \\
+     & \equiv 6
+  \end{align}
 \end{example}
 \begin{example}[Functions in Lean using lmabda ]
-    \begin{lstlisting}[language=Lean]
+  \begin{lstlisting}[language=Lean]
 -- Lambda abstraction form
 def double' : Nat -> Nat := fun x => x + x
 -- or Equivalently
@@ -132,53 +132,53 @@ def double' := (\lambda x : Nat => x + x)
 #eval double' 3     -- Output: 6
 
 \end{lstlisting}
-in steps
-\begin{align}
-  double 3 \\
-  &\equiv (\lambda x : Nat, x + x)(3) \text{Beta reduction} \\
-  &\equiv (x + x) [x:= 3] \text{substitution}\\ 
-  &\equiv 3 + 3 \\
-  &\equiv 6
-\end{align}
+  in steps
+  \begin{align}
+    double 3                                                    \\
+     & \equiv (\lambda x : Nat, x + x)(3) \text{Beta reduction} \\
+     & \equiv (x + x) [x:= 3] \text{substitution}               \\
+     & \equiv 3 + 3                                             \\
+     & \equiv 6
+  \end{align}
 \end{example}
 \begin{example}[Currying in Lean]
-    \begin{lstlisting}[language=Lean]
+  \begin{lstlisting}[language=Lean]
 def add : Nat -> (Nat -> Nat) := fun x => (fun y => x + y)
 -- or equivalently (rightassociative notation)
 def add : Nat -> Nat -> Nat := fun x => fun y => x + y
 #eval add 3 4   -- Output: 7
 
 \end{lstlisting}
-in steps
-\begin{align}
-  add 3 4  \\
-  &\equiv (add 3) 4  \\
-  &\equiv (\lambda x : Nat, x + x)(3) \text{Beta reduction} \\
-  &\equiv (x + x) [x:= 3] \text{substitution}\\ 
-  &\equiv 3 + 3 \\
-  &\equiv 6
-\end{align}
+  in steps
+  \begin{align}
+    add 3 4                                                     \\
+     & \equiv (add 3) 4                                         \\
+     & \equiv (\lambda x : Nat, x + x)(3) \text{Beta reduction} \\
+     & \equiv (x + x) [x:= 3] \text{substitution}               \\
+     & \equiv 3 + 3                                             \\
+     & \equiv 6
+  \end{align}
 \end{example}
 \begin{example}[Higher order Function in Lean]
-    \begin{lstlisting}[language=Lean]
+  \begin{lstlisting}[language=Lean]
 def HAdd : (Nat -> Nat) -> Nat := h => h 3 + h 4
 
 #eval HAdd add -- Output: 14
 
 \end{lstlisting}
-in steps
-\begin{align}
-  add 3 4  \\
-  &\equiv (add 3) 4  \\
-  &\equiv (\lambda x : Nat, x + x)(3) \text{Beta reduction} \\
-  &\equiv (x + x) [x:= 3] \text{substitution}\\ 
-  &\equiv 3 + 3 \\
-  &\equiv 6
-\end{align}
+  in steps
+  \begin{align}
+    add 3 4                                                     \\
+     & \equiv (add 3) 4                                         \\
+     & \equiv (\lambda x : Nat, x + x)(3) \text{Beta reduction} \\
+     & \equiv (x + x) [x:= 3] \text{substitution}               \\
+     & \equiv 3 + 3                                             \\
+     & \equiv 6
+  \end{align}
 \end{example}
 \begin{example}
   [Copmposing Functions in Lean]
-    \begin{lstlisting}[language=Lean]
+  \begin{lstlisting}[language=Lean]
 def compose : (B -> C) -> (A -> B) -> (A -> C) :=
   fun f g => fun x => g (f x) --  left associative 
 #eval compose add 3 -- Output: 12
@@ -186,7 +186,7 @@ def compose : (B -> C) -> (A -> B) -> (A -> C) :=
 \end{example}
 \begin{example}
   [Combinators in Lean]
-    \begin{lstlisting}[language=Lean]
+  \begin{lstlisting}[language=Lean]
 def K : A -> (B -> A) := fun x => fun _ => x  
 def S : (A -> B -> C) -> (A -> B) -> (A -> C) :=
   fun f g => fun x => f x (g x)
@@ -223,16 +223,16 @@ We now examine the inference rules for function types.
   f \equiv \lambda x. f(x)
 \]
 \begin{notation}
-    $[x := a]$ stands for substitution.
-    % or as explained before $\alpha$-conversion.
+  $[x := a]$ stands for substitution.
+  % or as explained before $\alpha$-conversion.
 \end{notation}
-Strong normalization Church Rossen theorem states that every term in the simply typed lambda calculus 
-reduces to a normal form, meaning that it cannot be reduced further. 
+Strong normalization Church Rossen theorem states that every term in the simply typed lambda calculus
+reduces to a normal form, meaning that it cannot be reduced further.
 This is a crucial property of the type system, ensuring that every well-typed term has a unique normal form.
 
 POLYMORPHISM HERE?
 \begin{example}[Polmorhic Function in Lean]
-    \begin{lstlisting}[language=Lean] 
+  \begin{lstlisting}[language=Lean] 
 def id : {A : Type} -> A -> A := fun {A} x => x 
 #eval id 5         -- Output: 5
 #eval id true      -- Output: true  
