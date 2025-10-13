@@ -1417,132 +1417,128 @@ The proof follows Conrad’s paper~\cite{Conrad_connnotpathconn}, with a few mod
 
 The topologist's sine curve is defined as the graph of $y = \sin(1/x)$ for $x \in (0, 1]$,
 together with the vertical line segment $\{0\} \times [-1, 1]$:
-Before presenting the formalization, we introduce the relevant topological concepts as they
-are implemented in Mathlib. Our development relies on several key modules:
-\begin{itemize}
-  \item \lstinline[language=lean]|Topology.Basic|
-        --- defines topological spaces and open sets
-  \item \lstinline[language=lean]|Topology.Connected.PathConnected|
-        --- defines connected and path-connected spaces
-  \item \lstinline[language=lean]|Topology.Instances.Real|
-        --- provides the standard topology on $\mathbb{R}$
-  \item \lstinline[language=lean]|Data.Set.Basic|
-        --- provides set-theoretic operations
-  \item \lstinline[language=lean]|Analysis.SpecialFunctions.Trigonometric|
-        --- defines sine and related functions
-\end{itemize}
 
-Topology in Lean is built upon the concept of open sets, defined
-using the \lstinline[language=lean]|IsOpen| predicate. A topological space is a type
-equipped with a collection of open sets satisfying the standard axioms.
-In Lean, this is represented using the \lstinline[language=lean]|TopologicalSpace| type class:
-\newpage
 \begin{lstlisting}[language=lean]
-class TopologicalSpace (α : Type*) where
-  IsOpen : Set α → Prop
-  isOpen_univ : IsOpen univ
-  isOpen_inter : ∀ s t, IsOpen s → IsOpen t → IsOpen (s ∩ t)
-  isOpen_sUnion : ∀ s, (∀ t ∈ s, IsOpen t) → IsOpen (sUnion s)
+  def S : Set (ℝ × ℝ) := (fun x ↦ (x, sin x⁻¹)) '' Ioi 0
+  def Z : Set (ℝ × ℝ) := (fun y ↦ (0, y)) '' Icc (-1) 1
+  def T : Set (ℝ × ℝ) := S ∪ Z
 \end{lstlisting}
+% Before presenting the formalization, we introduce the relevant topological concepts as they
+% are implemented in Mathlib. Our development relies on several key modules:
+% \begin{itemize}
+%   \item \lstinline[language=lean]|Topology.Basic|
+%         --- defines topological spaces and open sets
+%   \item \lstinline[language=lean]|Topology.Connected.PathConnected|
+%         --- defines connected and path-connected spaces
+%   \item \lstinline[language=lean]|Topology.Instances.Real|
+%         --- provides the standard topology on $\mathbb{R}$
+%   \item \lstinline[language=lean]|Data.Set.Basic|
+%         --- provides set-theoretic operations
+%   \item \lstinline[language=lean]|Analysis.SpecialFunctions.Trigonometric|
+%         --- defines sine and related functions
+% \end{itemize}
 
-Key topological concepts used in our formalization include:
+% Topology in Lean is built upon the concept of open sets, defined
+% using the \lstinline[language=lean]|IsOpen| predicate. A topological space is a type
+% equipped with a collection of open sets satisfying the standard axioms.
+% In Lean, this is represented using the \lstinline[language=lean]|TopologicalSpace| type class:
+% \newpage
+% \begin{lstlisting}[language=lean]
+% class TopologicalSpace (α : Type*) where
+%   IsOpen : Set α → Prop
+%   isOpen_univ : IsOpen univ
+%   isOpen_inter : ∀ s t, IsOpen s → IsOpen t → IsOpen (s ∩ t)
+%   isOpen_sUnion : ∀ s, (∀ t ∈ s, IsOpen t) → IsOpen (sUnion s)
+% \end{lstlisting}
 
-\begin{description}
-  \item[Connectedness:] A space $X$ is connected if it cannot be written as the union of
-        two disjoint non-empty open sets. Equivalently, every continuous function from $X$
-        to a discrete space is constant. In Lean, this is formalized
-        as \lstinline[language=lean]|IsConnected : Set α → Prop|.
-  \item[Path-connectedness:] A space $X$ is path-connected if for any two points
-        $x, y \in X$, there exists a continuous path $\gamma : [0,1] \to X$
-        with $\gamma(0) = x$ and $\gamma(1) = y$. In Lean, the unit interval $[0,1]$
-        is represented as the type \lstinline[language=lean]|unitInterval|,
-        and path-connectedness is formalized as \lstinline[language=lean]|IsPathConnected : Set α → Prop|.
-  \item[Continuous functions:] A function $f : X \to Y$ between topological spaces
-        is continuous if the preimage of every open set is open. Lean provides
-        \lstinline[language=lean]|Continuous f : Prop|, as well as \lstinline[language=lean]|ContinuousAt|
-        and \lstinline[language=lean]|ContinuousOn| for local versions.
-  \item[Closure:] The closure of a set $S$ is the smallest closed set containing $S$,
-        equivalently the set of all limit points of $S$. In Lean, this is
-        \lstinline[language=lean]|closure : Set α → Set α|.
-\end{description}
+% Key topological concepts used in our formalization include:
 
-We note that path-connectedness implies connectedness (since $[0,1]$ is connected),
-but the converse is false, as our example demonstrates.
+% \begin{description}
+%   \item[Connectedness:] A space $X$ is connected if it cannot be written as the union of
+%         two disjoint non-empty open sets. Equivalently, every continuous function from $X$
+%         to a discrete space is constant. In Lean, this is formalized
+%         as \lstinline[language=lean]|IsConnected : Set α → Prop|.
+%   \item[Path-connectedness:] A space $X$ is path-connected if for any two points
+%         $x, y \in X$, there exists a continuous path $\gamma : [0,1] \to X$
+%         with $\gamma(0) = x$ and $\gamma(1) = y$. In Lean, the unit interval $[0,1]$
+%         is represented as the type \lstinline[language=lean]|unitInterval|,
+%         and path-connectedness is formalized as \lstinline[language=lean]|IsPathConnected : Set α → Prop|.
+%   \item[Continuous functions:] A function $f : X \to Y$ between topological spaces
+%         is continuous if the preimage of every open set is open. Lean provides
+%         \lstinline[language=lean]|Continuous f : Prop|, as well as \lstinline[language=lean]|ContinuousAt|
+%         and \lstinline[language=lean]|ContinuousOn| for local versions.
+%   \item[Closure:] The closure of a set $S$ is the smallest closed set containing $S$,
+%         equivalently the set of all limit points of $S$. In Lean, this is
+%         \lstinline[language=lean]|closure : Set α → Set α|.
+% \end{description}
 
-\subsection{Structure of the Formalization}
+% We note that path-connectedness implies connectedness (since $[0,1]$ is connected),
+% but the converse is false, as our example demonstrates.
 
-Our formalization proceeds in four main steps:
+% \subsection{Structure of the Formalization}
 
-\subsubsection{Step 1: Defining the Space}
+% Our formalization proceeds in four main steps:
 
-We define three sets in $\mathbb{R}^2$:
-\begin{itemize}
-  \item \lstinline[language=lean]|S| --- the oscillating curve $\{(x, \sin(1/x)) : x > 0\}$
-  \item \lstinline[language=lean]|Z| --- the vertical segment $\{(0, y) : y \in [-1, 1]\}$
-  \item \lstinline[language=lean]|T| --- their union $S \cup Z$
-\end{itemize}
+% \subsubsection{Step 1: Defining the Space}
 
-A key technical tool is a sequence \lstinline[language=lean]|x_seq : ℝ → ℕ → ℝ| that,
-for each $y \in [-1, 1]$, produces a sequence of $x$-values tending to $0$
-% x_{\text{seq}}(y, k) = \frac{1}{\arcsin(y) + (k+1) \cdot 2\pi}
-This sequence is crucial for proving that every point in $Z$ is a limit point of $S$.
-\subsubsection{Step 2: Proving T is Closed}
-We prove that \lstinline[language=lean]|closure S = T| by characterizing when
-a point $(x, y)$ is in the closure of $S$:
-\begin{itemize}
-  \item If $x > 0$, then $(x, y) \in \overline{S}$ iff $y = \sin(1/x)$, by continuity of sine.
-  \item If $x = 0$, then $(x, y) \in \overline{S}$ iff $y \in [-1, 1]$, using \lstinline[language=lean]|x_seq| to construct explicit sequences.
-\end{itemize}
-The proof uses Lean's sequential characterization of closure and demonstrates working
-with limits and continuous functions.
-\subsubsection{Step 3: Proving $T$ is Connected}
+% We define three sets in $\mathbb{R}^2$:
+% \begin{itemize}
+%   \item \lstinline[language=lean]|S| --- the oscillating curve $\{(x, \sin(1/x)) : x > 0\}$
+%   \item \lstinline[language=lean]|Z| --- the vertical segment $\{(0, y) : y \in [-1, 1]\}$
+%   \item \lstinline[language=lean]|T| --- their union $S \cup Z$
+% \end{itemize}
 
-We show $T$ is connected by observing that:
-\begin{enumerate}
-  \item $S$ is the continuous image of $(0, \infty)$ under the function $x \mapsto (x, \sin(1/x))$.
-  \item $(0, \infty)$ is connected (as a connected subset of $\mathbb{R}$).
-  \item The continuous image of a connected space is connected.
-  \item The closure of a connected set is connected.
-\end{enumerate}
+% A key technical tool is a sequence \lstinline[language=lean]|x_seq : ℝ → ℕ → ℝ| that,
+% for each $y \in [-1, 1]$, produces a sequence of $x$-values tending to $0$
+% % x_{\text{seq}}(y, k) = \frac{1}{\arcsin(y) + (k+1) \cdot 2\pi}
+% This sequence is crucial for proving that every point in $Z$ is a limit point of $S$.
+% \subsubsection{Step 2: Proving T is Closed}
+% We prove that \lstinline[language=lean]|closure S = T| by characterizing when
+% a point $(x, y)$ is in the closure of $S$:
+% \begin{itemize}
+%   \item If $x > 0$, then $(x, y) \in \overline{S}$ iff $y = \sin(1/x)$, by continuity of sine.
+%   \item If $x = 0$, then $(x, y) \in \overline{S}$ iff $y \in [-1, 1]$, using \lstinline[language=lean]|x_seq| to construct explicit sequences.
+% \end{itemize}
+% The proof uses Lean's sequential characterization of closure and demonstrates working
+% with limits and continuous functions.
+% \subsubsection{Step 3: Proving $T$ is Connected}
 
-This proof is relatively short, leveraging Mathlib's general theorems about connected spaces.
+% We show $T$ is connected by observing that:
+% \begin{enumerate}
+%   \item $S$ is the continuous image of $(0, \infty)$ under the function $x \mapsto (x, \sin(1/x))$.
+%   \item $(0, \infty)$ is connected (as a connected subset of $\mathbb{R}$).
+%   \item The continuous image of a connected space is connected.
+%   \item The closure of a connected set is connected.
+% \end{enumerate}
 
-\subsubsection{Step 4: Proving $T$ is Not Path-Connected (Main Result)}
+% This proof is relatively short, leveraging Mathlib's general theorems about connected spaces.
 
-This is the most technically involved part. We prove by contradiction that there is no continuous path from $(0, 0) \in Z$ to $(1, \sin(1)) \in S$. The proof strategy is:
+% \subsubsection{Step 4: Proving $T$ is Not Path-Connected (Main Result)}
 
-\begin{enumerate}
-  \item \textbf{Assume a path exists:} Suppose $p : [0, 1] \to T$ is continuous with $p(0) = (0, 0)$ and $p(1) = (1, \sin(1))$.
-
-  \item \textbf{Find the last time on the $y$-axis:} Let $t_0 = \sup\{t : p(t)_x = 0\}$ be the supremum of times when the path is on the $y$-axis. By closedness, $p(t_0)_x = 0$.
-
-  \item \textbf{Use local continuity:} By continuity at $t_0$, there exists $\delta > 0$ such that $\|p(t) - p(t_0)\| < 1$ for all $t$ with $|t - t_0| < \delta$.
-
-  \item \textbf{Find a nearby point off the axis:} Choose $t_1 \in (t_0, t_0 + \delta)$, and let $a = p(t_1)_x > 0$. By connectedness of $[t_0, t_1]$, the $x$-coordinates of $p([t_0, t_1])$ cover the interval $[0, a]$.
-
-  \item \textbf{Exploit the oscillation:} For any $y \in [-1, 1]$, we can find $x \in (0, a]$ with $\sin(1/x) = y$ (using the oscillation property). Since $p$ covers $[0, a]$ in $x$-coordinates and $p(t) \in T$ for all $t$, there must be times $t_+$ and $t_-$ near $t_0$ with $p(t_+)_y = 1$ and $p(t_-)_y = -1$.
-
-  \item \textbf{Derive the contradiction:} Both $p(t_+)$ and $p(t_-)$ are within distance $1$ of $p(t_0)$, so they are within distance $< 2$ of each other by the triangle inequality. But $|1 - (-1)| = 2$, giving the required contradiction.
-\end{enumerate}
-
-This proof demonstrates several advanced techniques:
-\begin{itemize}
-  \item Working with suprema and using closedness to establish membership
-  \item Using the $\varepsilon$-$\delta$ definition of continuity via Mathlib's \lstinline[language=lean]|Metric.tendsto_nhds|
-  \item Applying the intermediate value theorem for connected sets (preconnectedness)
-  \item Careful manipulation of distances and inequalities
-  \item Case analysis on set membership using Lean's pattern matching
-\end{itemize}
-
-In the following sections, we present each part of the formalization in detail, explaining the key lemmas, tactics, and design decisions.
-
-% \section*{References}
+% This is the most technically involved part. We prove by contradiction that there is no continuous path from $(0, 0) \in Z$ to $(1, \sin(1)) \in S$. The proof strategy is:
 
 % \begin{enumerate}
-%  \item \textit{Lean Reference Manual: Type Classes}. \url{https://lean-lang.org/doc/reference/latest/Type-Classes/} [Accessed Sep 2025] \label{ref:lean-type-classes}
-%  \item Floris Van Doorn, \textit{Functional Programming in Lean: Type Classes and Polymorphism}. \url{https://leanprover.github.io/functional_programming_in_lean/type-classes/polymorphism.html} [Accessed Sep 2025] \label{ref:fp-lean-typeclasses}
-%  \item Mathlib Documentation, \textit{Mathlib.Order.Defs}, Lean community. \url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Order/Defs/PartialOrder.html} [Accessed Sep 2025] \label{ref:mathlib-order-defs}
-%  \item \textit{Lean 4.23.0 Release Notes}. \url{https://lean-lang.org/doc/reference/4.23.0-rc2/releases/v4.23.0/} [Accessed Sep 2025] \label{ref:lean-release}
-%  \item M. Carneiro et al., \textit{Use and abuse of instance parameters in the Lean Mathematical Library}, 2022. \url{https://arxiv.org/pdf/2202.01629.pdf} [Accessed Sep 2025] \label{ref:instance-abuse}
-%  \item Lean.Meta.Tactic.Grind Documentation. \url{https://leanprover-community.github.io/mathlib4_docs/Init/Grind/Tactics.html} [Accessed Sep 2025] \label{ref:grind-tactic}
+%   \item \textbf{Assume a path exists:} Suppose $p : [0, 1] \to T$ is continuous with $p(0) = (0, 0)$ and $p(1) = (1, \sin(1))$.
+
+%   \item \textbf{Find the last time on the $y$-axis:} Let $t_0 = \sup\{t : p(t)_x = 0\}$ be the supremum of times when the path is on the $y$-axis. By closedness, $p(t_0)_x = 0$.
+
+%   \item \textbf{Use local continuity:} By continuity at $t_0$, there exists $\delta > 0$ such that $\|p(t) - p(t_0)\| < 1$ for all $t$ with $|t - t_0| < \delta$.
+
+%   \item \textbf{Find a nearby point off the axis:} Choose $t_1 \in (t_0, t_0 + \delta)$, and let $a = p(t_1)_x > 0$. By connectedness of $[t_0, t_1]$, the $x$-coordinates of $p([t_0, t_1])$ cover the interval $[0, a]$.
+
+%   \item \textbf{Exploit the oscillation:} For any $y \in [-1, 1]$, we can find $x \in (0, a]$ with $\sin(1/x) = y$ (using the oscillation property). Since $p$ covers $[0, a]$ in $x$-coordinates and $p(t) \in T$ for all $t$, there must be times $t_+$ and $t_-$ near $t_0$ with $p(t_+)_y = 1$ and $p(t_-)_y = -1$.
+
+%   \item \textbf{Derive the contradiction:} Both $p(t_+)$ and $p(t_-)$ are within distance $1$ of $p(t_0)$, so they are within distance $< 2$ of each other by the triangle inequality. But $|1 - (-1)| = 2$, giving the required contradiction.
 % \end{enumerate}
+
+% This proof demonstrates several advanced techniques:
+% \begin{itemize}
+%   \item Working with suprema and using closedness to establish membership
+%   \item Using the $\varepsilon$-$\delta$ definition of continuity via Mathlib's \lstinline[language=lean]|Metric.tendsto_nhds|
+%   \item Applying the intermediate value theorem for connected sets (preconnectedness)
+%   \item Careful manipulation of distances and inequalities
+%   \item Case analysis on set membership using Lean's pattern matching
+% \end{itemize}
+
+% In the following sections, we present each part of the formalization in detail, explaining the key lemmas, tactics, and design decisions.
+
