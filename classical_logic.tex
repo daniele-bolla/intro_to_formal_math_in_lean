@@ -557,7 +557,7 @@ rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.righ
 This system of inference rules allows us to construct proofs in an
 algorithmic and systematical way, organized in what is called a \textbf{proof tree}.
 To reduce complexity, we follow a
-\textbf{top-down} 
+\textbf{top-down}
 % approach (see \cite{thompson1999types} and
 % \cite{nordstrom1990programming})
 .
@@ -650,7 +650,7 @@ hb : b
   The \lstinline[language=lean]|show| keyword serves two purposes:
   it makes the proof more readable by explicitly documenting what is being proved at this step,
   and it performs a type check to ensure the provided proof term matches the stated
-  goal up to \emph{definitional equality}.
+  goal up to \textbf{definitional equality}.
   Two types are definitionally equal in Lean when they are identical after computation
   and unfolding of definitions—in other words, when Lean's type checker
   can mechanically verify they are the same without requiring additional proof steps.
@@ -658,7 +658,7 @@ hb : b
   equal to \lstinline[language=lean]|a ∧ (b ∧ c)| due to how conjunction
   associates, so \lstinline[language=lean]|show| accepts this statement.
   If we had tried to use \lstinline[language=lean]|show| with a type that
-  was only \emph{propositionally} equal (requiring a proof to establish equality)
+  was only \textbf{propositionally} equal (requiring a proof to establish equality)
   but not definitionally equal, Lean would reject it.
 \end{example}
 \subsection{Predicate logic and dependency}
@@ -1408,139 +1408,286 @@ work seamlessly: \lstinline[language=lean]|ℚ| is an instance of
 \lstinline[language=lean]|Preorder| and other algebraic structures,
 automatically providing all their theorems.
 
+
+An important aspect of type classes is that they can be parameterized by other type classes,
+enabling the construction of complex hierarchies of algebraic structures.
+Topological spaces in Mathlib are represented using type classes and they can be derived metric spaces and normed spaces.
+For example, the \lstinline[language=lean]|TopologicalSpace| type class defines
+the structure of a topological space, and it can be extended to define metric spaces
+and normed spaces, which are topological spaces with additional structure.
+This hierarchical organization allows for the reuse of definitions and theorems across different
+mathematical domains, facilitating a modular and scalable approach to formalization.
 \section{Example in Topology: A Connected but not Path-Connected Space}
 
-As part of my thesis work, with the help and revision from Prof David Loeffler, 
+As part of my thesis work, with the help and revision from Prof David Loeffler,
 I have formalized a well-known counterexample in topology: the \textbf{topologist’s sine curve}.
-This classic example illustrates a space that is \emph{connected} but not \emph{path-connected}.
+This classic example illustrates a space that is \textbf{connected} but not \textbf{path-connected}.
 It demonstrates the use of type classes, structures, and several tactics in Lean that were discussed earlier.
-In my presentation, I will provide a high-level overview along with some specific examples, 
+In my presentation, I will provide a high-level overview along with some specific examples,
 of my original code, wich is way longer than the final result.
-The proof follows Conrad’s paper (\cite{Conrad_connnotpathconn}), with a few modifications, and the formalization is available in the Mathlib documentation under \href{https://leanprover-community.github.io/mathlib4_docs/Counterexamples/TopologistsSineCurve.html}{\emph{Counterexamples – Topologist’s Sine Curve}}.
-
+My original proof follows Conrad's paper (\cite{Conrad_connnotpathconn}), with a few modifications
+and some differences from the final
+formalization \href{https://leanprover-community.github.io/mathlib4_docs/Counterexamples/TopologistsSineCurve.html}{\textbf{Counterexamples – Topologist's Sine Curve}}.
 The topologist's sine curve is defined as the graph of $y = \sin(1/x)$ for $x \in (0, 1]$,
-together with the vertical line segment $\{0\} \times [-1, 1]$.
+together with the origin $(0, 0)$.
 We define three sets in $\mathbb{R}^2$:
 \begin{itemize}
-  \item $S$ the oscillating curve $\{(x, \sin(1/x)) : x > 0\}$
-  \item $Z$ the vertical segment $\{(0, y) : y \in [-1, 1]\}$   
-  \item $T$ their union $S \cup Z$
+  \item $S$: the oscillating curve $\{(x, \sin(1/x)) : x > 0\}$
+  \item $Z$: the singleton set $\{(0, 0)\}$
+  \item $T$: their union $S \cup Z$
 \end{itemize}
-In Lean goes as follows:
-
+The proof merged into the Mathlib library takes $Z$ as $\{0\} \times [-1,1]$
+instead of $\{(0,0)\}$, resulting in a stronger and more general result.
+In Lean, this is expressed as follows:
 \begin{lstlisting}[language=lean]
-  def S : Set (ℝ × ℝ) := (fun x ↦ (x, sin x⁻¹)) '' Ioi 0
-  def Z : Set (ℝ × ℝ) := (fun y ↦ (0, y)) '' Icc (-1) 1
+  open Real Set
+  def pos_real := Ioi (0 : ℝ)
+  noncomputable def sine_curve := fun x ↦ (x, sin (x⁻¹))
+
+  def S : Set (ℝ × ℝ) := sine_curve '' pos_real
+  def Z : Set (ℝ × ℝ) := { (0, 0) }
   def T : Set (ℝ × ℝ) := S ∪ Z
+
 \end{lstlisting}
+We open the \lstinline[language=lean]|Real| and \lstinline[language=lean]|Set| namespaces
+to avoid prefixing real number and set operations with \lstinline[language=lean]|Real.|
+and \lstinline[language=lean]|Set.|, respectively.
+We define the interval $(0, \infty)$ as \lstinline[language=lean]|pos_real|,
+using the predefined notation \lstinline[language=lean]|Ioi 0|, from \lstinline[language=lean]|Set|.
+The function \lstinline[language=lean]|sine_curve| maps a positive real number
+to a point on the topologist's sine curve in $\mathbb{R}^2$.
+Here, \lstinline[language=lean]|''| denotes the image of a set under a function.
+It's noncomputable because it involves the sine function,
+which is not computable in Lean's core logic.
+The sets \lstinline[language=lean]|S|, \lstinline[language=lean]|Z|,
+and \lstinline[language=lean]|T|
+are defined using set operations.
+,
+and \lstinline[language=lean]|{ (0, 0) }| denotes the singleton
+set containing the point $(0, 0)$.
 
 \lstinline[language=lean]|Set| is the type of sets, defined as predicates
 (i.e., functions from a type to \lstinline[language=lean]|Prop|).
-The notation \lstinline[language=lean]|''| denotes the image of a set under a function,
-and \lstinline[language=lean]|Ioi 0| and \lstinline[language=lean]|Icc (-1) 1|
-denote the intervals $(0, \infty)$ and $[-1, 1]$, respectively.
 The sets are subsets of the product space $\mathbb{R}^2$,
- represented as \lstinline[language=lean]|ℝ × ℝ|.
-The sin function \lstinline[language=lean]|sin| is defined in the 
-\lstinline[language=lean]|Analysis.SpecialFunctions.Trigonometric|
+represented as \lstinline[language=lean]|ℝ × ℝ|.
+The sin function \lstinline[language=lean]|sin| is defined in the
+\lstinline[language=lean]|Real|.
+
 The goal is to prove that $T$ is connected but not path-connected.
-
-First of all one can directlly see that  $S$ is path-connected, since it is the
-image of the path-connected set ($(0, \infty)$) under the continuous map
-$x \mapsto (x, \sin(1/x))$. 
-A path connected space is always connected, so $S$ is connected.
-Morover the closure of $S$ is $T$, and the closure of a connected set is connected,
+First of all one can directlly see that  $S$ is connected, since it is the
+image of the set ($(0, \infty)$) under the continuous map
+$x \mapsto (x, \sin(1/x))$ and a interval in $\mathbb{R}$ is connected.
+Moreover, the closure of $S$ is $T$, and the closure of a connected subset of a topological space
+is always connected,
 so $T$ is connected.
-This is how a matehamtician would argue informally, using facts known. 
-Anyway in a formal proof one has to justify each step.
+This is how a mathematician would argue informally, using known facts.
+However, in a formal proof, one must justify each step.
+For instance, justifying that $S$ is connected
+requires proving that the map
+$x \mapsto (x, \sin(1/x))$ is continuous on $(0, \infty)$
+and that $(0, \infty)$ is connected.
 
-For instance justiyging that $S$ is path-connected requires to prove that the map
-$x \mapsto (x, \sin(1/x))$ is continuous on $(0, \infty)$.
-This is done in two steps: first proving that $x \mapsto \sin(1/x)$ is continuous on $(0, \infty)$,
-then using the fact that the product of two continuous functions is continuous.
-Here is the relevant part of the formalization:
+As we have seen, even showing that a rational number is non-negative
+requires several steps and the use of various lemmas from Mathlib.
+Similarly, proving that a set is connected can involve multiple steps
+for the
+newer programmer.
+
+
+We can use the structure \lstinline[language=lean]|IsConnected|
+to set up the statement and see if we can argue similarly in Lean.
 \begin{lstlisting}[language=lean]
-lemma sine_curve_is_continuous_on_pos_real : ContinuousOn (sine_curve) (Ioi 0) :=
-  ContinuousOn.prodMk continuous_id.continuousOn sin_comp_inv_is_continuous_on_pos_real
-
-lemma pos_real_is_path_conn : IsPathConnected (Ioi 0) := by
-  apply Convex.isPathConnected
-  · exact convex_Ioi 0
-  · use 1
-    unfold pos_real
-    simp
-
-lemma S_is_path_conn : IsPathConnected S := by
-  apply IsPathConnected.image'
-  · exact pos_real_is_path_conn
-  · exact sine_curve_is_continuous_on_pos_real
+lemma S_is_conn : IsConnected S := by sorry
 \end{lstlisting}
-
-
-
+In the file where \lstinline[language=lean]|IsConnected| is defined,
+\texttt{Topology/Connected/Basic.lean}, we see that it requires $S$ to be nonempty and preconnected.
+You can verify this by unfolding \lstinline[language=lean]|IsConnected| in the goal.
 \begin{lstlisting}[language=lean]
-lemma sine_curve_is_continuous_on_pos_real :
-  ContinuousOn (sine_curve) (Ioi 0) :=
-  ContinuousOn.prodMk continuous_id.continuousOn
-    sin_comp_inv_is_continuous_on_pos_real
+lemma S_is_conn : IsConnected S := by
+  unfold IsConnected 
+  ⊢ S.Nonempty ∧ IsPreconnected S
+  sorry
 \end{lstlisting}
-The lemma \lstinline[language=lean]|ContinuousOn.prodMk| states that the product of two continuous functions
-is continuous, allowing us to combine the identity map $x \mapsto x$ and the function
-$x \mapsto \sin(1/x)$.
-The type class system in Lean supplies the required \lstinline[language=lean]|TopologicalSpace| instances
-for $\mathbb{R}$ and $\mathbb{R} \times \mathbb{R}$, allowing \lstinline[language=lean]|ContinuousOn| to be used
-without explicitly mentioning the topologies.
+Following the definition of \lstinline[language=lean]|IsPreconnected|, we see that it captures
+the usual definition of preconnectedness: that $S$ cannot be
+partitioned into two nonempty disjoint open sets. This trivially requires
+nonemptiness to make sense.
+The \lstinline[language=lean]|unfold| tactic helps to expand definitions; one can use it to expand the definition of $S$ or
+\lstinline[language=lean]|pos_real|, as well as other Mathlib expressions.
 
-Let's digress briefly to examine the definition of \lstinline[language=lean]|ContinuousOn| in Mathlib:
-\begin{lstlisting}[language=lean]
-def ContinuousOn (f : X → Y) (s : Set X) : Prop :=
-  ∀ x ∈ s, ContinuousAt f x
-\end{lstlisting}
-This definition states that a function \lstinline[language=lean]|f : X → Y| is continuous on a set
-\lstinline[language=lean]|s : Set X| if it is continuous at every point in \lstinline[language=lean]|s|.
-The predicate \lstinline[language=lean]|ContinuousAt f x| 
-means that \lstinline[language=lean]|f| is continuous at the point \lstinline[language=lean]|x : X|.
-
-% \subsection{Path-connectedness of the positive reals}
+Following our argument, we can check if Mathlib includes the fact that every interval
+is connected.
+Indeed, in \texttt{Topology/Connected/Interval.lean}, we find the theorem
+\lstinline[language=lean]|isConnected_Ioi.image|, stating that the image of an
+interval of the form $(a, \infty)$
+under a continuous map is connected.
 
 \begin{lstlisting}[language=lean]
-lemma pos_real_is_path_conn : IsPathConnected (Ioi 0) := by
-  apply Convex.isPathConnected
-  · exact convex_Ioi 0
-  · use 1
-    unfold pos_real
-    simp
+lemma S_is_conn : IsConnected S := by
+  apply isConnected_Ioi.image
+  ⊢ ContinuousOn sine_curve (Ioi 0) 
+  sorry
 \end{lstlisting}
-
-This lemma proves that $(0, \infty)$ is path-connected. The theorem
-\lstinline[language=lean]|Convex.isPathConnected| in \lstinline[language=lean]|mathlib| 
-states that every nonempty convex
-subset of a real vector space is path-connected. We provide two arguments:
-\begin{enumerate}
-  \item \lstinline[language=lean]|convex_Ioi 0| proves that $(0, \infty)$ is convex;
-  \item \lstinline[language=lean]|use 1| provides an explicit point showing nonemptiness.
-\end{enumerate}
-The strucutre\lstinline[language=lean]|IsPathConnected| depends on a \lstinline[language=lean]|TopologicalSpace| 
-instance,
-which is also provided by Lean’s type class inference.
-
-% \subsection{Path-connectedness of the sine curve}
-
+The \lstinline[language=lean]|apply| tactic applies the theorem similar to \lstinline[language=lean]|exact|, but it also tries
+to unify the goal with the conclusion of the theorem.
+The theorem \lstinline[language=lean]|isConnected_Ioi.image| requires proving the continuity of the map
+on the interval $(0, \infty)$, which is expressed as
+\lstinline[language=lean]|ContinuousOn sine_curve (Ioi 0)|.
+The predicate \lstinline[language=lean]|ContinuousOn f S|
+expresses that a function $f$ is continuous on a set $S$, which is exactly what we need to prove.
+The function $x \mapsto (x, \sin(1/x))$ is continuous on $(0, \infty)$ as the
+product of two functions continuous on the given domain: the identity map $x \mapsto x$
+and the map $x \mapsto \sin(1/x)$.
+Here is the full proof in Lean:
 \begin{lstlisting}[language=lean]
-lemma S_is_path_conn : IsPathConnected S := by
-  apply IsPathConnected.image'
-  · exact pos_real_is_path_conn
-  · exact sine_curve_is_continuous_on_pos_real
-\end{lstlisting}
+lemma inv_is_continuous_on_pos_real : ContinuousOn (fun x : ℝ => x⁻¹) (pos_real) :=
+ continuousOn_inv₀.mono fun _ hx ↦ hx.ne'
 
-The theorem \lstinline[language=lean]|IsPathConnected.image'| states that if a set $A$ is path-connected
-and $f$ is continuous on $A$, then $f''A$ (the image of $A$ under $f$) is path-connected.
-Combining the previous two lemmas proves that the sine curve $S$ is path-connected.
-
-\begin{lstlisting}[language=lean]
-def IsPathConnected (F : Set X) : Prop :=
-  ∃ x ∈ F, ∀ ⦃y⦄, y ∈ F → JoinedIn F x y
+lemma sin_comp_inv_is_continuous_on_pos_real : ContinuousOn
+ (sine_curve) (pos_real) := by
+  apply ContinuousOn.prodMk continuous_id.continuousOn
+  apply Real.continuous_sin.comp_continuousOn
+  exact inv_is_continuous_on_pos_real
 \end{lstlisting}
+% \begin{lstlisting}[language=lean]
+%   lemma S_is_path_conn : IsPathConnected S := by sorry
+% \end{lstlisting}
+% We can use the structure \lstinline[language=lean]|IsPathConnected|
+% to set up the statement and see if we can argue similarly in Lean.
+% \begin{lstlisting}[language=lean]
+%   lemma S_is_path_conn : IsPathConnected S := by sorry
+% \end{lstlisting}
+% In the same file where \lstinline[language=lean]|IsPathConnected| is defined,
+% \texttt{Topology/Connected/PathConnected.lean}, we find the theorem
+% \lstinline[language=lean]|IsPathConnected.image|,
+% stating that the image of a path-connected set under a continuous map is path-connected.
+% Applying the theorem requires proving both the continuity and path-connectedness of the domain.
+% \begin{lstlisting}[language=lean]
+% lemma S_is_path_conn : IsPathConnected S := by
+%   apply IsPathConnected.image
+%   · sorry -- ⊢ IsPathConnected (Ioi 0)
+%   · sorry -- ⊢ ContinuousOn sine_curve (Ioi 0) 
+% \end{lstlisting}
+% Let's start with the continuity proof,
+% \lstinline[language=lean]|ContinuousOn sine_curve (Ioi 0)|.
+% The function $x \mapsto (x, \sin(1/x))$ is continuous on  $(0, \infty)$ as the
+% product of two functions continuous at the given domain: the identity map $x \mapsto x$
+% and the map $x \mapsto \sin(1/x)$.
+% Here the full proof in Lean:
+% \begin{lstlisting}[language=lean]
+% lemma inv_is_continuous_on_pos_real : ContinuousOn (fun x : ℝ => x⁻¹) (pos_real) := by
+%   apply ContinuousOn.inv₀
+%   · exact continuous_id.continuousOn
+%   · intro x hx
+%     exact ne_of_gt hx
+
+% lemma sin_comp_inv_is_continuous_on_pos_real : ContinuousOn
+%  (fun x ↦ sin x⁻¹) (Ioi 0) := by
+%   apply Real.continuous_sin.comp_continuousOn
+%   · exact inv_is_continuous_on_pos_real
+
+% lemma sine_curve_is_continuous_on_pos_real : ContinuousOn (sine_curve) (pos_real) :=
+%   ContinuousOn.prodMk continuous_id.continuousOn sin_comp_inv_is_continuous_on_pos_real
+% \end{lstlisting}
+% We use \lstinline[language=lean]|ContinuousOn f S|
+% to express that a function $f$ is continuous on a set $S$, wich is also used in the
+% statement we need to prove.
+% We define auxiliary lemmas \lstinline[language=lean]|inv_is_continuous_on_pos_real| and
+% \lstinline[language=lean]|sin_comp_inv_is_continuous_on_pos_real| to respectively prove that
+% the inverse function and the composition of sine with the inverse function
+% are continuous on the positive reals.
+% The theorem \lstinline[language=lean]|ContinuousOn.inv₀| states that if a function
+% is continuous and non-zero on a set, then its inverse is continuous on that set.
+% We provide two arguments:
+% \begin{enumerate}
+%   \item \lstinline[language=lean]|continuous_id.continuousOn| proves that the identity
+%         map is continuous on any set;
+%   \item \lstinline[language=lean]|intro x hx; exact ne_of_gt hx| proves
+%         that $x \neq 0$ for all $x$ in $(0, \infty)$.
+% \end{enumerate}
+% In \lstinline[language=lean]|sin_comp_inv_is_continuous_on_pos_real|,
+% we use the theorem
+% \lstinline[language=lean]|continuous_sin.comp_continuousOn|,
+% which states first that the sin fucntion is \lstinline[language=lean]|continuous_sin|,
+% then given that we can access the a set of other theorems of conionuous functions, such as
+% \lstinline[language=lean]|comp_continuousOn|, which states that
+% the composition of a continuous function with a function
+% that is continuous on a set is continuous on that set.
+% We provide the previous lemma as an argument.
+% Finally, we prove that the sine curve is continuous on the positive reals
+% using \lstinline[language=lean]|ContinuousOn.prodMk|,
+% which states that the product of two functions continuous on a set
+% is continuous on that set. We provide the identity map and the sine funftion composed with inverse
+% map as arguments.
+% Proving such things is very common and there are obviously way to achive this with less woerk.
+% Here a one liner proof, from the final version in Mathlib:
+% \begin{lstlisting}[language=lean]
+% lemma sine_curve_is_continuous_on_pos_real_one_liner : ContinuousOn (fun x ↦ sin x⁻¹) (Ioi 0) :=
+%  continuous_sin.comp_continuousOn <| continuousOn_inv₀.mono fun _ hx ↦ hx.ne'
+% \end{lstlisting}
+
+The type class system in Lean automatically provides the required
+\lstinline[language=lean]|TopologicalSpace| instances for $\mathbb{R}$
+and $\mathbb{R} \times \mathbb{R}$, allowing \lstinline[language=lean]|ContinuousOn|
+to be used without explicitly mentioning the topologies.
+
+% Let's digress briefly to examine the definition of \lstinline[language=lean]|ContinuousOn| in Mathlib:
+% \begin{lstlisting}[language=lean]
+% def ContinuousOn (f : X → Y) (s : Set X) : Prop :=
+%   ∀ x ∈ s, ContinuousAt f x
+% \end{lstlisting}
+% This definition states that a function \lstinline[language=lean]|f : X → Y| is continuous on a set
+% \lstinline[language=lean]|s : Set X| if it is continuous at every point in \lstinline[language=lean]|s|.
+% The predicate \lstinline[language=lean]|ContinuousAt f x|
+% means that \lstinline[language=lean]|f| is continuous at the point \lstinline[language=lean]|x : X|.
+
+
+% Now to prove that $(0, \infty)$ is path-connected, we can use the fact that
+% it is a convex subset of the real numbers.
+
+
+
+
+% % \subsection{Path-connectedness of the positive reals}
+
+% \begin{lstlisting}[language=lean]
+% lemma pos_real_is_path_conn : IsPathConnected (Ioi 0) := by
+%   apply Convex.isPathConnected
+%   · exact convex_Ioi 0
+%   · use 1
+%     unfold pos_real
+%     simp
+% \end{lstlisting}
+
+% This lemma proves that $(0, \infty)$ is path-connected. The theorem
+% \lstinline[language=lean]|Convex.isPathConnected| in \lstinline[language=lean]|mathlib|
+% states that every nonempty convex
+% subset of a real vector space is path-connected. We provide two arguments:
+% \begin{enumerate}
+%   \item \lstinline[language=lean]|convex_Ioi 0| proves that $(0, \infty)$ is convex;
+%   \item \lstinline[language=lean]|use 1| provides an explicit point showing nonemptiness.
+% \end{enumerate}
+% The strucutre\lstinline[language=lean]|IsPathConnected| depends on a \lstinline[language=lean]|TopologicalSpace|
+% instance,
+% which is also provided by Lean’s type class inference.
+
+% % \subsection{Path-connectedness of the sine curve}
+% \newpage
+% \begin{lstlisting}[language=lean]
+% lemma S_is_path_conn : IsPathConnected S := by
+%   apply IsPathConnected.image'
+%   · exact pos_real_is_path_conn
+%   · exact sine_curve_is_continuous_on_pos_real
+% \end{lstlisting}
+
+% The theorem \lstinline[language=lean]|IsPathConnected.image'| states that if a set $A$ is path-connected
+% and $f$ is continuous on $A$, then $f''A$ (the image of $A$ under $f$) is path-connected.
+% Combining the previous two lemmas proves that the sine curve $S$ is path-connected.
+
+% \begin{lstlisting}[language=lean]
+% def IsPathConnected (F : Set X) : Prop :=
+%   ∃ x ∈ F, ∀ ⦃y⦄, y ∈ F → JoinedIn F x y
+% \end{lstlisting}
 
 % This structure expresses that a subset $S$ of a topological space $X$ is path-connected.
 % It has two fields:
@@ -1560,12 +1707,12 @@ def IsPathConnected (F : Set X) : Prop :=
 
 % \subsection{Global version: \lstinline[language=lean]|PathConnectedSpace}|
 
-There is also a global type class representing that an entire space is path-connected:
-
-\begin{lstlisting}[language=lean]
-class PathConnectedSpace (X : Type*) [TopologicalSpace X] : Prop :=
-(to_isPathConnected_univ : IsPathConnected (Set.univ))
-\end{lstlisting}
+% There is also a global type class representing that an entire space is path-connected:
+% \newpage
+% \begin{lstlisting}[language=lean]
+% class PathConnectedSpace (X : Type*) [TopologicalSpace X] : Prop :=
+% (to_isPathConnected_univ : IsPathConnected (Set.univ))
+% \end{lstlisting}
 
 % Hence, a \lstinline[language=lean]|PathConnectedSpace| is a space for which
 % \lstinline[language=lean]|IsPathConnected (Set.univ)| holds.
@@ -1590,7 +1737,7 @@ class PathConnectedSpace (X : Type*) [TopologicalSpace X] : Prop :=
 % \end{tikzpicture}
 % \end{center}
 
-% Lean’s combination of \emph{structures} and \emph{type classes} allows for a highly
+% Lean’s combination of \textbf{structures} and \textbf{type classes} allows for a highly
 % modular and reusable formalization:
 % \begin{itemize}
 %   \item \lstinline[language=lean]|TopologicalSpace X| provides the ambient topology;
