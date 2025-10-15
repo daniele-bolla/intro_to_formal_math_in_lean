@@ -1514,9 +1514,10 @@ partitioned into two nonempty disjoint open sets. This trivially requires
 nonemptiness to make sense.
 The \lstinline[language=lean]|unfold| tactic helps to expand definitions; one can use it to expand the definition of $S$ or
 \lstinline[language=lean]|pos_real|, as well as other Mathlib expressions.
-
-Following our argument, we can check if Mathlib includes the fact that every interval
-is connected.
+Reflecting our argument, we can check if Mathlib includes the fact
+that every interval
+is connected and that connectedness is preserved
+under continuous maps.
 Indeed, in \texttt{Topology/Connected/Interval.lean}, we find the theorem
 \lstinline[language=lean]|isConnected_Ioi.image|, stating that the image of an
 interval of the form $(a, \infty)$
@@ -1525,7 +1526,7 @@ under a continuous map is connected.
 \begin{lstlisting}[language=lean]
 lemma S_is_conn : IsConnected S := by
   apply isConnected_Ioi.image
-  ⊢ ContinuousOn sine_curve (Ioi 0) 
+  -- ⊢ ContinuousOn sine_curve (Ioi 0) 
   sorry
 \end{lstlisting}
 The \lstinline[language=lean]|apply| tactic applies the theorem similar to \lstinline[language=lean]|exact|, but it also tries
@@ -1540,18 +1541,159 @@ product of two functions continuous on the given domain: the identity map $x \ma
 and the map $x \mapsto \sin(1/x)$.
 Here is the full proof in Lean:
 \begin{lstlisting}[language=lean]
-lemma inv_is_continuous_on_pos_real : ContinuousOn (fun x : ℝ => x⁻¹) (pos_real) :=
- continuousOn_inv₀.mono fun _ hx ↦ hx.ne'
+lemma inv_is_continuous_on_pos_real : ContinuousOn (fun x : ℝ => x⁻¹) (pos_real) := by
+  apply ContinuousOn.inv₀
+  · exact continuous_id.continuousOn
+  · intro x hx; exact ne_of_gt hx
 
 lemma sin_comp_inv_is_continuous_on_pos_real : ContinuousOn
  (sine_curve) (pos_real) := by
   apply ContinuousOn.prodMk continuous_id.continuousOn
-  apply Real.continuous_sin.comp_continuousOn
+  apply continuous_sin.comp_continuousOn
   exact inv_is_continuous_on_pos_real
 \end{lstlisting}
+The theorem \lstinline[language=lean]|ContinuousOn.prodMk| states that the product of two functions continuous on a set is continuous on that set,
+requiring a proof of the continuity of each component.
+The first component is the identity map, which is continuous on any set. Mathlib provides
+\lstinline[language=lean]|continuous_id.continuousOn| for this purpose.
+The second component is the composition of the sine function with the inverse function.
+The sine function is continuous everywhere, and for this we can use
+\lstinline[language=lean]|continuous_sin|.
+The method \lstinline[language=lean]|comp_continuousOn| is accessible from the fact that \lstinline[language=lean]|continuous_sin| gives
+an instance of a continuous map and is generalized in the \lstinline[language=lean]|ContinuousOn| module.
+The theorem \lstinline[language=lean]|Continuous.comp_continuousOn| states that the composition of a continuous function with a function
+that is continuous on a set is continuous on that set, and requires proof of the continuity
+on the set of the inner function.
+We separate the proof that the inverse function is continuous on the positive reals
+into the auxiliary lemma \lstinline[language=lean]|inv_is_continuous_on_pos_real|.
+The theorem \lstinline[language=lean]|continuousOn_inv₀| states that if a function
+is continuous and non-zero on a set, then its inverse is continuous on that set.
+We left the proof of the continuity of the identity map wich have proved already.
+The second argument requires proving that $x \neq 0$ for all $x$ in $(0, \infty)$.
+\begin{lstlisting}[language=lean]
+  · intro x hx
+    exact ne_of_gt hx
+\end{lstlisting}
+The hypothesis \lstinline[language=lean]|hx| states that $x$ is in $(0, \infty)$,
+which implies that $x > 0$.
+The theorem \lstinline[language=lean]|ne_of_gt| states that if a real number is greater than zero,
+then it is non-zero, which completes the proof.
+Thus the final proof goes as follows:
+\begin{lstlisting}[language=lean]
+lemma inv_is_continuous_on_pos_real : ContinuousOn (fun x : ℝ => x⁻¹) (pos_real) := by
+  apply ContinuousOn.inv₀
+  · exact continuous_id.continuousOn
+  · intro x hx; exact ne_of_gt hx
+
+lemma sin_comp_inv_is_continuous_on_pos_real : ContinuousOn
+ (sine_curve) (pos_real) := by
+  apply ContinuousOn.prodMk continuous_id.continuousOn
+  apply continuous_sin.comp_continuousOn
+  exact inv_is_continuous_on_pos_real
+
+lemma S_is_conn : IsConnected S := by
+  apply isConnected_Ioi.image 
+  · exact sin_comp_inv_is_continuous_on_pos_real
+\end{lstlisting}
+
+When writing a proof, one starts by working out the informal argument on paper.
+Then one tries to translate it into Lean, step by step, looking for theorems in Mathlib.
+Afterwards, one can try to optimize the proof by removing unnecessary steps or refactoring it.
+Proving properties like continuity and connectedness is very common,
+and there are obviously ways to achieve this with less work.
+Let's showcase a refactoring of the entire proof.
+First, the auxiliary lemmas
+can be reduced to one-liners.
+\newpage
+\begin{lstlisting}[language=lean]
+lemma inv_is_continuous_on_pos_real : ContinuousOn (fun x : ℝ => x⁻¹) (pos_real) :=
+  ContinuousOn.inv₀ (continuous_id.continuousOn) (fun _ hx =>  ne_of_gt hx)
+  
+lemma sin_comp_inv_is_continuous_on_pos_real : ContinuousOn
+ (sine_curve) (pos_real) :=
+ ContinuousOn.prodMk continuous_id.continuousOn <|
+  Real.continuous_sin.comp_continuousOn <| (inv_is_continuous_on_pos_real)
+\end{lstlisting}
+We removed the \lstinline[language=lean]|by| keyword since we can provide a term
+that directly proves the statement.
+In \lstinline[language=lean]|inv_is_continuous_on_pos_real|, we directly apply
+\lstinline[language=lean]|ContinuousOn.inv₀| with the two required arguments.
+Notice that we can use a lambda function \lstinline[language=lean]|fun _ hx =>  ne_of_gt hx|
+to prove that $x \neq 0$ for all $x$ in $(0, \infty)$, recall the propositions-as-types correspondence.
+In the next lemma, we use
+the \lstinline[language=lean]|<\|| reverse application operator,
+which allows us to avoid parentheses by changing the order of application.
+This means that \lstinline[language=lean]|f <| g <| h| is
+equivalent to \lstinline[language=lean]|f (g h)|.
+% In our case,
+% \lstinline[language=lean]|Real.continuous_sin.comp_continuousOn <\||
+% \lstinline[language=lean]|(inv_is_continuous_on_pos_real)|
+% is equivalent to
+% \lstinline[language=lean]|Real.continuous_sin.comp_continuousOn (inv_is_continuous_on_pos_real)|.
+We can inline these two lemmas into the main proof to get a final one-liner:
+\begin{lstlisting}[language=lean]
+lemma S_is_conn : IsConnected S :=
+  isConnected_Ioi.image sine_curve <| continuous_id.continuousOn.prodMk <|
+    continuous_sin.comp_continuousOn <|
+    ContinuousOn.inv₀ continuous_id.continuousOn (fun _ hx => ne_of_gt hx)
+\end{lstlisting}
+Notice again the use of the \textbf{pipe} operator.
+Reading from left to right, we are building up the proof by successive applications:
+\begin{itemize}
+  \item We start with \lstinline[language=lean]|isConnected_Ioi.image sine_curve|, which states that the image of $(0, \infty)$ under \lstinline[language=lean]|sine_curve| is connected if we can prove the function is continuous.
+  \item We then apply \lstinline[language=lean]|continuous_id.continuousOn.prodMk|, which constructs the product of two continuous functions.
+  \item Next, \lstinline[language=lean]|continuous_sin.comp_continuousOn| provides the continuity of the sine composition.
+  \item Finally, \lstinline[language=lean]|ContinuousOn.inv₀ continuous_id.continuousOn (fun _ hx => ne_of_gt hx)| proves the continuity of the inverse function on positive reals.
+\end{itemize}
+The entire chain can be read as building the continuity proof from the innermost function (the inverse) outward to the complete sine curve function, which is then used to prove that $S$ is connected.
+% The expression \lstinline[language=lean]|continuousOn_inv₀.mono fun _ hx ↦ hx.ne'|
+% applies the theorem and provides the required arguments.
+% The \lstinline[language=lean]|mono| method allows us to weaken the domain of
+% continuity from \lstinline[language=lean]|x : x = 0 |
+% to \lstinline[language=lean]|pos_real|,
+% which is a subset of the former.
+% The lambda function \lstinline[language=lean]|fun _ hx ↦ hx.ne'| proves that $x \neq 0$ for all $x$ in $(0, \infty)$.
+% This is a common pattern in Lean, where we often need to prove that certain
+% conditions hold for all elements of a set.
+
+
 % \begin{lstlisting}[language=lean]
-%   lemma S_is_path_conn : IsPathConnected S := by sorry
+% lemma sine_curve_is_continuous_on_pos_real_one_liner : ContinuousOn (sine_curve) (pos_real) :=
+%  continuous_id.continuousOn.prodMk <| Real.continuous_sin.comp_continuousOn
+%    <| continuousOn_inv₀.mono fun _ hx ↦ hx.ne'
 % \end{lstlisting}
+Since the intersection of $Z$ and $S$ is empty, we cannot
+directly conclude that $T$ is connected from the connectedness of its components alone.
+However, we can use the fact that every subset between a connected set and its closure is connected.
+
+\begin{theorem}
+  Let $C$ be a connected topological space, and denote $\overline{C}$ as its closure.
+  It follows that every subset $C \subseteq S \subseteq \overline{C}$ is connected.
+\end{theorem}
+
+In Mathlib, this theorem is available as
+\lstinline[language=lean]|IsConnected.subset_closure|.
+We can set up the statement and progress from there.
+\begin{lstlisting}[language=lean]
+theorem T_is_conn : IsConnected T := by
+  apply IsConnected.subset_closure
+  · exact S_is_conn -- ⊢ IsConnected ?s
+  · tauto_set -- ⊢ S ⊆ T
+  · sorry -- ⊢ T ⊆ closure S
+\end{lstlisting}
+
+The theorem requires three goals:
+\begin{enumerate}
+  \item That $S$ is connected, which was already proved in \lstinline[language=lean]|S_is_conn|.
+  \item That $S \subseteq T$, which is a trivial set operation.
+        The tactic \lstinline[language=lean]|tauto_set| handles this kind of set tautologies.
+  \item That $T \subseteq \overline{S}$ (the closure of $S$), which requires proof.
+\end{enumerate}
+
+We are left to show that $T$ is a subset of the closure of $S$:
+\begin{lstlisting}[language=lean]
+lemma T_sub_cls_S : T ⊆ closure S := sorry
+\end{lstlisting}
 % We can use the structure \lstinline[language=lean]|IsPathConnected|
 % to set up the statement and see if we can argue similarly in Lean.
 % \begin{lstlisting}[language=lean]
@@ -1626,10 +1768,10 @@ lemma sin_comp_inv_is_continuous_on_pos_real : ContinuousOn
 %  continuous_sin.comp_continuousOn <| continuousOn_inv₀.mono fun _ hx ↦ hx.ne'
 % \end{lstlisting}
 
-The type class system in Lean automatically provides the required
-\lstinline[language=lean]|TopologicalSpace| instances for $\mathbb{R}$
-and $\mathbb{R} \times \mathbb{R}$, allowing \lstinline[language=lean]|ContinuousOn|
-to be used without explicitly mentioning the topologies.
+% The type class system in Lean automatically provides the required
+% \lstinline[language=lean]|TopologicalSpace| instances for $\mathbb{R}$
+% and $\mathbb{R} \times \mathbb{R}$, allowing \lstinline[language=lean]|ContinuousOn|
+% to be used without explicitly mentioning the topologies.
 
 % Let's digress briefly to examine the definition of \lstinline[language=lean]|ContinuousOn| in Mathlib:
 % \begin{lstlisting}[language=lean]
