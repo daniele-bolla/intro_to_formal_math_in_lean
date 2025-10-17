@@ -1407,7 +1407,7 @@ work seamlessly: \lstinline[language=lean]|ℚ| is an instance of
 \lstinline[language=lean]|OrderedSemiring|, which extends
 \lstinline[language=lean]|Preorder| and other algebraic structures,
 automatically providing all their theorems.
-
+(Cocnlude the discussion of less or equal is trnaitive)
 
 An important aspect of type classes is that they can be parameterized by other type classes,
 enabling the construction of complex hierarchies of algebraic structures.
@@ -1417,6 +1417,10 @@ the structure of a topological space, and it can be extended to define metric sp
 and normed spaces, which are topological spaces with additional structure.
 This hierarchical organization allows for the reuse of definitions and theorems across different
 mathematical domains, facilitating a modular and scalable approach to formalization.
+(Little Intro on THe TOPOLOGY CLass,  Continuos CLosure ecc )
+(Maybe include part of the REal construcion / classical noncomputable ecc ecc /)
+
+
 \section{Example in Topology: A Connected but not Path-Connected Space}
 
 As part of my thesis work, with the help and revision from Prof David Loeffler,
@@ -1428,7 +1432,8 @@ of my original code, wich is way longer than the final result.
 My original proof follows Conrad's paper (\cite{Conrad_connnotpathconn}), with a few modifications
 and some differences from the final
 formalization \href{https://leanprover-community.github.io/mathlib4_docs/Counterexamples/TopologistsSineCurve.html}{\textbf{Counterexamples – Topologist's Sine Curve}}.
-The topologist's sine curve is defined as the graph of $y = \sin(1/x)$ for $x \in (0, 1]$,
+The topologist's sine curve is defined as the graph of $y = \sin(1/x)$
+for $x \in (0, \infty)$,
 together with the origin $(0, 0)$.
 We define three sets in $\mathbb{R}^2$:
 \begin{itemize}
@@ -1436,18 +1441,14 @@ We define three sets in $\mathbb{R}^2$:
   \item $Z$: the singleton set $\{(0, 0)\}$
   \item $T$: their union $S \cup Z$
 \end{itemize}
-The proof merged into the Mathlib library takes $Z$ as $\{0\} \times [-1,1]$
-instead of $\{(0,0)\}$, resulting in a stronger and more general result.
 In Lean, this is expressed as follows:
 \begin{lstlisting}[language=lean]
   open Real Set
   def pos_real := Ioi (0 : ℝ)
   noncomputable def sine_curve := fun x ↦ (x, sin (x⁻¹))
-
   def S : Set (ℝ × ℝ) := sine_curve '' pos_real
   def Z : Set (ℝ × ℝ) := { (0, 0) }
   def T : Set (ℝ × ℝ) := S ∪ Z
-
 \end{lstlisting}
 We open the \lstinline[language=lean]|Real| and \lstinline[language=lean]|Set| namespaces
 to avoid prefixing real number and set operations with \lstinline[language=lean]|Real.|
@@ -1465,7 +1466,6 @@ are defined using set operations.
 ,
 and \lstinline[language=lean]|{ (0, 0) }| denotes the singleton
 set containing the point $(0, 0)$.
-
 \lstinline[language=lean]|Set| is the type of sets, defined as predicates
 (i.e., functions from a type to \lstinline[language=lean]|Prop|).
 The sets are subsets of the product space $\mathbb{R}^2$,
@@ -1479,8 +1479,8 @@ Let's start with connectedness.
 First of all one can directlly see that  $S$ is connected, since it is the
 image of the set ($(0, \infty)$) under the continuous map
 $x \mapsto (x, \sin(1/x))$ and a interval in $\mathbb{R}$ is connected.
-Moreover, the closure of $S$ is $T$, and the closure of a connected subset of a topological space
-is always connected,
+Moreover, the closure of $S$ is connected, and every set in between a connected
+set and its closure are connected,
 so $T$ is connected.
 This is how a mathematician would argue informally, using known facts.
 However, in a formal proof, one must justify each step.
@@ -1515,7 +1515,7 @@ the usual definition of preconnectedness: that $S$ cannot be
 partitioned into two nonempty disjoint open sets. This trivially requires
 nonemptiness to make sense.
 The \lstinline[language=lean]|unfold| tactic helps to expand definitions; one can use it to expand the definition of $S$ or
-\lstinline[language=lean]|pos_real|, as well as other Mathlib expressions.
+\lstinline[language=lean]|pos_real| defined before, as well as other Mathlib expressions.
 Reflecting our argument, we can check if Mathlib includes the fact
 that every interval
 is connected and that connectedness is preserved
@@ -1541,6 +1541,7 @@ expresses that a function $f$ is continuous on a set $S$, which is exactly what 
 The function $x \mapsto (x, \sin(1/x))$ is continuous on $(0, \infty)$ as the
 product of two functions continuous on the given domain: the identity map $x \mapsto x$
 and the map $x \mapsto \sin(1/x)$.
+\newpage
 Here is the full proof in Lean:
 \begin{lstlisting}[language=lean]
 lemma inv_is_continuous_on_pos_real : ContinuousOn (fun x : ℝ => x⁻¹) (pos_real) := by
@@ -1691,11 +1692,10 @@ lemma T_sub_cls_S : T ⊆ closure S := by
 \end{lstlisting}
 Proving that one set is contained in another can be done naively in a pointwise manner.
 We introduce an element $x \in \mathbb{R}^2$ together with the proof that $x \in T$.
-Since $T$ is a union, we use \lstinline[language=lean]|cases| to separate the two cases:
-\begin{itemize}
-  \item When $x \in S$, which is trivially solved by \lstinline[language=lean]|exact subset_closure hxS|, since any set is contained in its closure.
-  \item When $x \in Z$, which requires more work.
-\end{itemize}
+Since $T$ is a union, we use \lstinline[language=lean]|cases| to separate the two cases.
+When $x \in S$, the goal is trivially solved by \lstinline[language=lean]|exact subset_closure hxS|.
+The case where $x \in Z$, requires more work.
+
 Now a trick. One of the most painful issue in fomralizing math in Lean is the
 use of existing theorems. One can use several ways to look for the exact theorem.
 Let's try using the \lstinline[language=lean]|apply?|
@@ -1720,18 +1720,177 @@ Another useful tool is Loogle (similar to Haskell's Hoogle),
 which helps you find theorems by their type signature or name patterns.
 You can access it at \url{https://loogle.lean-lang.org/} or
 use it directly in VS Code.
-The best approach is to think first about how you would tackle the problem on
-a piece of paper, as mentioned earlier with informal reasoning.
+The best approach is, anyway, to think first about how you would tackle the problem on
+a piece of paper, as mentioned earlier.
+Since we are working with a topology on $\mathbb{R}$,
+we know that
+this is a metrizable topology, therefore it is induced by the metric
+space structure on $\mathbb{R}$.
+Thus, we can expand our toolkit by working with Lean's
+\lstinline[language=lean]|MetricSpace| module,
+which provides specialized tools for reasoning about
+metric spaces, such as balls, distances, and
+metric-specific characterizations of continuity and convergence.
 We know that the closure of a set contains all its limit points.
-To show that the point $(0, 0)$ is contained in the closure of $S$, we need to show that it is a limit point of $S$.
+To show that the point $(0, 0)$ is contained in the closure of $S$,
+we need to show that it is a limit point of $S$.
 Thus, one can define a sequence in $S$ tending to $(0, 0)$, and we are done.
+At this point, \lstinline[language=lean]|apply?| suggests several ways to proceed, involving new symbols such as
+\lstinline[language=lean]|𝓝| (neighborhoods) and
+\lstinline[language=lean]|ᶠ| (eventually/frequently). For example:
+\begin{lstlisting}
+Try this: refine Frequently.mem_closure ?_
+Remaining subgoals:
+⊢ ∃ᶠ (x : ℝ × ℝ) in 𝓝 x, x ∈ S
+\end{lstlisting}
+or the more familiar metric space approach:
+\begin{lstlisting}
+Try this: refine Metric.mem_closure_iff.mpr ?_
+Remaining subgoals:
+⊢ ∀ ε > 0, ∃ b ∈ S, dist x b < ε
+\end{lstlisting}
+While we could work with metric space properties directly using the
+familiar $\varepsilon$-$\delta$ formulation,
+we instead introduce and explain filters. This approach may seem more
+abstract initially, but it provides
+a more general and powerful framework that works uniformly
+across all topological spaces, not just metric spaces.
+Moreover, once understood, filters often make proofs more
+concise and elegant by allowing us to reason
+at a higher level of abstraction.
+\subsubsection{Limits and Convergence with Filters}
+As seen before, continuity is defined in the \lstinline[language=lean]|Topology| type class.
+One can create their own epsilon-delta definition given a notion of distance.
+Similarly, defining the convergence of a sequence in $\mathbb{R}$ can be done manually as follows:
+\begin{lstlisting}[language=lean]
+def ConvergesTo (ε : ℝ > 0)(s : ℕ → ℝ) (a : ℝ) :=
+  ∀ ε > 0, ∃ N, ∀ n ≥ N, |s n - a| < ε
+\end{lstlisting}
+Where \lstinline[language=lean]|s| is a sequence and \lstinline[language=lean]|a| is the limit point.
+However, there are many other types of limits to consider, like lmits of a function at a point,
+limits at infinity (from above or below), one-sided limits (from the left or right) and so on.
+Defining each of these separately would require a huge amount of work to include in Mathlib,
+with significant duplication of theorems and proofs. Moreover, many fundamental theorems
+(like the characterization of continuity via limits) would need to be reproved for each type of limit.
+Fortunately, Bourbaki solved this issue by introducing the notion of \textbf{filters} to unify
+all concepts of limits, convergence, neighborhoods and terms like eventually or
+frequently often into a single framework.
+Mathlib adopts this notion to achieve an elegant solution that fully
+covers the entire landscape of limit-related concepts.
+\paragraph{What are Filters?}
+Intuitively, a filter represents a notion of "sufficiently large" subsets.
+More fomrally, a filter $F$ on a type $X$ is a collection of subsets of $X$ satisfying three axioms:
+\begin{enumerate}
+  \item \textbf{Non-emptiness:} $X \in F$ (the whole space is in the filter)
+  \item \textbf{Upward closure:} If $U \in F$ and $U \subseteq V$, then $V \in F$
+        (supersets of "large" sets are "large")
+  \item \textbf{Intersection closure:} If $U, V \in F$, then $U \cap V \in F$
+        (finite intersections of "large" sets are "large")
+\end{enumerate}
+We are going to use some of the following concetps:
+\begin{itemize}
+  \item \textbf{At top filter} \lstinline[language=lean]|atTop : Filter ℕ|: Contains sets that
+        include all sufficiently large natural numbers.
+        Formally, $U \in$ \lstinline[language=lean]|atTop| if and only if there
+        exists $N$ such that $\{n \mid n \geq N\} \subseteq U$.
+        This captures the idea of "$n \to \infty$."
+  \item \textbf{Neighborhood filter} \lstinline[language=lean]|𝓝 x|: In a topological space,
+        this filter contains all neighborhoods of the point $x$.
+        A set is in \lstinline[language=lean]|𝓝 x| if it contains an
+        open set containing $x$. This captures the idea of "near $x$."
+        % \item \textbf{At bot filter} \lstinline[language=lean]|atBot|: The dual of \lstinline[language=lean]|atTop|, containing sets that include all sufficiently small elements (for $n \to -\infty$).
+        % \item \textbf{Within filter} \lstinline[language=lean]|𝓝[S] x|: The neighborhood filter of $x$ restricted to a set $S$, useful for one-sided limits and limits on subspaces.
+  \item \lstinline[language=lean]|∀ᶠ x in f, p x| (\lstinline[language=lean]|f.Eventually p|):
+        "Eventually in filter $f$, property $p$ holds."
+        This means there exists some set $U \in f$ such that $p$ holds for all $x \in U$.
+        For example, \lstinline[language=lean]|∀ᶠ n in atTop, n > 100| means
+        "for all sufficiently large $n$, we have $n > 100$."
+  \item \lstinline[language=lean]|∃ᶠ x in f, p x| (\lstinline[language=lean]|f.Frequently p|):
+        "Frequently in filter $f$, property $p$ holds." This means for every set $U \in f$, there exists
+        some $x \in U$ where $p$ holds. This captures the idea that $p$ holds "infinitely often" or
+        "arbitrarily close."
+        For example, \lstinline[language=lean]|∃ᶠ n in atTop, Even n| means
+        "there are arbitrarily large even numbers."
+  \item \lstinline[language=lean]|Tendsto f l₁ l₂|: "Function $f$ tends from filter
+        $l_1$ to filter $l_2$." This is used for convergence.
+        % Formally, this means that for every set $U \in l_2$, the
+        % preimage $f^{-1}(U) \in l_1$.
+\end{itemize}
+\begin{example}
+  Here some examples of the use of filter in Lean.
+  \begin{itemize}
+    \item Sequence convergence: \lstinline[language=lean]|Tendsto s atTop (𝓝 a)| means $s_n \to a$ as $n \to \infty$
+    \item Function limits: \lstinline[language=lean]|Tendsto f (𝓝 x) (𝓝 y)| means $f(x') \to y$ as $x' \to x$
+    \item Continuity: A function is continuous at $x$ iff \lstinline[language=lean]|Tendsto f (𝓝 x) (𝓝 (f x))|
+          (does this remember the continuity in terms of open sets?)
+          % \item Limits at infinity: \lstinline[language=lean]|Tendsto f atTop (𝓝 y)| means $f(x) \to y$ as $x \to \infty$
+          % \item One-sided limits: \lstinline[language=lean]|Tendsto f (𝓝[>] x) (𝓝 y)| means $f$ approaches $y$ from the right of $x$
+  \end{itemize}
+\end{example}
+Using filters, we can prove that $T \subseteq \overline{S}$ by
+showing that the origin is a
+limit point of $S$.
+We construct a sequence $f : \mathbb{N} \to \mathbb{R}^2$ in $S$
+converging to $(0,0)$ using the
+\lstinline[language=lean]|Tendsto| framework:
+\begin{lstlisting}[language=lean]
+lemma T_sub_cls_S : T ⊆ closure S := by
+  intro x hx
+  cases hx with
+  | inl hxS => exact subset_closure hxS
+  | inr hxZ =>
+      rw [hxZ]
+      -- Define sequence: f(n) = (1/(nπ), 0)
+      let f : ℕ → ℝ × ℝ := fun n => ((n * Real.pi)⁻¹, 0)
+      -- Show f converges to (0, 0)
+      have hf : Tendsto f atTop (𝓝 (0, 0)) := by
+        refine Tendsto.prodMk_nhds ?_ tendsto_const_nhds
+        exact tendsto_inv_atTop_zero.comp
+          (Tendsto.atTop_mul_const' Real.pi_pos tendsto_natCast_atTop_atTop)
+      -- Show f eventually takes values in S
+      have hf' : ∀ᶠ n in atTop, f n ∈ S := by
+        filter_upwards [eventually_gt_atTop 0] with n hn
+        exact ⟨(n * Real.pi)⁻¹,
+          inv_pos.mpr (mul_pos (Nat.cast_pos.mpr hn) Real.pi_pos),
+          by simp [f, sine_curve, inv_inv, Real.sin_nat_mul_pi]⟩
+      -- Apply sequential characterization of closure
+      exact mem_closure_of_tendsto hf hf'
+\end{lstlisting}
+The proof is already reduced as much as possible.
+Let's break down what's happening in without getting into details:
+\begin{enumerate}
+  \item We define $f(n) = \left(\frac{1}{n\pi}, 0\right)$, which we will show converges to $(0,0)$ and stays in $S$.
 
-For this purpose, we need to work with Lean's Filter library, a powerful tool for dealing with limits and other
-aspects of topology such as neighborhoods (\lstinline[language=lean]|N|) and
-convergence (\lstinline[language=lean]|Tendsto|).
-Filters provide a unified framework for expressing notions like "eventually" and "frequently,"
-which are essential for working with limits in a formal setting.
-
+  \item \textbf{Convergence proof} (\lstinline[language=lean]|hf|):
+        We show \lstinline[language=lean]|Tendsto f atTop (𝓝 (0, 0))|.
+        \begin{itemize}
+          \item We use \lstinline[language=lean]|Tendsto.prodMk_nhds| to split the product:
+                we need to show the first coordinate tends to $0$ and the
+                second is constantly $0$.
+          \item For the first coordinate, we compose
+                \lstinline[language=lean]|tendsto_inv_atTop_zero|
+                (which states $\frac{1}{x} \to 0$ as $x \to \infty$) with the
+                fact that $n\pi \to \infty$.
+          \item The second constant coordinate is handled by
+                \lstinline[language=lean]|tendsto_const_nhds|.
+        \end{itemize}
+  \item \textbf{Membership proof} (\lstinline[language=lean]|hf'|):
+        We show \lstinline[language=lean]|∀ᶠ n in atTop, f n ∈ S|, meaning $f(n) \in S$
+        for all sufficiently large $n$.
+        \begin{itemize}
+          \item We use \lstinline[language=lean]|filter_upwards|, which allows us to combine
+                hypotheses about properties that hold eventually to prove another property holds eventually.
+                Here, we combine it with \lstinline[language=lean]|eventually_gt_atTop 0|,
+                which states that eventually $n > 0$.
+          \item For such $n$, we show $f(n) = \left(\frac{1}{n\pi}, 0\right)$ is in $S$ by noting that
+                $$
+                  \sin\left(\frac{1}{\left(\frac{1}{n\pi}\right)}\right) = \sin(n\pi) = 0.
+                $$
+        \end{itemize}
+  \item Finally, \lstinline[language=lean]|mem_closure_of_tendsto| combines these facts:
+        if a sequence eventually stays in $S$ and converges to $x$, then $x$ is in the closure of $S$.
+\end{enumerate}
+\subsubsection{Finalising the first part of the proof}
 If you are a one-liner enthusiast like me, you don't mind trying to combine
 bits and pieces to get a clean final result.
 We can simplify the final theorem as follows initially:
@@ -1739,6 +1898,8 @@ We can simplify the final theorem as follows initially:
 theorem T_is_conn : IsConnected T := 
   IsConnected.subset_closure S_is_conn (by tauto_set) T_sub_cls_S
 \end{lstlisting}
+The second argument is still in tactic mode with \lstinline[language=lean]|by tauto_set|,
+but it looks clean and we can keep it as is.
 With a bit of courage, we can also inline the proof of \lstinline[language=lean]|S_is_conn|
 (while \lstinline[language=lean]|T_sub_cls_S| is way too long to inline)
 to get a more self-contained one-liner:
@@ -1750,9 +1911,42 @@ theorem T_is_conn : IsConnected T :=
     ContinuousOn.inv₀ continuous_id.continuousOn
     (fun _ hx => ne_of_gt hx)) (by tauto_set) T_sub_cls_S
 \end{lstlisting}
+Making these amendments is not only for the sake of shortening the proof.
+Lean will, obviously, compile the proof faster by not
+entering tactic mode or using multiple tactics.
+Tactics internally hide many operations they automatically perform to close the goal.
+Moreover, if we directly provide
+a term for the proof, Lean will infer and unify everything by definitional
+equality; remember the very first example we did.
+By providing explicit proof terms, we give Lean less work to do, making the
+proof more transparent and efficient.
+This practice of "golfing" is essential in a huge library such as Mathlib
+community that needs to balance performance and maintainability.
 Here is the link to the entire first part of the proof:
-(\href{https://live.lean-lang.org//#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQEwCmAdnACr4ToQDmAnnAGLDowFRwDKB8A8lACZscOQQDM4kAM4B9KASTo4ALgC8nbgDoAkhGBwAFAAZlcQLiEAShxEIRAMYRwAVxhIs6AnDFxJwIgWm2jlAAbh6qcKKOJAAecIBlhAbRADRwAEry6Bo+JPrRgN4EAJ3mll4cJlzw+qZwAOtm5spq+tn+gSEEDQDknRIQMnIKIgTiAFrl3AbVdRaNcADeBoYphg0AvkPipOOVU/WzZYBURHAjwu4gIEhk0pKOWAHoMmVKZHCAYURwtlQ3cpyzWLQ4OBwXwwKAQOCxVDRQEfJCSAiSOBQuAAd2AaBhAB9gURFFCyioAHxwAjRJC2eA3LDwmD3PpBDz4rE49hQsZEmFAoFQFFwADabIAupyue54OJnoBUQjggCTCMy1eXhSIkEhEgz6EgAKjSGQ0YGA5kKy0sXK5qCQoSRErIxH4khg4PEKHIYAMgFYNwC7O4tjQ1wv8Raa5KJfB49WD+AgANbSIioO1wAD80jgrCIdodARs9pjcckAa5pPJ8FT6Yg0l8wWkzvw0gAXmwIBp7OB86b9EwWGwNKRbfbG9WwNIQI50JmiPaeukFHrgNIpCnexmiCgAMJw2kDqswF0m01Ii2M0Q9Z6AACJAAW4cBIvjgA5S4hIgAgiX5+gF7rnBztQaSOMAopACRE+QIUIiBgRwFHQWhpGoDdt3wOBDEFVF0VQS8kSIVsSTJCk4EAC/INTgbUp0yfVDQKJJMKBCs5z6DRwHYfRh1Hed9AAORQJt1xoyQ6LAVkiAaYiZ248wKLfU1/m8UBXT5UQUhaAIglCFJqIrFIhOyGMUCHEc52AQVAEvyfNCxwkACBAOlvn8CBRGkEs+ytK1OmENACGgcyrmAGR7CIEhni0SQVxsPwKQIfgXlUGEAqC3yCFC/gsluGlLIZAwvJikLWH4aQdGADRQCQagPAUtpLQAHkxEUfJgXxHAgRwZGABLqtq+rJB4IgwwgCNIzgCqRSElqiDqhrrl8JsHEHIaRvakh+tNGKauGtqOvyohgkAAIIPhsJaZvLZqdtahqOpFfRlTgZNkTVPxpBs6D4ChYoDEklxnDLGkGlIa5bnuR4gA}{link to Lean live})
+[\href{https://live.lean-lang.org//#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQEwCmAdnACr4ToQDmAnnAGLDowFRwDKB8A8lACZscOQQDM4kAM4B9KASTo4ALgC8nbgDoAkhGBwAFAAZlcQLiEAShxEIRAMYRwAVxhIs6AnDFxJwIgWm2jlAAbh6qcKKOJAAecIBlhAbRADRwAEry6Bo+JPrRgN4EAJ3mll4cJlzw+qZwAOtm5spq+tn+gSEEDQDknRIQMnIKIgTiAFrl3AbVdRaNcADeBoYphg0AvkPipOOVU/WzZYBURHAjwu4gIEhk0pKOWAHoMmVKZHCAYURwtlQ3cpyzWLQ4OBwXwwKAQOCxVDRQEfJCSAiSOBQuAAd2AaBhAB9gURFFCyioAHxwAjRJC2eA3LDwmD3PpBDz4rE49hQsZEmFAoFQFFwADabIAupyue54OJnoBUQjggCTCMy1eXhSIkEhEgz6EgAKjSGQ0YGA5kKy0sXK5qCQoSRErIxH4khg4PEKHIYAMgFYNwC7O4tjQ1wv8Raa5KJfB49WD+AgANbSIioO1wAD80jgrCIdodARs9pjcckAa5pPJ8FT6Yg0l8wWkzvw0gAXmwIBp7OB86b9EwWGwNKRbfbG9WwNIQI50JmiPaeukFHrgNIpCnexmiCgAMJw2kDqswF0m01Ii2M0Q9Z6AACJAAW4cBIvjgA5S4hIgAgiX5+gF7rnBztQaSOMAopACRE+QIUIiBgRwFHQWhpGoDdt3wOBDEFVF0VQS8kSIVsSTJCk4EAC/INTgbUp0yfVDQKJJMKBCs5z6DRwHYfRh1Hed9AAORQJt1xoyQ6LAVkiAaYiZ248wKLfU1/m8UBXT5UQUhaAIglCFJqIrFIhOyGMUCHEc52AQVAEvyfNCxwkACBAOlvn8CBRGkEs+ytK1OmENACGgcyrmAGR7CIEhni0SQVxsPwKQIfgXlUGEAqC3yCFC/gsluGlLIZAwvJikLWH4aQdGADRQCQagPAUtpLQAHkxEUfJgXxHAgRwZGABLqtq+rJB4IgwwgCNIzgCqRSElqiDqhrrl8JsHEHIaRvakh+tNGKauGtqOvyohgkAAIIPhsJaZvLZqdtahqOpFfRlTgZNkTVPxpBs6D4ChYoDEklxnDLGkGlIa5bnuR4gA}{link to Lean live}]
+
+\begin{note}
+  The proof merged into the Mathlib library takes $Z$ as $\{0\} \times [-1,1]$
+  instead of the singleton $\{(0,0)\}$.
+  This, together with the fact that $T$ equals the closure of $S$,
+  yields a stronger and more general result.
+  The Mathlib version demonstrates that the entire vertical segment at $x = 0$
+  lies in the closure of the oscillating curve, providing a more complete characterization
+  of the topologist's sine curve. This stronger version shows that a closed set
+  (specifically, the closure of $S$) can be connected but not path-connected.
+
+\end{note}
 \subsection{$T$ is not path-connected}
+% The main and more consistent part is showng that T is not path-connected.
+% Showing this informally alreadyu require constructing and poinmting oput vartious step in order to convice
+% an ideal reader.
+
+% One cna very infomrally show it and conjvince the reader that
+% by conrtadddiction a path exisitng in the topologiust sine curve t
+% will eventually oscillate at the point 0, breacking continuity a basic fact for path connecteddens.
+
+% by getting more procesie we have toconstruct such a sequence
+% adna again show that it eventually soscillate for demonsdtration.
 
 % We can use the structure \lstinline[language=lean]|IsPathConnected|
 % to set up the statement and see if we can argue similarly in Lean.
@@ -2066,7 +2260,7 @@ Here is the link to the entire first part of the proof:
 % This proof demonstrates several advanced techniques:
 % \begin{itemize}
 %   \item Working with suprema and using closedness to establish membership
-%   \item Using the $\varepsilon$-$\delta$ definition of continuity via Mathlib's \lstinline[language=lean]|Metric.tendsto_nhds|
+%   \item Using the $\varepsilon$-$\delta$ definition of continuity via Mathlib's \lstinline[language=lean]|Metric.tendsto_𝓝|
 %   \item Applying the intermediate value theorem for connected sets (preconnectedness)
 %   \item Careful manipulation of distances and inequalities
 %   \item Case analysis on set membership using Lean's pattern matching
