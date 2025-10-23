@@ -2162,9 +2162,7 @@ directly is challenging because
 this type lacks many algebraic operations such as addition, minimum, etc.
 Therefore, we cast to $\mathbb{R}$ (with \lstinline[language=lean]|let s₀ := (t₀ : ℝ)|)
 to perform arithmetic operations, then cast back to \lstinline[language=lean]|unitInterval|
-by providing proofs that the bounds $[0, 1]$ are satisfied.
-Lemmas like \lstinline[language=lean]|Subtype.coe_lt_coe|
-allow us to transfer inequalities between the subtype and its underlying type.
+by providing proofs that the bounds $[0, 1]$ are satisfied (\lstinline[language=lean]|hs₁|, \lstinline[language=lean]|hs₁'|).
 In the second case of the inner statment of have \lstinline[language=lean]|ha : a > 0|,
 if $p(t_1) \in Z$, then $(p\ t_1).1 = 0$ by definition of $Z = \{(0,0)\}$.
 This implies $t_1 \leq t_0$ by the definition of $t_0$ as the supremum.
@@ -2175,7 +2173,11 @@ recognizes this contradiction by observing both
 \lstinline[language=lean]|hgt_real : (t₁ : ℝ) > (t₀ : ℝ)|.
 Since these statements are contradictory, \lstinline[language=lean]|linarith|
 proves \lstinline[language=lean]|False|.
-\lstinline[language=lean]|simpa only [a, ← hx_eq] using hxI| completes the proof.
+Lemmas like \lstinline[language=lean]|Subtype.coe_lt_coe|
+allow us to transfer inequalities between the subtype and its underlying type,
+needed for \lstinline[language=lean]|linarith|.
+
+Finally, \lstinline[language=lean]|simpa only [a, ← hx_eq] using hxI| completes the proof.
 The tactic \lstinline[language=lean]|simpa| combines simplification (\lstinline[language=lean]|simp|)
 with assumption matching. The directive \lstinline[language=lean]|only [a, ← hx_eq]|
 unfolds the definition of $a = (p\ t_1).1$ and rewrites using \lstinline[language=lean]|hx_eq|
@@ -2208,7 +2210,7 @@ $$
   x = \frac{2}{(4k + 1)\pi}
 $$
 for $k \in \mathbb{N}$. As $k \to \infty$, these $x$-values approach 0,
-so infinitely many of them lie in any interval $[0, a]$ with $a > 0$.
+so infinitely many of them lie in any interval $[0, a]$.
 We define this sequence and establish its key properties:
 \begin{lstlisting}[language=lean]
 noncomputable def xs_pos_peak := fun (k : ℕ) => 2/((4 * k + 1) * Real.pi)
