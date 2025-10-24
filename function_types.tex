@@ -1,6 +1,9 @@
 \section{Function Types}
 
-Given types $A$ and $B$, we can construct the function type $A \to B$, representing functions from $A$ to $B$. Functions are a primitive concept in type theory, and we provide a brief introduction here.
+Given types $A$ and $B$, we can construct the function type $A \to B$,
+representing functions from $A$ to $B$.
+Functions are a primitive concept in type theory,
+and we provide a brief introduction here.
 
 We can \textbf{apply} a function $f : A \to B$ to an element $a : A$ to obtain an element of $B$, denoted $f(a)$. In type theory, it is common to omit the parentheses and write the application simply as $f\, a$.
 
@@ -122,6 +125,7 @@ def double : Nat -> Nat := x + x
      & \equiv 6
   \end{align}
 \end{example}
+\newpage
 \begin{example}[Functions in Lean using lmabda ]
   \begin{lstlisting}[language=Lean]
 -- Lambda abstraction form
@@ -184,6 +188,8 @@ def compose : (B -> C) -> (A -> B) -> (A -> C) :=
 #eval compose add 3 -- Output: 12
 \end{lstlisting}
 \end{example}
+\newpage
+Y combinator Not strongly normalizing
 \begin{example}
   [Combinators in Lean]
   \begin{lstlisting}[language=Lean]
@@ -192,7 +198,7 @@ def S : (A -> B -> C) -> (A -> B) -> (A -> C) :=
   fun f g => fun x => f x (g x)
 
 def Y : (A -> A) -> A := 
-  fun f => (fix Y x => f (Y f x)) -- Y combinator Not strongly normalizing
+  fun f => (fix Y x => f (Y f x))
 #eval K 5 true -- Output: 5 
 #eval S add 3 4 -- Output: 7
 \end{lstlisting}

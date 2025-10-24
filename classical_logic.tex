@@ -1,5 +1,5 @@
 \section{Logic and Proposition as Types}
-
+\subsection{First Order Logic}
 Logic is the study of reasoning, branching into various systems.
 We refer to \textbf{classical logic} as the one that underpins much
 of traditional mathematics.
@@ -32,19 +32,6 @@ Here how connectives are defined in Lean:
   inhabitants are proofs; somewhat
   paradoxically, a type of types.
 \end{example}
-
-% \begin{definition}[Propositional Formula](\cite{thompson1999types})
-% A \textbf{propositional formula} is either:
-% \begin{itemize}
-%     \item A \textbf{propositional variable}: $X_0, X_1, X_2, \ldots$, or
-%     \item A \textbf{compound formula} formed by combining formulas using connectives:
-%     [[
-%         (A \wedge B), \quad (A \Rightarrow B), \quad (A \vee B), \quad \bot, \quad (A \Leftrightarrow B), \quad (\neg A)
-%     ]]
-%     where $A$ and $B$ are formulas themselves.
-% \end{itemize}
-% \end{definition}
-
 Logic is often formalized through a framework known as the \textbf{natural deduction system},
 developed by Gentzen in the 1930s (\cite{wadler2015propositions}).
 This approach brings logic closer to a computable, algorithmic system.
@@ -67,23 +54,81 @@ The inference rules needed are:
   \item \textbf{Introduction rules} specify how to form compound propositions from simpler ones, and
   \item \textbf{Elimination rules} specify how to use compound propositions to derive information about their components.
 \end{itemize}
-
-Type theory employs this porocedure too, by referring to deduction
-rules as judments, and each elemtns of a with terms ans types.
-here an examople:
-\begin{example}
+Let's look at how we can define some connectives first using natural deduction.
+\paragraph{Conjunction ($\land$)}
+\paragraph{Introduction Rule}
+\begin{prooftree}
+  \AxiomC{$A$}
+  \AxiomC{$B$}
+  \RightLabel{$\land$-Intro}
+  \BinaryInfC{$A \land B$}
+\end{prooftree}
+\paragraph{Elimination Rule}
+\mbox{}\\[0.5em]
+\noindent
+\begin{minipage}[t]{0.48\textwidth}
+  \vspace{0pt}
   \begin{prooftree}
-    \AxiomC{$\Gamma, $}
-    \AxiomC{$p_1:P_1$}
-    \AxiomC{$p_2:P_2$}
-    \AxiomC{$\cdots$}
-    \AxiomC{$P_n$}
-    \QuinaryInfC{$C$}
+    \AxiomC{$A \land B$}
+    \RightLabel{$\land$-Elim$_1$}
+    \UnaryInfC{$A$}
   \end{prooftree}
-\end{example}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \vspace{0pt}
+  \begin{prooftree}
+    \AxiomC{$A \land B$}
+    \RightLabel{$\land$-Elim$_2$}
+    \UnaryInfC{$B$}
+  \end{prooftree}
+\end{minipage}
+\paragraph{Disjunction ($\lor$)}
+\paragraph{Introduction Rule}
+\mbox{}\\[0.5em]
+\noindent
+\begin{minipage}[t]{0.48\textwidth}
+  \vspace{0pt}
+  \begin{prooftree}
+    \AxiomC{$A$}
+    \RightLabel{$\lor$-Intro$_1$}
+    \UnaryInfC{$A \lor B$}
+  \end{prooftree}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \vspace{0pt}
+  \begin{prooftree}
+    \AxiomC{$B$}
+    \RightLabel{$\lor$-Intro$_2$}
+    \UnaryInfC{$A \lor B$}
+  \end{prooftree}
+\end{minipage}
+\paragraph{ Elimination (Proof by cases)}
+\begin{prooftree}
+  \AxiomC{$A \lor B$}
+  \AxiomC{$[A] \vdash C$}
+  \AxiomC{$[B] \vdash C$}
+  \RightLabel{$\lor$-Elim}
+  \TrinaryInfC{$C$}
+\end{prooftree}
+\paragraph{Implication ($\to$)}
+\paragraph{Introduction Rule}
+\begin{prooftree}
+  \AxiomC{$[A] \vdash B$}
+  \RightLabel{$\to$-Intro}
+  \UnaryInfC{$A \to B$}
+\end{prooftree}
+\paragraph{ Elimination (Modus Ponens)}
+\begin{prooftree}
+  \AxiomC{$A \to B$}
+  \AxiomC{$A$}
+  \RightLabel{$\to$-Elim}
+  \BinaryInfC{$B$}
+\end{prooftree}
 \begin{notation}
-  We use $A \vdash B$ (called turnstile) to designate a deduction of $B$ from $A$.
-  It is employed in Gentzen’s \textbf{sequent calculus} (\cite{girard1989proofs})
+  We use $A \vdash B$ (called turnstile) to designate a
+  deduction of $B$ from $A$.
+  It is employed in Gentzen’s \textbf{sequent calculus}
+  (\cite{girard1989proofs})
   and moslty used in type theory.
   The square brackets around a premise $[A]$ mean that the premise $A$ is meant to
   be \textbf{discharged} at the conclusion. The classical example is the
@@ -94,149 +139,270 @@ here an examople:
   The turnstile is predominantly used in judgments and type theory with
   the meaning of ``entails that''.
 \end{notation}
-
-\begin{example}[Type Theory Judgments and Contexts]
-  In type theory, \textbf{judgments} are formal statements about the well-formedness of types and terms.
-  There are typically four fundamental kinds of judgments \cite{web:1}:
-
-  \begin{enumerate}
-    \item $\Gamma \vdash A \text{ type}$ -- ``$A$ is a well-formed type in context $\Gamma$''
-    \item $\Gamma \vdash t : A$ -- ``$t$ is a term of type $A$ in context $\Gamma$''
-    \item $\Gamma \vdash A \equiv B \text{ type}$ -- ``types $A$ and $B$ are judgmentally equal in context $\Gamma$''
-    \item $\Gamma \vdash t_1 \equiv t_2 : A$ -- ``terms $t_1$ and $t_2$ are judgmentally equal of type $A$ in context $\Gamma$''
-  \end{enumerate}
-
-  The \textbf{context} $\Gamma$ (Greek capital gamma) represents a finite list of type declarations for variables,
-  formally written as $\Gamma = x_1:A_1, x_2:A_2, \ldots, x_n:A_n$ (cite).
-  The context encodes the \textbf{assumptions} or \textbf{hypotheses} under which a judgment is made.
-
-  For example, consider these concrete judgments:
-  \begin{align}
-     & \vdash \mathbb{N} \text{ type} \quad \text{(natural numbers form a type)}                                 \\
-     & x:\mathbb{N} \vdash x : \mathbb{N} \quad \text{(variable $x$ has type $\mathbb{N}$ when declared)}        \\
-     & x:\mathbb{N}, y:\mathbb{N} \vdash x + y : \mathbb{N} \quad \text{(addition of naturals yields a natural)} \\
-     & \vdash \lambda x:\mathbb{N}.\ x + 1 : \mathbb{N} \to \mathbb{N} \quad \text{(successor function)}
-  \end{align}
+\subsection{Primitive Types}
+Type theory employs this porocedure too,
+by referring to deduction
+rules as \textbf{judments}.
+A type judgment has the form $\Gamma \vdash t : T$,
+meaning: under \textbf{context} $\Gamma$ (a list of typed variables),
+the term $t$ has type $T$.
+Using formal inference rules in the type judgment
+system, such as \textbf{introduction} and \textbf{elimination} rules
+(this time used for introducing and cosuming terms of a type),
+we can construct new compound types from existing ones.
+\begin{example}[Judgment style rule]
+  \mbox{}
+  \begin{prooftree}
+    \AxiomC{$\Gamma \vdash$}
+    \AxiomC{$p_1:P_1$}
+    \AxiomC{$p_2:P_2$}
+    \AxiomC{$\cdots$}
+    \AxiomC{$P_n$}
+    \QuinaryInfC{$C$}
+  \end{prooftree}
 \end{example}
+Technically, there are two more inference rules that we will not consider in this setting:
+\textbf{formation rules}, used to declare that a type is well-formed, and
+\textbf{computation rules}, which specify how a term will be evaluated.
+Moreover, without going too deep into the jargon,
+one specific judgment is
+$\Gamma \vdash A \equiv B\ \text{type}$, which means ``types $A$ and $B$ are
+\textbf{judgmentally (or definitionally) equal} in context $\Gamma$.''
+Similarly for terms, $\Gamma \vdash t_1 \equiv t_2 : A$ means ``terms $t_1$ and $t_2$ are
+judgmentally equal of type $A$ in context $\Gamma$.''
+In Lean, the operator \lstinline[language=lean]|:=|
+stands for definitional equality and is used by the kernel to verify proof equality.
 
-% \begin{example}[Context Formation Rules]
-%   The context itself must be well-formed according to specific rules \cite{web:41}:
+Let's now construct new types from given types $A$ and $B$.
+\paragraph{Product Type}
+As a fundamental example, $A \times B$
+denotes the type of pairs $(a, b)$ where $a : A$ and $b : B$,
+called the \textbf{product type}.
+\paragraph{Introduction Rule (pairing)}
+\begin{prooftree}
+  \AxiomC{$a : A$}
+  \AxiomC{$b : B$}
+  \BinaryInfC{$(a, b) : A \times B$}
+\end{prooftree}
 
-%   \begin{prooftree}
-%     \AxiomC{}
-%     \UnaryInfC{$\diamond \text{ ctx}$}
-%   \end{prooftree}
-%   \textbf{Empty context rule}: The empty context $\diamond$ (or $\emptyset$) is always well-formed.
+\noindent In Lean:
+\begin{lstlisting}[language=lean]
+Prod.mk a b : Prod A B   -- or A × B
+(a, b) : A × B            -- tuple notation
+⟨a, b⟩ : A × B            -- angle bracket notation
+\end{lstlisting}
+\paragraph{Elimination Rules (projections)}\mbox{}\\[0.5em]
+\noindent
+\begin{minipage}[t]{0.48\textwidth}
+  \vspace{0pt}
+  \begin{prooftree}
+    \AxiomC{$p : A \times B$}
+    \UnaryInfC{$\mathsf{fst}(p) : A$}
+  \end{prooftree}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \vspace{0pt}
+  \begin{prooftree}
+    \AxiomC{$p : A \times B$}
+    \UnaryInfC{$\mathsf{snd}(p) : B$}
+  \end{prooftree}
+\end{minipage}
 
-%   \begin{prooftree}
-%     \AxiomC{$\Gamma \text{ ctx}$}
-%     \AxiomC{$\Gamma \vdash A \text{ type}$}
-%     \BinaryInfC{$\Gamma, x:A \text{ ctx}$}
-%   \end{prooftree}
-%   \textbf{Context extension rule}: If $\Gamma$ is a well-formed context and $A$ is a well-formed type in $\Gamma$,
-%   then extending $\Gamma$ with a fresh variable $x$ of type $A$ yields a well-formed context.
+\noindent In Lean:
+\begin{lstlisting}[language=lean]
+  p.1 : A       -- or Prod.fst p
+  p.2 : B       -- or Prod.snd p
+\end{lstlisting}
+\paragraph{Sum Type}
+The \textbf{sum type} $A + B$ (also called a coproduct or disjoint union) consists of values that are
+either of type $A$ (tagged with $\mathsf{inl}$) or
+of type $B$ (tagged with $\mathsf{inr}$).
+\paragraph{Introduction Rules (injections)}
+\mbox{}\\[0.5em]
+\noindent
+\begin{minipage}[t]{0.48\textwidth}
+  \vspace{0pt}
+  \begin{prooftree}
+    \AxiomC{$a : A$}
+    \UnaryInfC{$\mathsf{inl}(a) : A + B$}
+  \end{prooftree}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \vspace{0pt}
+  \begin{prooftree}
+    \AxiomC{$b : B$}
+    \UnaryInfC{$\mathsf{inr}(b) : A + B$}
+  \end{prooftree}
+\end{minipage}
+
+\noindent In Lean:
+\begin{lstlisting}[language=lean]
+Sum.inl a : Sum A B   -- or A ⊕ B
+Sum.inr b : Sum A B
+\end{lstlisting}
+\paragraph{Elimination Rule (case analysis)}
+\begin{prooftree}
+  \AxiomC{$p : A + B$}
+  \AxiomC{$\begin{array}{c}  f : (A \implies C) \end{array}$}
+  \AxiomC{$\begin{array}{c}  g : (B \implies C) \end{array}$}
+  \TrinaryInfC{$\mathsf{case}(p, x.f, y.g) : C$}
+\end{prooftree}
+In Lean, we can use the \lstinline[language=lean]|cases|:
+\begin{lstlisting}[language=lean]
+example (p : Sum A B) (f : A → C) (g : B → C) : C := by
+  cases p with
+  | inl x => f x
+  | inr y => g y
+\end{lstlisting}
+\paragraph{Function Types}
+we can construct the function type $A \to B$,
+representing functions from $A$ to $B$.
+\paragraph{Introduction Rule (lambda abstraction)}
+\begin{prooftree}
+  \AxiomC{$\begin{array}{c} x : A  \vdash  \Phi : B \end{array}$}
+  \UnaryInfC{$\lambda x.\Phi : A \to B$}
+\end{prooftree}
+In Lean, lambda abstraction is written using \lstinline[language=lean]|fun| or \lstinline[language=lean]|λ|:
+\begin{lstlisting}[language=lean]
+fun (x : A) => Phi : A → B
+-- or using λ notation
+λ (x : A) => Phi : A → B
+-- Example: identity function
+def id : A → A := fun x => x
+-- or
+def id : A → A := λ x => x
+\end{lstlisting}
+\paragraph{Elimination Rule (application)}
+\begin{prooftree}
+  \AxiomC{$f : A \to B$}
+  \AxiomC{$a : A$}
+  \BinaryInfC{$f(a) : B$}
+\end{prooftree}
+In Lean, function application is written using juxtaposition:
+\begin{lstlisting}[language=lean]
+example (f : A → B) (a : A) : B := f a
+\end{lstlisting}
+Functions are a primitive concept in type theory,
+and we provide a brief introduction here.
+We can \textbf{apply} a function $f : A \to B$
+to an element $a : A$ to obtain an element of $B$,
+denoted $f(a)$. In type theory, it is common to omit
+the parentheses and write the application simply
+as $f\, a$.
+There are two equivalent ways to construct function
+types: either by direct definition or by using
+$\lambda$-abstraction.
+Introducing a function by definition means that
+we introduce a function by giving it a name (let's say, $f$) and saying we define $f : A \to B$ by giving an equation
+\begin{equation} \label{lambda_definition}
+  f(x) \coloneqq \Phi
+\end{equation}
+where $x$ is a variable and $\Phi$ is an expression
+which may use $x$. In order for this to be valid,
+we have to check that $\Phi : B$ assuming $x : A$.
+Now we can compute $f(a)$ by replacing the variable $x$ in $\Phi$ with $a$. As an example,
+consider the function $f : \mathbb{N} \to \mathbb{N}$ which
+is defined by $f(x) \coloneqq x + x$. Then $f(2)$ is \textbf{definitionally equal} to $2 + 2$.
+If we don't want to introduce a name for the
+function, we can use \textbf{$\lambda$-abstraction}.
+Given an expression $\Phi$ of type $B$ which
+may use $x : A$, as above, we write $\lambda(x : A). \Phi$ to
+indicate the same function defined by
+(\ref{lambda_definition}). Thus, we have
+$$ (\lambda(x : A). \Phi) : A \to B. $$
+% \begin{example}
+%   The previously defined function  has the typing
+%   judgment
+%   $$ (\lambda(x : \mathbb{N}). x + x) : \mathbb{N} \to \mathbb{N}. $$
+%   As another example, for any types $A$ and $B$
+%   and any element $y : B$, we have a
+%   \textbf{constant function}
+%   $$ (\lambda(x : A). y) : A \to B. $$
+%   The \textbf{identity function} on any
+%   type $A$ is given by
+%   $$ (\lambda(x : A). x) : A \to A. $$
 % \end{example}
-
-% \begin{example}[Typing Rules with Contexts]
-%   Here are fundamental typing rules that show how contexts work in practice:
-
-%   \begin{prooftree}
-%     \AxiomC{$\Gamma, x:A, \Delta \text{ ctx}$}
-%     \UnaryInfC{$\Gamma, x:A, \Delta \vdash x : A$}
-%   \end{prooftree}
-%   \textbf{Variable rule}: A variable $x$ has its declared type $A$ in any context where it appears.
-
-%   \begin{prooftree}
-%     \AxiomC{$\Gamma \vdash f : A \to B$}
-%     \AxiomC{$\Gamma \vdash a : A$}
-%     \BinaryInfC{$\Gamma \vdash f(a) : B$}
-%   \end{prooftree}
-%   \textbf{Application rule}: Function application preserves typing under the same context assumptions.
-
-%   \begin{prooftree}
-%     \AxiomC{$\Gamma, x:A \vdash b : B$}
-%     \UnaryInfC{$\Gamma \vdash \lambda x:A.\ b : A \to B$}
-%   \end{prooftree}
-%   \textbf{Lambda abstraction rule}: To form a function of type $A \to B$, assume $x:A$ and derive $b:B$.
-% \end{example}
-
-
-Let's look at how we can define some connectives.
-The inference rules needed are:
-\begin{itemize}
-  \item \textbf{Introduction rules} specify how to form compound propositions from simpler ones, and
-  \item \textbf{Elimination rules} specify how to use compound propositions to derive information about their components.
-\end{itemize}
-
-\paragraph{Conjunction ($\land$)}
-\begin{itemize}
-  \item Introduction
-        \begin{prooftree}
-          \AxiomC{$A$}
-          \AxiomC{$B$}
-          \RightLabel{$\land$-Intro}
-          \BinaryInfC{$A \land B$}
-        \end{prooftree}
-  \item Elimination
-        \noindent
-        \begin{minipage}[t]{0.5\textwidth}
-          \begin{prooftree}
-            \AxiomC{$A \land B$}
-            \RightLabel{$\land$-Elim$_1$}
-            \UnaryInfC{$A$}
-          \end{prooftree}
-        \end{minipage}\hfill
-        \begin{minipage}[t]{0.5\textwidth}
-          \begin{prooftree}
-            \AxiomC{$A \land B$}
-            \RightLabel{$\land$-Elim$_2$}
-            \UnaryInfC{$B$}
-          \end{prooftree}
-        \end{minipage}
-\end{itemize}
-\paragraph{Disjunction ($\lor$)}
-\begin{itemize}
-  \item Introduction
-        \begin{minipage}[t]{0.5\textwidth}
-          \begin{prooftree}
-            \AxiomC{$A$}
-            \RightLabel{$\lor$-Intro$_1$}
-            \UnaryInfC{$A \lor B$}
-          \end{prooftree}
-        \end{minipage}\hfill
-        \begin{minipage}[t]{0.5\textwidth}
-          \begin{prooftree}
-            \AxiomC{$B$}
-            \RightLabel{$\lor$-Intro$_2$}
-            \UnaryInfC{$A \lor B$}
-          \end{prooftree}
-        \end{minipage}
-  \item Elimination (Proof by cases)
-        \begin{prooftree}
-          \AxiomC{$A \lor B$}
-          \AxiomC{$[A] \vdash C$}
-          \AxiomC{$[B] \vdash C$}
-          \RightLabel{$\lor$-Elim}
-          \TrinaryInfC{$C$}
-        \end{prooftree}
-\end{itemize}
-\paragraph{Implication ($\to$)}
-\begin{itemize}
-  \item Introduction
-        \begin{prooftree}
-          \AxiomC{$[A] \vdash B$}
-          \RightLabel{$\to$-Intro}
-          \UnaryInfC{$A \to B$}
-        \end{prooftree}
-  \item Elimination (Modus Ponens)
-        \begin{prooftree}
-          \AxiomC{$A \to B$}
-          \AxiomC{$A$}
-          \RightLabel{$\to$-Elim}
-          \BinaryInfC{$B$}
-        \end{prooftree}
-\end{itemize}
-
+By convention, the ``scope'' of the variable
+binding ``$\lambda x.$''
+is the entire rest of the expression,
+unless delimited with parentheses.
+Thus, for instance, $\lambda x. x + x$
+should be parsed as $\lambda x.(x + x)$,
+not as $(\lambda x. x) + x$ .
+Now a $\lambda$-abstraction is a function,
+so we can apply it to an argument $a : A$.
+We then have the following computation
+rule ($\beta$-reduction), which is a
+\textbf{definitional equality}:
+$$ (\lambda x. \Phi)(a) \equiv \Phi' $$
+where $\Phi'$ is the expression $\Phi$ in
+which all occurrences of $x$ have been
+replaced by $a$.
+Continuing the above example, we have
+$(\lambda x. x + x)(2) \equiv 2 + 2. $
+% Note that from any function $f : A \to B$,
+% we can construct a lambda abstraction
+% function $\lambda x. f(x)$.
+% Since this is by definition ``the function
+% that applies $f$ to its argument'' we consider
+% it to be definitionally
+% equal to $f$ (\textbf{$\eta$-conversion}):
+% $$ f \equiv (\lambda x. f(x)). $$
+% This equality is the uniqueness principle
+% for function types, because it shows that $f$
+% is uniquely determined by its values.
+% The introduction of functions by definitions
+% with explicit parameters can be reduced to
+% simple definitions by using $\lambda$-abstraction:
+% i.e., we can read a definition of $f : A \to B$ by
+% $$ f(x) \coloneqq \Phi
+% $$
+% as
+% $$ f \coloneqq \lambda x. \Phi. $$
+When performing calculations involving variables, we must carefully preserve the \textbf{binding structure} of expressions during substitution. Consider the function $f : \mathbb{N} \to (\mathbb{N} \to \mathbb{N})$ defined as:
+$$ f(x) \coloneqq \lambda y. x + y $$
+Suppose we have assumed $y : \mathbb{N}$ somewhere in our context. What is $f(y)$?
+A naive approach would replace $x$ with $y$ directly in the expression $\lambda y. x + y$, yielding $\lambda y. y + y$. However, this substitution is \textbf{semantically incorrect} because it causes \textbf{variable capture}: the free variable $y$ (referring to our assumption) becomes bound by the $\lambda$-abstraction, fundamentally altering the expression's meaning.
+The correct approach uses \textbf{$\alpha$-conversion} (variable renaming).
+Since bound variables have only local scope, we can consistently rename them while preserving binding structure.
+The expression $\lambda y. x + y$ is judgmentally equal to $\lambda z. x + z$ for any fresh variable $z$. Therefore:
+$$ f(y) \equiv \lambda z. y + z $$
+This phenomenon parallels familiar mathematical practice: if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$,
+then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, not the ill-defined $\int_1^2 \frac{dt}{t-t}$.
+Lambda abstractions bind dummy variables exactly as integrals do.
+For functions of multiple variables, we employ \textbf{currying} (named after mathematician Haskell Curry). Instead of using product types, we represent a two-argument function as a function returning another function.
+A function taking inputs $a : A$ and $b : B$ to produce output in $C$ has type:
+$$ f : A \to (B \to C) \equiv A \to B \to C $$
+where the arrow associates to the right by convention.
+Given $a : A$ and $b : B$, we apply $f$ sequentially: first to $a$, then the result to $b$, obtaining $f(a)(b) : C$.
+To simplify notation and avoid excessive parentheses, we adopt several conventions. We write $f(a)(b)$ as $f(a, b)$ for abbreviated application. Without parentheses entirely, $f \, a \, b$ means $(f \, a) \, b$ following left-associative application. For multi-parameter definitions, we write $f(x, y) \coloneqq \Phi$ where $\Phi : C$ under assumptions $x : A$ and $y : B$.
+Using $\lambda$-abstraction, such definitions correspond to:
+$$ f \coloneqq \lambda x. \lambda y. \Phi $$
+Alternative notation using map symbols:
+$$ f \coloneqq x \mapsto y \mapsto \Phi $$
+This currying approach extends naturally to functions of three or more arguments, allowing us to represent any multi-argument function as a sequence of single-argument functions.
+\begin{example}\mbox{}
+  \begin{lstlisting}[language=lean]
+def add : Nat -> (Nat -> Nat) := fun x => (fun y => x + y)
+#eval add 3 4   -- Output: 7
+\end{lstlisting}
+  Theoretically, lambda evaluation proceeds in steps:
+  \begin{align*}
+    \text{add } 3\, 4 & \equiv (\text{add } 3)\, 4                         \\
+                      & \equiv ((\lambda x.\, \lambda y.\, x + y)\, 3)\, 4 \\
+                      & \equiv ((\lambda y.\, x + y)[x := 3])\, 4          \\
+                      & \equiv (\lambda y.\, 3 + y)\, 4                    \\
+                      & \equiv (3 + y)[y := 4]                             \\
+                      & \equiv 3 + 4                                       \\
+                      & \equiv 7
+  \end{align*}
+\end{example}
+% \paragraph{Computation Rules}
+% \[
+%   \mathsf{match}\ \mathsf{inl}(a) \ \mathsf{with} \ \dots \equiv f(a)
+%   \qquad
+%   \mathsf{match}\ \mathsf{inr}(b) \ \mathsf{with} \ \dots \equiv g(b)
+% \]
 
 % \section{Judgments and Propositions}
 
@@ -373,188 +539,74 @@ The inference rules needed are:
 % Additional formal presentations and lecture notes on type theory and natural deduction, CMU (various).
 
 
-% %  \lstinline[language=lean]|And.intro _ _| or shortly
-% %  \lstinline[language=lean]|⟨_, _⟩| (underscore are placeholder for assumptions or "propositional functions"). 
-% %  The pair $A \land B$ can be then consumed using elimination 
-% rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.right|.
-% \begin{example}\label{ex:conj_intro}
-% Let's look at our first Lean example:
-% \begin{lstlisting}[language=lean]
-%   example (a b : Prop) (ha : a) (hb : b) : (a \land b) := And.intro ha hb
-% \end{lstlisting}
-% This illustrates the \textbf{introduction rule} for conjunction in Lean.  
-% The declaration
-% \begin{lstlisting}[language=lean]
-%   (a b : Prop) (ha : a) (hb : b) : (a \land b)
-% \end{lstlisting}
-% means that, given proofs \lstinline[language=lean]|ha| and \lstinline[language=lean]|hb|
-% of the propositions \lstinline[language=lean]|a| and \lstinline[language=lean]|b|,
-% we can construct a proof of \lstinline[language=lean]|(a \land b)|.
-% Try placing the cursor just before \lstinline[language=lean]|And.intro|.
-% Observe how the \textit{infoview} updates to display:
-% \begin{lstlisting}[language=lean]
-%   a b : Prop
-%   ha : a
-%   hb : b
-%   \vdash a \land b
-% \end{lstlisting}
-% Here we see again the turnstile symbol (\(\vdash\)), introduced earlier.
-% Everything before it represents the \textbf{context} (\(\Gamma\))—our variables and hypotheses—
-% while everything after it denotes the \textbf{goal} to be proved.
-% Lean implements the constructor \lstinline[language=lean]|And.intro| as:
-% \begin{lstlisting}[language=lean]
-%   And.intro : p \to q \to (p \land q)
-% \end{lstlisting}
-% This means: given a proof of \lstinline[language=lean]|p| and a proof of
-% \lstinline[language=lean]|q|, Lean can produce a proof of
-% \lstinline[language=lean]|(p \land q)|.
-% We therefore complete the proof by directly providing
-% \lstinline[language=lean]|And.intro ha hb|.
-% Alternatively, we can express the same statement more compactly:
-% \begin{lstlisting}[language=lean]
-%   example (a b : Prop) (ha : a) (hb : b) : (a \land b) := ⟨ha, hb⟩
-% \end{lstlisting}
-% Here, \lstinline[language=lean]|⟨ha, hb⟩| is a \textbf{pair} (or product) term—
-% you can think of it as a Cartesian pair combining the two proofs into one.
-% \end{example}
-% This system of inference rules allows us to construct proofs in an 
-% algorithmic and systematical way, organized in what is called a \textbf{proof tree}. 
-% To reduce complexity, we follow a 
-% \textbf{top-down} approach (see \cite{thompson1999types} and 
-% \cite{nordstrom1990programming}).
-
-
-Let's look at how we can define some connectives.
-\paragraph{Conjunction ($\land$)}
-\begin{itemize}
-  \item Introduction
-        \begin{prooftree}
-          \AxiomC{$A$}
-          \AxiomC{$B$}
-          \RightLabel{$\land$-Intro}
-          \BinaryInfC{$A \land B$}
-        \end{prooftree}
-  \item Elimination
-        \noindent
-        \begin{minipage}[t]{0.5\textwidth}
-          \begin{prooftree}
-            \AxiomC{$A \land B$}
-            \RightLabel{$\land$-Elim$_1$}
-            \UnaryInfC{$A$}
-          \end{prooftree}
-        \end{minipage}\hfill
-        \begin{minipage}[t]{0.5\textwidth}
-          \begin{prooftree}
-            \AxiomC{$A \land B$}
-            \RightLabel{$\land$-Elim$_2$}
-            \UnaryInfC{$B$}
-          \end{prooftree}
-        \end{minipage}
-\end{itemize}
-\paragraph{Disjunction ($\lor$)}
-\begin{itemize}
-  \item Introduction
-        \begin{minipage}[t]{0.5\textwidth}
-          \begin{prooftree}
-            \AxiomC{$A$}
-            \RightLabel{$\lor$-Intro$_1$}
-            \UnaryInfC{$A \lor B$}
-          \end{prooftree}
-        \end{minipage}\hfill
-        \begin{minipage}[t]{0.5\textwidth}
-          \begin{prooftree}
-            \AxiomC{$B$}
-            \RightLabel{$\lor$-Intro$_2$}
-            \UnaryInfC{$A \lor B$}
-          \end{prooftree}
-        \end{minipage}
-  \item Elimination (Proof by cases)
-        \begin{prooftree}
-          \AxiomC{$A \lor B$}
-          \AxiomC{$[A] \vdash C$}
-          \AxiomC{$[B] \vdash C$}
-          \RightLabel{$\lor$-Elim}
-          \TrinaryInfC{$C$}
-        \end{prooftree}
-\end{itemize}
-\paragraph{Implication ($\to$)}
-\begin{itemize}
-  \item Introduction
-        \begin{prooftree}
-          \AxiomC{$[A] \vdash B$}
-          \RightLabel{$\to$-Intro}
-          \UnaryInfC{$A \to B$}
-        \end{prooftree}
-  \item Elimination (Modus Ponens)
-        \begin{prooftree}
-          \AxiomC{$A \to B$}
-          \AxiomC{$A$}
-          \RightLabel{$\to$-Elim}
-          \BinaryInfC{$B$}
-        \end{prooftree}
-\end{itemize}
-
-\begin{notation}
-  We use $A \vdash B$ (called turnstile) to designate a deduction of $B$ from $A$.
-  It is employed in Gentzen’s \textbf{sequent calculus} (\cite{girard1989proofs}),
-  whereas in natural deduction the corresponding symbol is
-  $$
-    \begin{array}{c}
-      A      \\
-      \vdots \\
-      B
-    \end{array}
-  $$
-  There are some minor differences, in fact, which I don't fully understand.
-  The square brackets around a premise $[A]$ mean that the premise $A$ is meant to
-  be \textbf{discharged} at the conclusion. The classical example is the
-  introduction rule for the implication connective.
-  To prove an implication $A \to B$, we assume $A$
-  (shown as $[A]$), derive $B$ under this assumption, and then discharge the
-  assumption $A$ to conclude that $A \to B$ holds without the assumption.
-  The turnstile is predominantly used in judgments and type theory with
-  the meaning of ``entails that''.
-\end{notation}
-
-Lean has its own syntax for connectives and their relative inference rules.
-For instance $A \land B$ can be presented as \lstinline[language=lean]|And(A, B)| or \lstinline[language=lean]|A \land B|,
-. Its untroduction rule is constructed by
-\lstinline[language=lean]|And.intro _ _| or shortly
-\lstinline[language=lean]|⟨_, _⟩| (underscore are placeholder for assumptions or "propositional functions").
-The pair $A \land B$ can be then consumed using elimination
+\subsection{Curry Howard isomorphism}
+We have been preparing for this argument, and the reader will have surely
+noticed a strong similarity when defining logical connectives
+using deduction rules; they are remarkably similar to types
+constructed using type judgments. For instance, function
+types can be seen as implications.
+This is not a coincidence, but rather a fundamental theorem
+first proven by Haskell Curry and William Howard.
+It forms the core of modern type theory and establishes
+a deep connection between logic, computation, and mathematics.
+The isomorphism states:
+\begin{align}
+  \text{Propositions}        & \leftrightarrow \text{Types}              \\
+  \text{Proofs}              & \leftrightarrow \text{Programs}           \\
+  \text{Proof Normalization} & \leftrightarrow \text{Program Evaluation}
+\end{align}
+\noindent\textbf{Implication} ($P \Rightarrow Q$) corresponds to the \textbf{function type} ($P \to Q$).
+A proof of an implication is a function that transforms any proof
+of the premise into a proof of the conclusion.
+\noindent\textbf{Conjunction} ($P \land Q$) corresponds
+to the \textbf{product type} ($P \times Q$).
+A proof of a conjunction consists of a pair containing proofs of both conjuncts.
+\noindent\textbf{Disjunction} ($P \lor Q$) corresponds
+to the \textbf{sum type} ($P + Q$).
+A proof of a disjunction is either a proof of the
+first disjunct or a proof of the second disjunct.
+Lean uses inference rules and type
+judgments as well as computing connectives using each related type.
+For instance, $A \land B$ can be represented as \lstinline[language=lean]|And(A, B)| or \lstinline[language=lean]|A ∧ B|.
+Its introduction rule is constructed by
+\lstinline[language=lean]|And.intro _ _| or simply
+\lstinline[language=lean]|⟨_, _⟩| (underscores are placeholders for assumptions or ``propositional functions'').
+The pair $A \land B$ can then be consumed using elimination
 rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.right|.
+
 \begin{example}\label{ex:conj_intro_2}
-  Let's look at our first Lean example
+  Let's look at our first Lean example:
   \begin{lstlisting}[language=lean]
-    example (H_A : A) (H_B : B) : (A \land B) := And.intro H_A H_B
+    example (ha : a) (hb : b) : (a ∧ b) := And.intro ha hb
   \end{lstlisting}
   Lean aims to resemble the language used in mathematics.
   For instance, when defining a function or expression, one can use keywords such as
   \lstinline[language=lean]|theorem| or \lstinline[language=lean]|def|.
-  Here, I used \lstinline[language=lean]|example|, which is handy for defining anonymous expressions
+  Here, I used \lstinline[language=lean]|example|, which is handy
+  for defining anonymous expressions
   for demonstration purposes.
   After that comes the statement to be proved:
   \begin{lstlisting}[language=lean]
-  (H_A : A) (H_B : B) : (A \land B) 
-\end{lstlisting}
-  Meaning given a proof of $A$ and a proof of $B$ we can form a proof of $(A \land B)$.
-  The operator \lstinline[language=lean]|:=| assigns a value (or return an expression) for the statement which
-  "has to be a proof of it".
+    (ha : a) (hb : b) : (a ∧ b) 
+  \end{lstlisting}
+  This means: given a proof of $a$ and a proof of $b$, we can form a proof of $(a \land b)$.
+  The operator \lstinline[language=lean]|:=| assigns a value (or returns an expression) for the statement, which
+  ``has to be a proof of it.''
   \lstinline[language=lean]|And.intro| is implemented as:
+  \newpage
   \begin{lstlisting}[language=lean]
-  And.intro: p \to q \to (p \land q).
-\end{lstlisting}
+    And.intro : p -> q -> (p ∧ q)
+  \end{lstlisting}
   It says: if you give me a proof of $p$ and a proof of $q$,
-  then i return a proof of $p \land q$.
+  then I return a proof of $p \land q$.
   We therefore conclude the proof by directly giving
-  \lstinline[language=lean]|And.intro H_A H_B|.
-  Here another way of writing the same statment.
+  \lstinline[language=lean]|And.intro ha hb|.
+  Here is another way of writing the same statement:
+  \newpage
   \begin{lstlisting}[language=lean]
-  example (H_p : p) (H_B : B) : And(A, B) := ⟨H_p, H_B⟩
-\end{lstlisting}
-\end{example}
-
-This system of inference rules allows us to construct proofs in an
+    example (ha : a) (hb : b) : And(a, b) := ⟨ha, hb⟩
+  \end{lstlisting}
+\end{example}is system of inference rules allows us to construct proofs in an
 algorithmic and systematical way, organized in what is called a \textbf{proof tree}.
 To reduce complexity, we follow a
 \textbf{top-down}
@@ -605,17 +657,18 @@ Let's examine a concrete example of a proof.
 \end{example}
 \begin{example}[Lean Implementation]
   Let us now implement the same proof in Lean.
+  \newpage
   \begin{lstlisting}[language=lean]
-theorem and_associative (a b c : Prop) : (a \land b) \land c \to a \land (b \land c) :=
-fun h : (a \land b) \land c =>
--- First, from the assumption (a ∧ b) ∧ c, we can derive a:
-have hab : a \land b := h.left -- extracts (derive) a proof of (a ∧ b) from the assumption
-have ha : a := hab.left -- extracts a from (a ∧ b)
--- Second, we can derive b ∧ c (here we only extract b and c and combine them in the next step)
-have hc : c := h.right
-have hb : b := hab.right
--- Finally, combining these derivations we obtain a ∧ (b ∧ c)
-show a \land (b \land c) from ⟨ha, ⟨hb, hc⟩⟩
+theorem and_associative (a b c : Prop) : (a ∧ b) ∧ c \to a ∧ (b ∧ c) :=
+  fun h : (a ∧ b) ∧ c =>
+  -- First, from the assumption (a ∧ b) ∧ c, we can derive a:
+  have hab : a ∧ b := h.left -- extracts (derive) a proof of (a ∧ b) from the assumption
+  have ha : a := hab.left -- extracts a from (a ∧ b)
+  -- Second, we can derive b ∧ c (here we only extract b and c and combine them in the next step)
+  have hc : c := h.right
+  have hb : b := hab.right
+  -- Finally, combining these derivations we obtain a ∧ (b ∧ c)
+  show a ∧ (b ∧ c) from ⟨ha, ⟨hb, hc⟩⟩
 \end{lstlisting}
   We introduce the \lstinline[language=lean]|theorem| with the name
   \lstinline[language=lean]|and_associative|.
@@ -634,13 +687,13 @@ show a \land (b \land c) from ⟨ha, ⟨hb, hc⟩⟩
   Just before the keyword \lstinline[language=lean]|show|, the info view displays the following
   context and goal:
   \begin{lstlisting}[language=lean]
-a b c : Prop
-h : (a \land b) \land c
-hab : a \land b
-ha : a
-hc : c
-hb : b
-\vdash a \land b \land c
+  a b c : Prop
+  h : (a ∧ b) ∧ c
+  hab : a ∧ b
+  ha : a
+  hc : c
+  hb : b
+\vdash a ∧ b ∧ c
 \end{lstlisting}
   Finally, the \lstinline[language=lean]|show| keyword explicitly states what
   we are proving and verifies that our provided term has the correct type.
@@ -679,11 +732,10 @@ Thus given an \lstinline[language=lean]|x : α| (an element
 with type \lstinline[language=lean]|α| )
 \lstinline[language=lean]|P(x) : Prop| would be representative of a proposition
 holding for \lstinline[language=lean]|x|.
-
 % When introducing variables into a formal language we must keep in mind that the specific choice 
-of a variable name can be substituted without
-changing the meaning of the predicate or statement. This should feel familiar from mathematics,
-where the meaning of an expression does not depend on the names we assign to variables.
+% of a variable name can be substituted without
+% changing the meaning of the predicate or statement. This should feel familiar from mathematics,
+% where the meaning of an expression does not depend on the names we assign to variables.
 % Some variables are \textbf{bound} (constrained), while others remain \textbf{free} 
 % (arbitrary, in programming often called "dummy" variables). 
 % When substituting variables, it is important to ensure that this distinction is preserved.
@@ -751,34 +803,61 @@ where the meaning of an expression does not depend on the names we assign to var
 %     To eliminate an existential quantifier, we assume $A$ holds for some witness 
 %     and derive $B$ without making any assumptions about the specific witness.
 % \end{itemize}
+
+This time we are not going to involve deduction rules or type judgments.
+Instead, we will extend the Curry--Howard isomorphism to quantifiers directly
+by presenting the Lean syntax.
 We can give an informal reading of the quantifiers as infinite logical operations:
 \begin{align*}
-  \forall x.\,A(x) &
-  \equiv A(a) \land A(b) \land A(c) \land \ldots \\
-  \exists x.\,A(x) &
-  \equiv A(a) \lor A(b) \lor A(c) \lor \ldots
+  \forall x.\,P(x) & \equiv P(a) \land P(b) \land P(c) \land \ldots \\
+  \exists x.\,P(x) & \equiv P(a) \lor P(b) \lor P(c) \lor \ldots
 \end{align*}
-The expression $\forall x.\, P(x)$ can be understood as  generalized form of implication.
-If $P$ is any proposition, then $\forall x.\, P$ expresses that $P$ holds
-regardless of the choice of $x$. When $P$ is a predicate, depending on $x$, this captures the
-idea that we can derive $P$ from any assumption about $x$.
-% Morover, there is a duality between universal and existential quantification.
-% We shall develop all this dicussions further after 
-% exploring their computational (type theoretical) meaning.
-\begin{example}
-  Lean expresses quantifiers as follow.
-  \begin{lstlisting}[language=lean, caption=For All]
-  ∀ (x : X), P x
-  forall (x : X), P x -- another notation
-  \end{lstlisting}
-  \begin{lstlisting}[language=lean, caption=Exists]
-  ∃ (x : X), P x
-  exist (x : X), P x -- another notation
-  \end{lstlisting}
-  Where \lstinline[language=lean]|x| is a varible with a type \lstinline[language=lean]|X|,
-  and \lstinline[language=lean]|P x| is a proposition, or predicate, holding for \lstinline[language=lean]|x|.
-\end{example}
+The expression $\forall x.\, P(x)$ can be understood as a generalized form of conjunction.
+It expresses that $P$ holds for all possible values of $x$.
+Similarly, $\exists x.\, P(x)$ is a generalized disjunction, expressing that $P$ holds
+for at least one value of $x$.
 
+Under the Curry-Howard isomorphism, universal quantifiers correspond to
+\textbf{dependent function types} (also called Pi types, written $\Pi$),
+while existential quantifiers correspond to
+\textbf{dependent pair types} (also called Sigma types, written $\Sigma$).
+These are constructs from dependent type theory, which provides a way to interpret
+predicates or, more generally, types depending on some data or variable.
+This generalizes concepts such as predicates and functions.
+\begin{example}[Quantifiers in Lean]
+  Lean expresses quantifiers as follows:
+  \begin{lstlisting}[language=lean]
+  ∀ (x : X), P x
+  Forall (x : X), P x
+  -- Equivalently, using Pi types
+  Π (x : X), P x
+  \end{lstlisting}
+  \begin{lstlisting}[language=lean]
+  ∃ x : α, p
+  Exists (λ x : α => p)
+  -- Equivalently, using Sigma types
+  Σ x : α, p
+  \end{lstlisting}
+\end{example}
+\begin{example}[Universal introduction in Lean]
+  The \textbf{universal introduction rule} allows us to prove $\forall x, P(x)$
+  by proving $P(x)$ for an \textbf{arbitrary} $x$.
+  In Lean, this corresponds to lambda abstraction (constructing a function):
+  \newpage
+  \begin{lstlisting}[language=lean]
+  example : ∀ n : Nat, n ≥ 0 :=
+    fun n => Nat.zero_le n
+  \end{lstlisting}
+\end{example}
+\begin{example}[Universal elimination in Lean]
+  The \textbf{universal elimination rule} allows us to instantiate
+  a universally quantified statement with a specific value.
+  In Lean, this is simply function application:
+  \begin{lstlisting}[language=lean]
+  example (h : ∀ n : Nat, n ≥ 0) : 5 ≥ 0 :=
+    h 5
+  \end{lstlisting}
+\end{example}
 \begin{example}[Existential introduction in Lean]
   When introducing an \textbf{existential} proof,
   we need a \textbf{pair} consisting
@@ -786,40 +865,25 @@ idea that we can derive $P$ from any assumption about $x$.
   satisfies the statement.
   \begin{lstlisting}[language=lean]
   example (x : Nat) (h : x > 0) : ∃ y, y < x :=
-    Exists.intro 0 h -- or shortly ⟨0, h⟩
-\end{lstlisting}
-\end{example}
-Notice that \lstinline[language=lean]|⟨0, h⟩| is product type holding a data (⟨witness)
-and a proof of it.
-The \textbf{existential elimination rule}
-( \lstinline[language=lean]|Exists.elim|) performs the opposite operation.
-It allows us to prove a proposition $Q$
-from $\exists x, P(x)$ by showing
-that $Q$  follows from $P(w)$  for an \textbf{arbitrary}
-value $w$.
-\begin{example}[Existential elimination in Lean]
-  The existential rules can be interpreted as an infinite
-  disjunction,
-  so that existential elimination naturally corresponds to a \textbf{proof by cases}
-  (with only one single case).
-  In Lean, this reasoning is carried out using \textbf{pattern matching},
-  a known mechanism in functional programming for dealing with cases,
-  with \lstinline[language=lean]|let| or \lstinline[language=lean]|match|,
-  as well as by using \lstinline[language=lean]|cases| or
-  \lstinline[language=lean]|rcases| construct.
-  \begin{lstlisting}[language=lean]
-  example (h : ∃ n : Nat, n > 0) : ∃ n : Nat, n > 0 :=
-    match h with
-    | ⟨witness, proof⟩ => ⟨witness, proof⟩
+    ⟨0, h⟩
   \end{lstlisting}
+  Notice that \lstinline[language=lean]|⟨0, h⟩| is a product type holding
+  data (the witness~0) and a proof that it satisfies the property.
 \end{example}
-\begin{example}
-  The \textbf{universal quantifier} may be regarded as a generalized function.
-  Accordingly, In Lean, universal elimination is simply function application.
+\begin{example}[Existential elimination in Lean]
+  The \textbf{existential elimination rule}
+  (\lstinline[language=lean]|Exists.elim|) allows us to prove a proposition $Q$
+  from $\exists x, P(x)$ by showing that $Q$ follows from $P(w)$
+  for an \textbf{arbitrary} value $w$.
+  The existential quantifier can be interpreted as an infinite disjunction,
+  so existential elimination naturally corresponds to a \textbf{proof by cases}.
+  In Lean, this is done using pattern matching with the \lstinline[language=lean]|cases| tactic:
+  \newpage
   \begin{lstlisting}[language=lean]
-example : ∀ n : Nat, n ≥ 0 :=
-  fun n => Nat.zero_le n
-\end{lstlisting}
+  example (h : ∃ n : Nat, n > 0) : ∃ n : Nat, n > 0 := by
+    cases h with
+    | intro witness proof => exact ⟨witness, proof⟩
+  \end{lstlisting}
 \end{example}
 \section{Describing and use properties}
 Functions are primitive objects in type theory.
@@ -1457,7 +1521,7 @@ Key topological concepts used in our formalization include:
 (Maybe include part of the REal construcion / classical noncomputable ecc ecc /)
 
 
-\section{Example in Topology: A Connected but not Path-Connected Space}
+\section{Formalizing the topologist's sine curve}
 
 As part of my thesis work, with the help and revision from Prof David Loeffler,
 I have formalized a well-known counterexample in topology: the \textbf{topologist’s sine curve}.
