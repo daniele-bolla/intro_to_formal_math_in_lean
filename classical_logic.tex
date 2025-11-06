@@ -867,7 +867,6 @@ by presenting the Lean syntax.
   \end{lstlisting}
 \end{example}
 
-
 \subsection{Constructive Mathematics}
 
 Mathematicians have traditionally worked within \textbf{classical logic},
@@ -903,7 +902,6 @@ but is instead constructed as a function $\text{Prop} \to \text{False}$.
 We also emphasized that, constructively,
 a proof of existence consists of a pair:
 a witness together with a proof that the stated property holds for that witness.
-
 \begin{example}[Constructive existence proof]
   We give a constructive proof in Lean that there exist natural numbers
   $a$ and $b$ such that $a + b = 7$:
@@ -957,6 +955,7 @@ through tactics like \lstinline[language=lean]|exfalso| or by importing
 
 
 \section{Describing and use properties}
+
 It is interesting to note that a relation can be expressed as a function:
 \lstinline[language=lean]|R : α → α → Prop|.
 Similarly, when defining a predicate (\lstinline[language=lean]|P : α → Prop|) we must first declare
@@ -1109,10 +1108,8 @@ are nonnegative, hence their sum is nonnegative:
 \end{lstlisting}
 The most involved step uses \lstinline[language=lean]|simp_rw| to
 simplify the expression via a sequence of other existing Mathlib's lemmas.
-The tactic \lstinline[language=lean]|simp_rw| is a variant of \lstinline[language=lean]|simp|:
-it performs rewriting using the simp set (and any lemmas you provide), applying the rules
-in order and in the given direction. Lemmas that \lstinline[language=lean]|simp| can use
-are typically marked with the \lstinline[language=lean]|@[simp]| attribute.
+The tactic \lstinline[language=lean]|simp_rw| (TO EXPLAIN similar to rw but can see inside bihnders to unfold better,
+in contrast rw haas more option suggesting dfor simple forms and woers beteter in that sense).
 This is particularly useful for simplifying algebraic expressions and equations.
 After these simplifications we obtain:
 \begin{lstlisting}[language=lean]
@@ -1132,7 +1129,6 @@ Unlike ordinary records, the type of later fields may depend on the values of ea
 Defining a structure automatically introduces a constructor (usually mk) and projection
 functions that retrieve (deconstruct) the values of its fields.
 Structures may also include proofs expressing properties that the fields must satisfy.
-\newpage
 \begin{lstlisting}[language=lean]
   structure Rat where
     /-- Constructs a rational number from components.
@@ -1172,196 +1168,369 @@ in canonical (normalized) form, with \lstinline[language=lean]|d > 0| and \lstin
 This reduction allows mathlib to transform proofs about \lstinline[language=lean]|ℚ|
 into proofs about \lstinline[language=lean]|ℤ| and \lstinline[language=lean]|ℕ|,
 and then lift the result back to rationals.
-\begin{example}
-  We present a simplified implementation of addition
-  non-negativity for rationals (\lstinline[language=lean]|Rat.add_nonneg| ),
-  maintaining a similar approach: projecting everything to the natural numbers and
-  integers first. To illustrate the proof technique clearly, we avoid using existing lemmas
-  from the Rat module in Mathlib.
-  Mathlib is indeed organized into modules by mathematical
-  domain (e.g., Nat, Int, Rat).
-  % Lemmas are typically namespaced (e.g., Rataddnonneg) 
-  % and often marked protected to prevent namespace pollution. 
 
-  We start by defining helper lemmas needed in the main proof.
-  Given a natural number
-  (which in this case represents the denominator of a rational number) that is not
-  equal to zero, we prove it must be positive. This follows directly by
-  applying the Mathlib lemma \lstinline[language=lean]|Nat.pos_of_ne_zero|:
-  \newpage
-  \begin{lstlisting}[language=lean]
-  import Mathlib
+Let's return to \lstinline[language=lean]|Rat.add_nonneg|, which was the important
+lemma used in the proof of \lstinline[language=lean]|Rat.le_trans|.
+We are going to provide a simplified version by also constructing a different
+implementation of rational numbers from Mathlib's approach.
+However, the main approach for working with rational numbers remains the same as in Mathlib:
+projecting operations to natural numbers and integers first.
+Let's start by creating a structure for our rational numbers:
+\newpage
+\begin{lstlisting}[language=lean]
+import Mathlib
 
-  lemma nat_ne_zero_pos (den : ℕ) (h_den_nz : den ≠ 0) : 0 < den :=
-    Nat.pos_of_ne_zero h_den_nz
+structure myPreRat where
+  num : Int
+  den : Nat
+  den_pos : 0 < den
 \end{lstlisting}
-  The naming convention follows Mathlib
-  best practices aiming to be descriptive by indicating
-  types and properties involved.
+Notice the similarity with Mathlib's definition. You might have observed that we are not including
+the coprimality condition, the name \lstinline[language=lean]|myPreRat| will become clear later.
+Our initial focus is to prove \lstinline[language=lean]|myPreRat.add_nonneg|.
+We structure our code as follows:
+\begin{lstlisting}[language=lean]
+import Mathlib
 
-  The following lemma is slightly more involved.
-  It states that if a rational number (num / den)
-  is non-negative, then its numerator must also be non-negative:
-  \begin{lstlisting}[language=lean]
-lemma rat_num_nonneg {num : ℤ} {den : ℕ} (hden_pos : 0 < den)
-    (h : (0 : ℚ) ≤ num / den) : 0 ≤ num := by
-  contrapose! h
-  have hden_pos_to_rat : (0 : ℚ) < den := Nat.cast_pos.mpr hden_pos
-  have hnum_neg_to_rat : num < (0 : ℚ) := Int.cast_lt.mpr h
-  exact div_neg_of_neg_of_pos hnum_neg_to_rat hden_pos_to_rat
+structure myPreRat where
+  num : Int
+  den : Nat
+  den_pos : 0 < den
+
+namespace myPreRat
+
+lemma add_nonneg (a b : myPreRat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by 
+  sorry
+
+end myPreRat
 \end{lstlisting}
-  The lemma requires the denominator to be positive as well as the non-negativity of the rational number,
-  expressed as \lstinline[language=lean]|num / den| where the types of
-  \lstinline[language=lean]|num| and \lstinline[language=lean]|den| are inferred.
-  First, notice the type annotation \lstinline[language=lean]|(0 : ℚ)|.
-  This explicit type annotation on zero forces the entire equation to be casted
-  into rational numbers.
-  Without this annotation, Lean would infer \lstinline[language=lean]|0|
-  as a natural number by default. However, since the main theorem we are proving concerns rational numbers,
-  we must ensure all comparisons occur in \lstinline[language=lean]|ℚ|.
-  The tactic \lstinline[language=lean]|contrapose!| does what you might expect: it proves a statement by contraposition. According to the documentation:
-  \begin{itemize}
-    \item \lstinline[language=lean]|contrapose| turns a goal \lstinline[language=lean]|P → Q| into \lstinline[language=lean]|¬ Q → ¬ P|
-    \item \lstinline[language=lean]|contrapose!| turns a goal \lstinline[language=lean]|P → Q| into \lstinline[language=lean]|¬ Q → ¬ P| and pushes negations inside \lstinline[language=lean]|P| and \lstinline[language=lean]|Q| using \lstinline[language=lean]|push_neg|
-    \item \lstinline[language=lean]|contrapose h| first reverts the local assumption \lstinline[language=lean]|h|, then uses \lstinline[language=lean]|contrapose| and \lstinline[language=lean]|intro h|
-    \item \lstinline[language=lean]|contrapose! h| first reverts the local assumption \lstinline[language=lean]|h|, then uses \lstinline[language=lean]|contrapose!| and \lstinline[language=lean]|intro h|
-  \end{itemize}
-  In our case, \lstinline[language=lean]|contrapose! h| transforms the goal from
-  proving \lstinline[language=lean]|0 ≤ num| to assuming \lstinline[language=lean]|num < 0|
-  and proving \lstinline[language=lean]|num / den < 0|.
-  We then introduce two local hypotheses. The first, \lstinline[language=lean]|hden_pos_to_rat|,
-  proves that the denominator
-  is positive when cast to rationals, using \lstinline[language=lean]|Nat.cast_pos|.
-  The suffix \lstinline[language=lean]|.mpr| selects the ``modus ponens reverse''
-  direction of the biconditional (the \lstinline[language=lean]|←|
-  direction of the \lstinline[language=lean]|↔|).
-  Next, we introduce \lstinline[language=lean]|hnum_neg_to_rat|,
-  which expresses that the numerator is negative when cast to rationals, using \lstinline[language=lean]|Int.cast_lt| with \lstinline[language=lean]|.mpr| again.
-  Finally, we apply \lstinline[language=lean]|div_neg_of_neg_of_pos|,
-  which states that dividing a negative number by a positive number yields a
-  negative result, thus completing the proof by contraposition.
-  Note that we are allowing ourselves to use existing lemmas from Mathlib,
-  such as \lstinline[language=lean]|div_neg_of_neg_of_pos| from the \lstinline[language=lean]|Field| module,
-  but not from the \lstinline[language=lean]|Rat| module,
-  to keep the presentation clear and focused on the main proof techniques.
-  \newpage
-  Now we can prove the main result:
-  \begin{lstlisting}[language=lean]
-lemma rat_add_nonneg (a b : Rat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
+The \lstinline[language=lean]|namespace| keyword is used to define self-contained modules.
+For instance, outside of its scope,
+one can refer to \lstinline[language=lean]|add_nonneg| as
+\lstinline[language=lean]|myPreRat.add_nonneg|.
+At this stage, Lean will complain because we haven't yet defined the operations
+\lstinline[language=lean]|≤| or \lstinline[language=lean]|+| for our type
+\lstinline[language=lean]|myPreRat|. Let's address this next.
 
+Operations such as addition or less-than-or-equal need to be defined for each type
+(addition
+for natural numbers, less-or-equal for integers, and so on).
+This is achieved through \textbf{type classes}, Lean's mechanism for defining and working with
+\textbf{algebraic structures}.
+Type classes provide a powerful and flexible way to specify properties and operations that can be
+shared across different types called \textbf{ad hoc polymorphism}.
+A standard example for ad hoc polymorphism (\cite{wadler_blott_ad_hoc_polymorphism_1988})
+is overloaded multiplication:
+the same symbol \lstinline[language=lean]|*| denotes multiplication of integers
+(e.g., \lstinline[language=lean]|3 * 3|) and of floating-point numbers
+(e.g., \lstinline[language=lean]|3.14 * 3.14|).
+By contrast, parametric polymorphism occurs when a function is defined over a range of types
+but acts uniformly on each of them. For instance, the \lstinline[language=lean]|List.length|
+function applies in the same way to a list of integers and to a list of floating-point numbers.
+Lean exposes type classes for common operations like:
+\begin{lstlisting}[language=lean]
+class Add (α : Type u) where
+  add : α → α → α
+
+class LE (α : Type u) where
+  le : α → α → Prop
+\end{lstlisting}
+Type classes are, under the hood, just structures where you similarly describe fields
+for each operation.
+The important features of type classes are type inference and instances.
+When we use these operations, the square brackets in their definitions indicate that the type class
+argument is \textbf{instance implicit}; it should be synthesized automatically using
+typeclass resolution.
+This is Lean's analogue of Haskell's typeclass constraints (e.g., \texttt{add :: Add a => a -> a -> a}).
+We can register instances for specific types:
+\begin{lstlisting}[language=lean]
+instance : Add Nat where
+  add := Nat.add
+
+instance : Add Int where
+  add := Int.add
+\end{lstlisting}
+In our case, we define instances for \lstinline[language=lean]|myPreRat|:
+\begin{lstlisting}[language=lean]
+instance : LE myPreRat where
+  le r₁ r₂ := r₁.num * ↑r₂.den ≤ r₂.num * ↑r₁.den
+
+instance : Add myPreRat where
+  add r₁ r₂ := {
+    num := r₁.num * ↑r₂.den + r₂.num * ↑r₁.den,
+    den := r₁.den * r₂.den,
+    den_pos := Nat.mul_pos r₁.den_pos r₂.den_pos
+  }
+\end{lstlisting}
+Once these instances are defined, Lean can automatically infer which operation to use
+when we write \lstinline[language=lean]|a + b| or \lstinline[language=lean]|a ≤ b|
+for values of type \lstinline[language=lean]|myPreRat|.
+We also want to define zero within our definition of rational numbers:
+\begin{lstlisting}[language=lean]
+def zero : myPreRat := { num := 0, den := 1, den_pos := by decide }
+instance : OfNat myPreRat 0 where
+  ofNat := zero
+\end{lstlisting}
+With \lstinline[language=lean]|OfNat| typeclass we are telling Lean that,
+in a context expecting
+\lstinline[language=lean]|myPreRat|, the number \lstinline[language=lean]|0|
+must be transfomer into our
+\lstinline[language=lean]|zero| definition.
+
+Let's finally address the proof:
+\begin{lstlisting}[language=lean]
+lemma add_nonneg (a b : myPreRat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
+  simp only [nonneg_iff]
   intro ha hb
-  cases a with | div a_num a_den a_den_nz a_cop =>
-  cases b with | div b_num b_den b_den_nz b_cop =>
-  -- Goal: ⊢ 0 ≤ ↑a_num / ↑a_den + ↑b_num / ↑b_den
-  rw[div_add_div] -- applies the addition formula requiring two new goals 
-  · sorry 
-  · sorry 
-  · sorry
+  apply Int.add_nonneg
+  · exact Int.mul_nonneg ha (Int.natCast_nonneg b.den)
+  · exact Int.mul_nonneg hb (Int.natCast_nonneg a.den)
 \end{lstlisting}
-  \newpage
-  We first introduce the two hypotheses \lstinline[language=lean]|ha| and
-  \lstinline[language=lean]|hb| into the context using \lstinline[language=lean]|intro|.
-  As mentioned earlier, a structure can be viewed as a product type or a record type with
-  a single constructor. The tactic \lstinline[language=lean]|cases a with|
-  exposes the fields of \lstinline[language=lean]|Rat|: the
-  numerator ()\lstinline[language=lean]|a_num|), denominator
-  (\lstinline[language=lean]|a_den|), the proof that the denominator is non-zero
-  (\lstinline[language=lean]|a_den_nz|), and the coprimality condition
-  (\lstinline[language=lean]|a_cop|). Notice how the goal transforms
-  the rationals \lstinline[language=lean]|a| and \lstinline[language=lean]|b| into:
-  \begin{lstlisting}[language=lean]
-⊢ 0 ≤ ↑a_num / ↑a_den + ↑b_num / ↑b_den
+Starting from \lstinline[language=lean]|add_nonneg|, we first simplify using
+\lstinline[language=lean]|nonneg_iff| (to be defined), which states that a rational number is non-negative
+if and only if its numerator is non-negative. This transforms the goal to
+\lstinline[language=lean]|⊢ 0 ≤ a.num → 0 ≤ b.num → 0 ≤ (a + b).num|.
+We then introduce the two hypotheses \lstinline[language=lean]|ha : 0 ≤ a.num| and
+\lstinline[language=lean]|hb : 0 ≤ b.num| using \lstinline[language=lean]|intro|.
+Now we only need to prove that the numerator of their sum is non-negative.
+By our definition of addition for \lstinline[language=lean]|myPreRat|, the numerator of
+\lstinline[language=lean]|a + b| is \lstinline[language=lean]|a.num * ↑b.den + b.num * ↑a.den|.
+Since the numerator is an integer, we can use lemmas for integers defined in Mathlib.
+We use \lstinline[language=lean]|apply| to match our goal with the lemma
+\lstinline[language=lean]|Int.add_nonneg| (the relative lemma on integers), which states that the sum of two non-negative
+integers is non-negative. The \lstinline[language=lean]|apply| tactic works backwards:
+given a goal \lstinline[language=lean]|⊢ G| and a lemma
+\lstinline[language=lean]|lemma : P → Q → G|, it replaces the goal with two new subgoals
+\lstinline[language=lean]|⊢ P| and \lstinline[language=lean]|⊢ Q|.
+In our case, \lstinline[language=lean]|Int.add_nonneg| requires proving that both summands
+are non-negative.
+We close the first goals with \lstinline[language=lean]|Int.mul_nonneg ha (Int.natCast_nonneg b.den)|,
+where \lstinline[language=lean]|ha| provides the non-negativity of the numerator
+\lstinline[language=lean]|a.num|, and \lstinline[language=lean]|Int.natCast_nonneg b.den|
+provides the non-negativity of the denominator \lstinline[language=lean]|b.den|.
+The \lstinline[language=lean]|Int.natCast_nonneg| is needed to
+\textbf{casts} \lstinline[language=lean]|b.den| from \lstinline[language=lean]|Nat| to
+\lstinline[language=lean]|Int| (i am going to discuss casting and coercion in later section).
+The second goal follows symmetrically.
+
+We only need to examine \lstinline[language=lean]|nonneg_iff|:
+\begin{lstlisting}[language=lean]
+lemma nonneg_iff (r : myPreRat) : 0 ≤ r ↔ 0 ≤ r.num := by
+  constructor <;> intro h
+  · change 0 * r.den ≤ r.num * 1 at h; simp at h; exact h
+  · change 0 * r.den ≤ r.num * 1; simp; exact h
 \end{lstlisting}
-  where \lstinline[language=lean]|↑| denotes type coercion from
-  \lstinline[language=lean]|ℤ| or \lstinline[language=lean]|ℕ| to
-  \lstinline[language=lean]|ℚ|.
-  Now we rewrite the goal using \lstinline[language=lean]|rw [div_add_div]|,
-  a theoprem from the \lstinline[language=lean]|Field| module,
-  which applies the addition formula for division.
-  Let us briefly examine the source code of this theorem:
-  \begin{lstlisting}[language=lean]
-variable [Semifield K] {a b d : K}
+Since this is a biconditional statement, we use \lstinline[language=lean]|constructor|
+to split the proof into two directions. The combinator \lstinline[language=lean]|<;>|
+applies the following tactic to all goals generated
+by the previous tactic, so \lstinline[language=lean]|<;> intro h| introduces
+the hypothesis \lstinline[language=lean]|h| in both directions.
+For the forward direction, we have \lstinline[language=lean]|h : 0 ≤ r| and need
+to prove \lstinline[language=lean]|0 ≤ r.num|. The \lstinline[language=lean]|change|
+tactic unfolds our definition of \lstinline[language=lean]|≤| for
+\lstinline[language=lean]|myPreRat|. Recall that we defined
+\lstinline[language=lean]|r₁ ≤ r₂| as \lstinline[language=lean]|r₁.num * ↑r₂.den ≤ r₂.num * ↑r₁.den|.
+When applied to \lstinline[language=lean]|0 ≤ r|, this becomes
+\lstinline[language=lean]|0 * r.den ≤ r.num * 1| (since \lstinline[language=lean]|0.den = 1|).
+The command \lstinline[language=lean]|change 0 * r.den ≤ r.num * 1 at h| applies
+this transformation to the hypothesis \lstinline[language=lean]|h|.
+Then \lstinline[language=lean]|simp at h| simplifies the arithmetic, reducing
+\lstinline[language=lean]|0 * r.den| to \lstinline[language=lean]|0| and
+\lstinline[language=lean]|r.num * 1| to \lstinline[language=lean]|r.num|,
+giving us \lstinline[language=lean]|h : 0 ≤ r.num|.
+Finally, \lstinline[language=lean]|exact h| completes the proof.
+The backward direction follows symmetrically.
+Here the full proof: [\href{https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQODOMUArgMYzFQCmcIAngArUBKKcA7qldTnHAHbEQcAFxwAkvxi84AEyr9RcAHIoZ8/gH1I+JQAY4AHjkK8/JCCr4wSUjXpMqraTmD9CSfnaUAZAKK0jCxsnNxUMug0UICBBHBQgEEEogC8cdEAdILCAFRwgImECWkacIAmRHHxGUJwOfnpGnhuHl40YgCCsrKBjs4cXDx8SO2pZclwAN4yfJkjMRXZeQVFANRls1XztQoANBMmiiIpM0U5C1s7GtoQuvsqKGkgxOgXuocKTyvnOjIAvnjyAGZwABe3AgSgcwXg11GAkq1z0m12IwAjAiPpcRlg6CZSMB5HAfg0YJ5vGIAPJ/VTwcFONgGUJ9OAQClsa7AqAQPCREAgJACCD8fhUADmmmAfwBAAooGCgjSYABKfQlOJwQAphHADKUoKtrpiZKR+YQSORoEYANwAPjgbiIoNQMgA7XBSKhPEKaAZjoUFMrtVMcki4GxUGa4PhQGAg/AQ3AqAAPWzRx3O138d0atbaopa1YB0Ph8Ch+OJuD2nBcnlB9qafj8wVCuAS3lYGVdFCKsSaoNwQBJhBnSi2+13ecsW7q6DIC5H+egsQBtWsC4Wi8UAXRkNvZpd5qFw/TAYFnEikaQGshrdeFyeL5GPMDuDwvS4brsbknv5hgAGEkIQn/W4Cwb1+Hla8E1vd8H0eRcAN3N8T0/H8/xg4Ug2A0CgA}{link to Lean live}]
+% \begin{example}
+%   We present a simplified implementation of addition
+%   non-negativity for rationals (\lstinline[language=lean]|Rat.add_nonneg| ),
+%   maintaining a similar approach: projecting everything to the natural numbers and
+%   integers first. To illustrate the proof technique clearly, we avoid using existing lemmas
+%   from the Rat module in Mathlib.
+%   Mathlib is indeed organized into modules by mathematical
+%   domain (e.g., Nat, Int, Rat).
+%   % Lemmas are typically namespaced (e.g., Rataddnonneg) 
+%   % and often marked protected to prevent namespace pollution. 
 
-theorem div_add_div (a : K) (c : K) (hb : b ≠ 0) (hd : d ≠ 0) :
-    a / b + c / d = (a * d + b * c) / (b * d) := ...
-\end{lstlisting}
-  The type \lstinline[language=lean]|K| here is assumed to be a
-  \lstinline[language=lean]|Semifield|. The \lstinline[language=lean]|variable|
-  keyword is a way to declare parameters that are potentially used across
-  multiple theorems or definitions. We will explore Lean's powerful algebraic
-  hierarchy and the meaning of the square brackets \lstinline[language=lean]|[ ]|
-  in a later section.
-  Using this rewrite is particularly time-saving, since otherwise one would have to
-  establish the well-definedness of rational addition in terms of the underlying
-  structure (a non-trivial task).
-  This theorem requires proofs \lstinline[language=lean]|(hb : b ≠ 0)| and
-  \lstinline[language=lean]|(hd : d ≠ 0)|, generating two additional side goals.
-  We handle each goal separately using the focusing bullet \lstinline[language=lean]|·|.
-  The first bullet addresses the main goal (proving the sum is non-negative),
-  while the subsequent bullets discharge the non-zero denominator conditions.
-  I have omitted the actual proofs, here, using \lstinline[language=lean]|sorry|,
-  which we haven't mentioned before. \lstinline[language=lean]|sorry| is a useful
-  feature of Lean that tells the system to accept an incomplete proof for the time being,
-  allowing you to continue development without proving every detail immediately.
-  We can now tackle the remaining goals:
-  \newpage
-  \begin{lstlisting}[language=lean]
-· -- Goal: ⊢ 0 ≤ (↑a_num * ↑b_den + ↑a_den * ↑b_num) / (↑a_den * ↑b_den)
-  have hnum_nonneg : (0 : ℚ) ≤ a_num * b_den + a_den * b_num := by
-    have ha_num_nonneg := by
-      have ha_den_pos := nat_ne_zero_pos a_den a_den_nz
-      exact rat_num_nonneg ha_den_pos ha
-    have hb_num_nonneg := by
-      have hb_den_pos := nat_ne_zero_pos b_den b_den_nz
-      exact rat_num_nonneg hb_den_pos hb
-    apply add_nonneg -- works for any OrderedAddCommMonoid
-    · apply mul_nonneg -- works for any OrderedSemiring
-      · exact Int.cast_nonneg.mpr ha_num_nonneg
-      · exact Nat.cast_nonneg b_den
-    · apply mul_nonneg
-      · exact Nat.cast_nonneg a_den
-      · exact Int.cast_nonneg.mpr hb_num_nonneg
+%   We start by defining helper lemmas needed in the main proof.
+%   Given a natural number
+%   (which in this case represents the denominator of a rational number) that is not
+%   equal to zero, we prove it must be positive. This follows directly by
+%   applying the Mathlib lemma \lstinline[language=lean]|Nat.pos_of_ne_zero|:
+%   \newpage
+%   \begin{lstlisting}[language=lean]
+%   import Mathlib
 
-  have hden_nonneg : (0 : ℚ) ≤ a_den * b_den := by
-    rw [← Nat.cast_mul]
-    exact Nat.cast_nonneg (a_den * b_den)
-  exact div_nonneg hnum_nonneg hden_nonneg
+%   lemma nat_ne_zero_pos (den : ℕ) (h_den_nz : den ≠ 0) : 0 < den :=
+%     Nat.pos_of_ne_zero h_den_nz
+% \end{lstlisting}
+%   The naming convention follows Mathlib
+%   best practices aiming to be descriptive by indicating
+%   types and properties involved.
 
-· exact Nat.cast_ne_zero.mpr a_den_nz -- Goal: ⊢ ↑a_den ≠ 0
-· exact Nat.cast_ne_zero.mpr b_den_nz -- Goal: ⊢ ↑b_den ≠ 0
-\end{lstlisting}
+%   The following lemma is slightly more involved.
+%   It states that if a rational number (num / den)
+%   is non-negative, then its numerator must also be non-negative:
+%   \begin{lstlisting}[language=lean]
+% lemma rat_num_nonneg {num : ℤ} {den : ℕ} (hden_pos : 0 < den)
+%     (h : (0 : ℚ) ≤ num / den) : 0 ≤ num := by
+%   contrapose! h
+%   have hden_pos_to_rat : (0 : ℚ) < den := Nat.cast_pos.mpr hden_pos
+%   have hnum_neg_to_rat : num < (0 : ℚ) := Int.cast_lt.mpr h
+%   exact div_neg_of_neg_of_pos hnum_neg_to_rat hden_pos_to_rat
+% \end{lstlisting}
+%   The lemma requires the denominator to be positive as well as the non-negativity of the rational number,
+%   expressed as \lstinline[language=lean]|num / den| where the types of
+%   \lstinline[language=lean]|num| and \lstinline[language=lean]|den| are inferred.
+%   First, notice the type annotation \lstinline[language=lean]|(0 : ℚ)|.
+%   This explicit type annotation on zero forces the entire equation to be casted
+%   into rational numbers.
+%   Without this annotation, Lean would infer \lstinline[language=lean]|0|
+%   as a natural number by default. However, since the main theorem we are proving concerns rational numbers,
+%   we must ensure all comparisons occur in \lstinline[language=lean]|ℚ|.
+%   The tactic \lstinline[language=lean]|contrapose!| does what you might expect: it proves a statement by contraposition. According to the documentation:
+%   \begin{itemize}
+%     \item \lstinline[language=lean]|contrapose| turns a goal \lstinline[language=lean]|P → Q| into \lstinline[language=lean]|¬ Q → ¬ P|
+%     \item \lstinline[language=lean]|contrapose!| turns a goal \lstinline[language=lean]|P → Q| into \lstinline[language=lean]|¬ Q → ¬ P| and pushes negations inside \lstinline[language=lean]|P| and \lstinline[language=lean]|Q| using \lstinline[language=lean]|push_neg|
+%     \item \lstinline[language=lean]|contrapose h| first reverts the local assumption \lstinline[language=lean]|h|, then uses \lstinline[language=lean]|contrapose| and \lstinline[language=lean]|intro h|
+%     \item \lstinline[language=lean]|contrapose! h| first reverts the local assumption \lstinline[language=lean]|h|, then uses \lstinline[language=lean]|contrapose!| and \lstinline[language=lean]|intro h|
+%   \end{itemize}
+%   In our case, \lstinline[language=lean]|contrapose! h| transforms the goal from
+%   proving \lstinline[language=lean]|0 ≤ num| to assuming \lstinline[language=lean]|num < 0|
+%   and proving \lstinline[language=lean]|num / den < 0|.
+%   We then introduce two local hypotheses. The first, \lstinline[language=lean]|hden_pos_to_rat|,
+%   proves that the denominator
+%   is positive when cast to rationals, using \lstinline[language=lean]|Nat.cast_pos|.
+%   The suffix \lstinline[language=lean]|.mpr| selects the ``modus ponens reverse''
+%   direction of the biconditional (the \lstinline[language=lean]|←|
+%   direction of the \lstinline[language=lean]|↔|).
+%   Next, we introduce \lstinline[language=lean]|hnum_neg_to_rat|,
+%   which expresses that the numerator is negative when cast to rationals, using \lstinline[language=lean]|Int.cast_lt| with \lstinline[language=lean]|.mpr| again.
+%   Finally, we apply \lstinline[language=lean]|div_neg_of_neg_of_pos|,
+%   which states that dividing a negative number by a positive number yields a
+%   negative result, thus completing the proof by contraposition.
+%   Note that we are allowing ourselves to use existing lemmas from Mathlib,
+%   such as \lstinline[language=lean]|div_neg_of_neg_of_pos| from the \lstinline[language=lean]|Field| module,
+%   but not from the \lstinline[language=lean]|Rat| module,
+%   to keep the presentation clear and focused on the main proof techniques.
+%   \newpage
+%   Now we can prove the main result:
+%   \begin{lstlisting}[language=lean]
+% lemma rat_add_nonneg (a b : Rat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
 
-  We introduce two key hypotheses, \lstinline[language=lean]|hnum_nonneg|
-  and \lstinline[language=lean]|hden_nonneg|, which will be required by
-  \lstinline[language=lean]|div_nonneg| from the
-  \lstinline[language=lean]|GroupWithZero| module.
-  This lemma provides us with a term that directly validates our statement.
-  Note that \lstinline[language=lean]|div_nonneg| is a generalized lemma that applies
-  not only to rational numbers but to all ordered groups with zero that are
-  also partially ordered.
-  The hypothesis \lstinline[language=lean]|hnum_nonneg| proves that the numerator
-  is non-negative by working with the coerced expressions in
-  \lstinline[language=lean]|ℚ|. It uses \lstinline[language=lean]|add_nonneg| and
-  \lstinline[language=lean]|mul_nonneg|, which are general theorems that work for
-  any ordered additive commutative monoid and ordered semiring, respectively.
-  The actual reasoning is done using integer-related theorems
-  (via \lstinline[language=lean]|Int.cast_nonneg|) for the numerators and natural
-  number theorems (via \lstinline[language=lean]|Nat.cast_nonneg|) for the denominators.
-  The hypothesis \lstinline[language=lean]|hden_nonneg| proves that the
-  denominator is non-negative by working entirely with natural numbers.
-  We use the rewrite \lstinline[language=lean]|rw [← Nat.cast_mul]|,
-  which moves the coercion (in this case from \lstinline[language=lean]|ℕ|
-  to \lstinline[language=lean]|ℚ|) inside the multiplication:
-  \lstinline[language=lean]|↑(m * n) = ↑m * ↑n|. The \lstinline[language=lean]|←|
-  symbol means that we want the transformation from right to
-  left (i.e., we apply the equality in reverse to move the cast inward).
-  Type casts and coercions require these kinds of rewrite rules, not only
-  for multiplication but also for addition and other operations, and
-  similarly for \lstinline[language=lean]|ℤ| or other numerical types.
-  These lemmas, such as \lstinline[language=lean]|Nat.cast_mul|,
-  \lstinline[language=lean]|Int.cast_add|, etc., ensure that algebraic operations
-  commute with type coercions.
-\end{example}
+%   intro ha hb
+%   cases a with | div a_num a_den a_den_nz a_cop =>
+%   cases b with | div b_num b_den b_den_nz b_cop =>
+%   -- Goal: ⊢ 0 ≤ ↑a_num / ↑a_den + ↑b_num / ↑b_den
+%   rw[div_add_div] -- applies the addition formula requiring two new goals 
+%   · sorry 
+%   · sorry 
+%   · sorry
+% \end{lstlisting}
+%   \newpage
+%   We first introduce the two hypotheses \lstinline[language=lean]|ha| and
+%   \lstinline[language=lean]|hb| into the context using \lstinline[language=lean]|intro|.
+%   As mentioned earlier, a structure can be viewed as a product type or a record type with
+%   a single constructor. The tactic \lstinline[language=lean]|cases a with|
+%   exposes the fields of \lstinline[language=lean]|Rat|: the
+%   numerator ()\lstinline[language=lean]|a_num|), denominator
+%   (\lstinline[language=lean]|a_den|), the proof that the denominator is non-zero
+%   (\lstinline[language=lean]|a_den_nz|), and the coprimality condition
+%   (\lstinline[language=lean]|a_cop|). Notice how the goal transforms
+%   the rationals \lstinline[language=lean]|a| and \lstinline[language=lean]|b| into:
+%   \begin{lstlisting}[language=lean]
+% ⊢ 0 ≤ ↑a_num / ↑a_den + ↑b_num / ↑b_den
+% \end{lstlisting}
+%   where \lstinline[language=lean]|↑| denotes type coercion from
+%   \lstinline[language=lean]|ℤ| or \lstinline[language=lean]|ℕ| to
+%   \lstinline[language=lean]|ℚ|.
+%   Now we rewrite the goal using \lstinline[language=lean]|rw [div_add_div]|,
+%   a theoprem from the \lstinline[language=lean]|Field| module,
+%   which applies the addition formula for division.
+%   Let us briefly examine the source code of this theorem:
+%   \begin{lstlisting}[language=lean]
+% variable [Semifield K] {a b d : K}
+
+% theorem div_add_div (a : K) (c : K) (hb : b ≠ 0) (hd : d ≠ 0) :
+%     a / b + c / d = (a * d + b * c) / (b * d) := ...
+% \end{lstlisting}
+%   The type \lstinline[language=lean]|K| here is assumed to be a
+%   \lstinline[language=lean]|Semifield|. The \lstinline[language=lean]|variable|
+%   keyword is a way to declare parameters that are potentially used across
+%   multiple theorems or definitions. We will explore Lean's powerful algebraic
+%   hierarchy and the meaning of the square brackets \lstinline[language=lean]|[ ]|
+%   in a later section.
+%   Using this rewrite is particularly time-saving, since otherwise one would have to
+%   establish the well-definedness of rational addition in terms of the underlying
+%   structure (a non-trivial task).
+%   This theorem requires proofs \lstinline[language=lean]|(hb : b ≠ 0)| and
+%   \lstinline[language=lean]|(hd : d ≠ 0)|, generating two additional side goals.
+%   We handle each goal separately using the focusing bullet \lstinline[language=lean]|·|.
+%   The first bullet addresses the main goal (proving the sum is non-negative),
+%   while the subsequent bullets discharge the non-zero denominator conditions.
+%   I have omitted the actual proofs, here, using \lstinline[language=lean]|sorry|,
+%   which we haven't mentioned before. \lstinline[language=lean]|sorry| is a useful
+%   feature of Lean that tells the system to accept an incomplete proof for the time being,
+%   allowing you to continue development without proving every detail immediately.
+%   We can now tackle the remaining goals:
+%   \newpage
+%   \begin{lstlisting}[language=lean]
+% · -- Goal: ⊢ 0 ≤ (↑a_num * ↑b_den + ↑a_den * ↑b_num) / (↑a_den * ↑b_den)
+%   have hnum_nonneg : (0 : ℚ) ≤ a_num * b_den + a_den * b_num := by
+%     have ha_num_nonneg := by
+%       have ha_den_pos := nat_ne_zero_pos a_den a_den_nz
+%       exact rat_num_nonneg ha_den_pos ha
+%     have hb_num_nonneg := by
+%       have hb_den_pos := nat_ne_zero_pos b_den b_den_nz
+%       exact rat_num_nonneg hb_den_pos hb
+%     apply add_nonneg -- works for any OrderedAddCommMonoid
+%     · apply mul_nonneg -- works for any OrderedSemiring
+%       · exact Int.cast_nonneg.mpr ha_num_nonneg
+%       · exact Nat.cast_nonneg b_den
+%     · apply mul_nonneg
+%       · exact Nat.cast_nonneg a_den
+%       · exact Int.cast_nonneg.mpr hb_num_nonneg
+
+%   have hden_nonneg : (0 : ℚ) ≤ a_den * b_den := by
+%     rw [← Nat.cast_mul]
+%     exact Nat.cast_nonneg (a_den * b_den)
+%   exact div_nonneg hnum_nonneg hden_nonneg
+
+% · exact Nat.cast_ne_zero.mpr a_den_nz -- Goal: ⊢ ↑a_den ≠ 0
+% · exact Nat.cast_ne_zero.mpr b_den_nz -- Goal: ⊢ ↑b_den ≠ 0
+% \end{lstlisting}
+
+%   We introduce two key hypotheses, \lstinline[language=lean]|hnum_nonneg|
+%   and \lstinline[language=lean]|hden_nonneg|, which will be required by
+%   \lstinline[language=lean]|div_nonneg| from the
+%   \lstinline[language=lean]|GroupWithZero| module.
+%   This lemma provides us with a term that directly validates our statement.
+%   Note that \lstinline[language=lean]|div_nonneg| is a generalized lemma that applies
+%   not only to rational numbers but to all ordered groups with zero that are
+%   also partially ordered.
+%   The hypothesis \lstinline[language=lean]|hnum_nonneg| proves that the numerator
+%   is non-negative by working with the coerced expressions in
+%   \lstinline[language=lean]|ℚ|. It uses \lstinline[language=lean]|add_nonneg| and
+%   \lstinline[language=lean]|mul_nonneg|, which are general theorems that work for
+%   any ordered additive commutative monoid and ordered semiring, respectively.
+%   The actual reasoning is done using integer-related theorems
+%   (via \lstinline[language=lean]|Int.cast_nonneg|) for the numerators and natural
+%   number theorems (via \lstinline[language=lean]|Nat.cast_nonneg|) for the denominators.
+%   The hypothesis \lstinline[language=lean]|hden_nonneg| proves that the
+%   denominator is non-negative by working entirely with natural numbers.
+%   We use the rewrite \lstinline[language=lean]|rw [← Nat.cast_mul]|,
+%   which moves the coercion (in this case from \lstinline[language=lean]|ℕ|
+%   to \lstinline[language=lean]|ℚ|) inside the multiplication:
+%   \lstinline[language=lean]|↑(m * n) = ↑m * ↑n|. The \lstinline[language=lean]|←|
+%   symbol means that we want the transformation from right to
+%   left (i.e., we apply the equality in reverse to move the cast inward).
+%   Type casts and coercions require these kinds of rewrite rules, not only
+%   for multiplication but also for addition and other operations, and
+%   similarly for \lstinline[language=lean]|ℤ| or other numerical types.
+%   These lemmas, such as \lstinline[language=lean]|Nat.cast_mul|,
+%   \lstinline[language=lean]|Int.cast_add|, etc., ensure that algebraic operations
+%   commute with type coercions.
+% \end{example}
 \subsection{Coercions and Type Casting}
 We extensively used type casting and coercions in this proof, which requires some
 explanation \cite{lewis_madelaine_simplifying_casts_coercions_2020}.
@@ -1409,13 +1578,331 @@ to simplify expressions involving such coercions.
 The \lstinline[language=lean]|norm_cast| tactic normalizes casts
 by pushing them outward and eliminating redundant coercions, often simplifying
 proofs significantly by reducing goals to their ``native'' types.
+\subsection{Quotients}
+Back to our rational numbers definition.
+We have actually made a very bad construction for rational numbers.
+Let's look at what gopes wrong:
+\begin{lstlisting}[language=lean]
+example : myPreRat.mk 2 4 (by decide) ≠ myPreRat.mk 1 2 (by decide) := by 
+  simp
+\end{lstlisting}
+This example proves that \lstinline[language=lean]|myPreRat.mk 2 4| and
+\lstinline[language=lean]|myPreRat.mk 1 2| are not equal, even though
+mathematically $\frac{2}{4} = \frac{1}{2}$! Indeed, the name
+\lstinline[language=lean]|myPreRat| was already alluding to
+the need for further work.
+In mathematics, we treat different representations of the same rational number
+as equivalent through an \textbf{equivalence relation} (\cite{algebrology_rationals_2019}). We consider fractions
+like $\frac{1}{2}$, $\frac{2}{4}$, and $\frac{3}{6}$ as belonging to the same
+equivalence class. To be more precise, mathematics uses \textbf{quotients} to
+group elements of a set by an equivalence relation.
+For instance, the equivalence
+class $[\frac{1}{2}] = \{ \ldots, -\frac{1}{2}, \frac{1}{2}, \frac{2}{4}, \frac{3}{6}, \ldots\}$
+represents all fractions equivalent to $\frac{1}{2}$.
+Thus the set of rational numbers is the set of \textbf{representatives}
+$\mathbb{Q} = \{ \ldots, [\frac{0}{1}], [\frac{1}{1}], [\frac{1}{2}], [\frac{1}{3}], \ldots\}$.
+Algebraically, each rational number can be represented as a pair of
+integers $(a, b)$ where the second component is non-zero.
+Moreover, this construction must be ``justified'' by an equivalence relation $\sim_\mathbb{Q}$:
+$$\mathbb{Q} = (\mathbb{Z} \times \mathbb{Z}^*) / \negthickspace\sim_\mathbb{Q}$$
+The equivalence relation for rational numbers (seen as pairs of integers) is defined as:
+$$(a,b) \sim_\mathbb{Q} (c,d) \iff ad = bc \quad \text{for all } (a,b), (c,d) \in \mathbb{Z}\times\mathbb{Z}^*$$
+The relation $\sim_\mathbb{Q}$ must satisfy reflexivity, symmetry, and transitivity.
+Moreover, each operation defined on the quotient set must be \textbf{well-defined}; that is,
+the result must not depend on our choice of representatives.
+If we naively define addition as
+$$(a,b) + (c,d) = (a+c,b+d) \quad \text{for all } (a,b), (c,d) \in \mathbb{Z}\times\mathbb{Z}^*,$$
+we encounter a problem. Consider:
+$$(1,2) + (1,3) = (1+1, 2+3) = (2,5) \quad \text{and} \quad (1,2) + (2,6) = (1+2, 2+6) = (3,8).$$
+But $(1,3) \sim_\mathbb{Q} (2,6)$ since $1 \cdot 6 = 2 \cdot 3$, yet $(2,5) \not\sim_\mathbb{Q} (3,8)$
+since $2 \cdot 8 = 16 \neq 15 = 5 \cdot 3$.
+A well-defined definition for addition is instead:
+$$(a,b) + (c,d) = (ad+bc,bd) \quad \text{for all } (a,b), (c,d) \in \mathbb{Z}\times\mathbb{Z}^*.$$
+We will verify this.
+
+Similarly, in type theory and Lean we have \textbf{quotient types},
+which allow us to think mathematically and
+construct new types by mean of equivalence relations.
+We are going to define proper rational numbers using quotient types in Lean.
+As mentioned earlier, this differs from Mathlib's approach,
+which achieves the
+same goal by mechanically reducing each rational number to a
+canonical form
+using coprimality
+(ensuring the numerator and denominator have no common factors).
+We need to start from the notion of equivalence relations.
+We have already seen how to define relations in Lean. The structure
+\lstinline[language=lean]|Equivalence| is precisely a relation with fields
+\lstinline[language=lean]|refl|, \lstinline[language=lean]|symm|, and
+\lstinline[language=lean]|trans| for defining an equivalence relation.
+You can inspect its definition using \lstinline[language=lean]|#print Equivalence|.
+Another important component in defining a quotient is the
+\lstinline[language=lean]|Setoid| typeclass, which encapsulates an equivalence
+relation on a given type. In particular, it requires that the relation given is
+indeed an equivalence relation, which is verified through the
+\lstinline[language=lean]|iseqv| field. Here is how we begin defining the
+rational numbers using the \lstinline[language=lean]|Setoid| typeclass and
+\lstinline[language=lean]|Quotient| type:
+\begin{lstlisting}[language=lean]
+instance myRel : Setoid myPreRat where
+  r p q := p.num * q.den = q.num * p.den
+  iseqv := by
+    constructor
+    · intro p; rfl
+    · rintro ⟨p, p', hp'⟩ ⟨q, q', hq'⟩
+      simp [Eq.comm]
+    · rintro ⟨p, p', hp'⟩ ⟨q, q', hq'⟩ ⟨r, r', hr'⟩ hpq hqr
+      simp_all
+      apply mul_left_cancel₀ (mod_cast hq'.ne' : q' ≠ (0 : ℤ))
+      grind
+
+abbrev myRat : Type := Quotient myRel
+\end{lstlisting}
+In the \lstinline[language=lean]|iseqv| field, we prove reflexivity, symmetry,
+and transitivity of our relation. The reflexivity case
+(\lstinline[language=lean]|intro p; rfl|) is immediate.
+The symmetry case uses \lstinline[language=lean]|Eq.comm|
+to swap the sides of the equation.
+For transitivity, the key step involves multiplying both sides of our equations by
+\lstinline[language=lean]|q.den| and then canceling this common factor using
+\lstinline[language=lean]|mul_left_cancel₀| (left multiplication cancellation for
+integers), which states that if $a \cdot b = a \cdot c$ and $a \neq 0$, then $b = c$.
+The expression \lstinline[language=lean]|mod_cast hq'.ne' : q' ≠ (0 : ℤ)| takes
+\lstinline[language=lean]|hq'| (which states \lstinline[language=lean]|0 < q.den|
+as a natural number) and casts it to a proof that \lstinline[language=lean]|q.den ≠ 0|
+as an integer.
+Finally, \lstinline[language=lean]|abbrev| is a Lean keyword that creates a
+type abbreviation. Unlike \lstinline[language=lean]|def|, which creates a new
+definition that must be unfolded explicitly, with \lstinline[language=lean]|abbrev|
+Lean can automatically treats \lstinline[language=lean]|myRat|
+as \lstinline[language=lean]|Quotient myRel| without requiring manual unfolding.
+
+We can now propoerly define myRat and adding properties and operations.
+\begin{lstlisting}[language=lean]
+namespace myRat
+
+instance : LE myRat where
+  le r₁ r₂ := Quotient.lift₂ (fun a b ↦ a ≤ b) myRel_respects_le r₁ r₂
+
+instance : Add myRat where
+  add r₁ r₂ := Quotient.lift₂ (fun a b ↦ ⟦a + b⟧)
+    (fun a₁ b₁ a₂ b₂ ha hb ↦ Quotient.sound (myRel_respects_add a₁ b₁ a₂ b₂ ha hb))
+    r₁ r₂
+
+instance : OfNat myRat 0 where
+  ofNat := ⟦myPreRat.zero⟧
+
+lemma add_nonneg (a b : myRat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
+  induction a using Quotient.ind with | _ a =>
+  induction b using Quotient.ind with | _ b =>
+  intro ha hb
+  exact myPreRat.add_nonneg a b ha hb
+
+end myRat
+\end{lstlisting}
+Notice how we reuse the previous \lstinline[language=lean]|add_nonneg|
+lemma for the quotient type using \lstinline[language=lean]|Quotient.ind|.
+The syntax \lstinline[language=lean]|induction a using Quotient.ind with  _ a =>|
+unwraps the quotient value \lstinline[language=lean]|a : myRat| to its underlying
+representative \lstinline[language=lean]|a : myPreRat|.
+
+As before, we used the instance mechanism to add operations such as
+\lstinline[language=lean]|≤| and \lstinline[language=lean]|+| for
+\lstinline[language=lean]|myPreRat|. However, when lifting these operations
+to \lstinline[language=lean]|myRat| (the quotient type), we need to ensure
+they are \textbf{well-defined}.
+This is achieved using \lstinline[language=lean]|Quotient.lift₂|. To define
+a function from a quotient type, such as $f : \text{Quotient } S \to \beta$
+where $S$ is the setoid, it is necessary to provide an underlying function
+$f' : \alpha \to \beta$ and prove that for all $x, y : \alpha$, if
+$x \approx y$ (under the equivalence relation), then $f'(x) = f'(y)$.
+Morover it helps to splitting the woprk. First we prove the underlying property on
+\lstinline[language=lean]|myPreRat|, then lift it to the quotient type.
+Here we extract the main proof into a separate theorem:
+\newpage
+\begin{lstlisting}[language=lean]
+private theorem le_respects_equiv_forward
+    (a₁ b₁ a₂ b₂ : myPreRat)
+    (ha : a₁ ≈ a₂) (hb : b₁ ≈ b₂)
+    (h : a₁ ≤ b₁) : a₂ ≤ b₂ := by
+  have pos_prod : (0: Int) < (a₁.den * b₁.den) := 
+    myPreRat.den_prod_pos a₁ b₁
+  have pos_prod2 : 0 < (a₂.den * b₂.den : Int) := 
+    myPreRat.den_prod_pos a₂ b₂
+  apply Int.le_of_mul_le_mul_right _ pos_prod
+  calc (a₂.num * b₂.den) * (a₁.den * b₁.den)
+      = a₂.num * a₁.den * b₂.den * b₁.den := by ring
+    _ = a₁.num * a₂.den * b₂.den * b₁.den := by rw [← ha]
+    _ = a₁.num * b₁.den * (a₂.den * b₂.den) := by ring
+    _ ≤ b₁.num * a₁.den * (a₂.den * b₂.den) :=
+        Int.mul_le_mul_of_nonneg_right h (Int.le_of_lt pos_prod2)
+    _ = b₁.num * b₂.den * a₁.den * a₂.den := by ring
+    _ = b₂.num * b₁.den * a₁.den * a₂.den := by rw [← hb]
+    _ = (b₂.num * a₂.den) * (a₁.den * b₁.den) := by ring
+
+theorem myRel_respects_le (a₁ b₁ a₂ b₂ : myPreRat) :
+    a₁ ≈ a₂ → b₁ ≈ b₂ → (a₁ ≤ b₁) = (a₂ ≤ b₂) := by
+  intro ha hb
+  simp only [eq_iff_iff]
+  constructor
+  · exact le_respects_equiv_forward a₁ b₁ a₂ b₂ ha hb
+  · exact fun h => le_respects_equiv_forward a₂ b₂ a₁ b₁ ha.symm hb.symm h
+\end{lstlisting}
+In \lstinline[language=lean]|myRel_respects_le|, we transform
+the equality of propositions into a biconditional using
+\lstinline[language=lean]|eq_iff_iff|, then prove both directions with
+\lstinline[language=lean]|constructor|. Since both goals are symmetrical,
+we reuse \lstinline[language=lean]|le_respects_equiv_forward|.
+The heart of the proof is in \lstinline[language=lean]|le_respects_equiv_forward|.
+The \lstinline[language=lean]|private| keyword ensures that
+\lstinline[language=lean]|le_respects_equiv_forward| is only accessible
+within the current namespace, keeping our interface clean.
+Given $h : a_1 \leq b_1$ (meaning $a_1.\text{num} \cdot b_1.\text{den} \leq b_1.\text{num} \cdot a_1.\text{den}$)
+and equivalences $ha : a_1 \approx a_2$ and $hb : b_1 \approx b_2$
+(meaning $a_1.\text{num} \cdot a_2.\text{den} = a_2.\text{num} \cdot a_1.\text{den}$
+and $b_1.\text{num} \cdot b_2.\text{den} = b_2.\text{num} \cdot b_1.\text{den}$),
+we need to prove $a_2 \leq b_2$ (i.e., $a_2.\text{num} \cdot b_2.\text{den} \leq b_2.\text{num} \cdot a_2.\text{den}$).
+The strategy is to introduce a common positive factor and use the given information.
+We apply \lstinline[language=lean]|Int.le_of_mul_le_mul_right|, which states
+that to prove $X \leq Y$, it suffices to prove $X \cdot Z \leq Y \cdot Z$
+for positive $Z$, then cancel $Z$. We choose $Z = a_1.\text{den} \cdot b_1.\text{den}$
+(shown positive by \lstinline[language=lean]|pos_prod|).
+The \lstinline[language=lean]|calc| block proves
+$(a_2.\text{num} \cdot b_2.\text{den}) \cdot (a_1.\text{den} \cdot b_1.\text{den})
+  \leq (b_2.\text{num} \cdot a_2.\text{den}) \cdot (a_1.\text{den} \cdot b_1.\text{den})$:
+First, we rearrange the left side and substitute using $ha$:
+\begin{align*}
+  (a_2.\text{num} \cdot b_2.\text{den}) \cdot (a_1.\text{den} \cdot b_1.\text{den})
+   & = a_2.\text{num} \cdot a_1.\text{den} \cdot b_2.\text{den} \cdot b_1.\text{den}   \\
+   & = a_1.\text{num} \cdot a_2.\text{den} \cdot b_2.\text{den} \cdot b_1.\text{den}
+  \quad \text{(by } ha\text{)}                                                         \\
+   & = a_1.\text{num} \cdot b_1.\text{den} \cdot (a_2.\text{den} \cdot b_2.\text{den})
+\end{align*}
+Then we apply $h : a_1 \leq b_1$ (i.e., $a_1.\text{num} \cdot b_1.\text{den} \leq b_1.\text{num} \cdot a_1.\text{den}$),
+multiplying both sides by the positive factor $(a_2.\text{den} \cdot b_2.\text{den})$:
+$$a_1.\text{num} \cdot b_1.\text{den} \cdot (a_2.\text{den} \cdot b_2.\text{den})
+  \leq b_1.\text{num} \cdot a_1.\text{den} \cdot (a_2.\text{den} \cdot b_2.\text{den})$$
+Finally, we rearrange the right side and substitute using $hb$:
+\begin{align*}
+  b_1.\text{num} \cdot a_1.\text{den} \cdot (a_2.\text{den} \cdot b_2.\text{den})
+   & = b_1.\text{num} \cdot b_2.\text{den} \cdot a_1.\text{den} \cdot a_2.\text{den}     \\
+   & = b_2.\text{num} \cdot b_1.\text{den} \cdot a_1.\text{den} \cdot a_2.\text{den}
+  \quad \text{(by } hb\text{)}                                                           \\
+   & = (b_2.\text{num} \cdot a_2.\text{den}) \cdot (a_1.\text{den} \cdot b_1.\text{den})
+\end{align*}
+After canceling the common positive factor $(a_1.\text{den} \cdot b_1.\text{den})$,
+we obtain $a_2.\text{num} \cdot b_2.\text{den} \leq b_2.\text{num} \cdot a_2.\text{den}$,
+which is precisely $a_2 \leq b_2$.
+
+We also need to prove that the addition operation is well-defined on the quotient:
+\begin{lstlisting}[language=lean]
+theorem myRel_respects_add (a₁ b₁ a₂ b₂ : myPreRat) :
+    a₁ ≈ a₂ → b₁ ≈ b₂ → (a₁ + b₁) ≈ (a₂ + b₂) := by
+  intro ha hb
+  calc (a₁.num * b₁.den + b₁.num * a₁.den) * (a₂.den * b₂.den)
+      = a₁.num * b₁.den * a₂.den * b₂.den + b₁.num * a₁.den * a₂.den * b₂.den 
+        := by ring
+    _ = a₂.num * a₁.den * b₁.den * b₂.den + b₂.num * b₁.den * a₁.den * a₂.den 
+        := by rw [← ha, ← hb]; ring
+    _ = (a₂.num * b₂.den + b₂.num * a₂.den) * (a₁.den * b₁.den) 
+        := by ring
+\end{lstlisting}
+We need to show that if $a_1 \approx a_2$ and $b_1 \approx b_2$, then
+$(a_1 + b_1) \approx (a_2 + b_2)$.
+By unfolding the addition definition and the relation we end up proving:
+\begin{align*}
+  (a_1.\text{num} \cdot b_1.\text{den} + b_1.\text{num} \cdot a_1.\text{den}) \cdot (a_2.\text{den} \cdot b_2.\text{den})
+  \\ = \\ (a_2.\text{num} \cdot b_2.\text{den} + b_2.\text{num} \cdot a_2.\text{den}) \cdot (a_1.\text{den}
+  \cdot b_1.\text{den})
+\end{align*}
+The \lstinline[language=lean]|calc| proof proceeds in three steps. First, we distribute
+the product over the sum on the left side using \lstinline[language=lean]|ring|.
+Next, we apply the equivalences $ha$ and $hb$ using \lstinline[language=lean]|rw [← ha, ← hb]|,
+which substitutes $a_1.\text{num} \cdot a_2.\text{den}$ with $a_2.\text{num} \cdot a_1.\text{den}$
+and $b_1.\text{num} \cdot b_2.\text{den}$ with $b_2.\text{num} \cdot b_1.\text{den}$.
+Finally, we factor the expression back into sum-times-product form using
+\lstinline[language=lean]|ring|, obtaining the right side of the desired equality.
+
+We finally have a minimal and well-defined solution for showing
+\lstinline[language=lean]|myRat.add_nonneg|. However, our original discussion
+was about proving transitivity of the less-or-equal operator. In our earlier work
+with natural numbers, we used \lstinline[language=lean]|Nat.le_trans|,
+a theorem specifically for natural numbers that is part of Lean's core library.
+However, the transitivity property holds not only for naturals but also for integers,
+reals, and any partially ordered set. Rather than duplicating this theorem for each type,
+Mathlib provides a general lemma \lstinline[language=lean]|le_trans| that works
+for any type \lstinline[language=lean]|α| endowed with a partial ordering.
+
+Mathlib achieves this through type classes and a carefully constructed algebraic hierarchy.
+We have already touched on this concept when we used type classes such as
+\lstinline[language=lean]|Add| and \lstinline[language=lean]|LE| to define operations
+on \lstinline[language=lean]|myRat|. Aware that rational numbers form a linearly ordered
+set (and hence a partially ordered set), we now enhance \lstinline[language=lean]|myRat|
+with the \lstinline[language=lean]|PartialOrder| type class:
+\begin{lstlisting}[language=lean]
+instance : PartialOrder myRat where
+  le_refl p := by
+    induction p using Quotient.ind with | _ a =>
+    exact myPreRat.le_refl a
+
+  le_trans p q r := by
+    induction p using Quotient.ind with | _ a =>
+    induction q using Quotient.ind with | _ b =>
+    induction r using Quotient.ind with | _ c =>
+    intro hab hbc
+    exact myPreRat.le_trans a b c hab hbc
+
+  le_antisymm p q := by
+    induction p using Quotient.ind with | _ a =>
+    induction q using Quotient.ind with | _ b =>
+    intro hab hba
+    exact Quotient.sound (myPreRat.le_antisymm a b hab hba)
+\end{lstlisting}
+The structure follows the same pattern we saw earlier: use \lstinline[language=lean]|Quotient.ind|
+to unwrap quotient values to their representatives, then apply the corresponding proof
+for \lstinline[language=lean]|myPreRat|. The antisymmetry case uses
+\lstinline[language=lean]|Quotient.sound|, which states that if two representatives
+are equivalent (i.e., $a \approx b$), then their quotient equivalence classes are equal
+(i.e., $\llbracket a \rrbracket = \llbracket b \rrbracket$).
+The underlying proofs for \lstinline[language=lean]|myPreRat| are:
+\begin{lstlisting}[language=lean]
+theorem le_refl (a : myPreRat) : a ≤ a := by
+  exact Int.le_refl _
+
+theorem le_trans (a b c : myPreRat) : a ≤ b → b ≤ c → a ≤ c := by
+  intro hab hbc
+  apply Int.le_of_mul_le_mul_right _ b.den_pos_int
+  calc (a.num * c.den) * b.den
+      = (a.num * b.den) * c.den := by ring
+    _ ≤ (b.num * a.den) * c.den :=
+        Int.mul_le_mul_of_nonneg_right hab (Int.le_of_lt c.den_pos_int)
+    _ = (b.num * c.den) * a.den := by ring
+    _ ≤ (c.num * b.den) * a.den :=
+        Int.mul_le_mul_of_nonneg_right hbc (Int.le_of_lt a.den_pos_int)
+    _ = (c.num * a.den) * b.den := by ring
+
+theorem le_antisymm (a b : myPreRat) : a ≤ b → b ≤ a → a ≈ b := by
+  intro hab hba
+  exact Int.le_antisymm hab hba
+\end{lstlisting}
+Reflexivity and antisymmetry are straightforward applications of the corresponding
+integer properties. For transitivity, given $hab : a \leq b$ (meaning
+$a.\text{num} \cdot b.\text{den} \leq b.\text{num} \cdot a.\text{den}$) and
+$hbc : b \leq c$ (meaning $b.\text{num} \cdot c.\text{den} \leq c.\text{num} \cdot b.\text{den}$),
+we need to prove $a \leq c$ (i.e., $a.\text{num} \cdot c.\text{den} \leq c.\text{num} \cdot a.\text{den}$).
+The strategy is to introduce a common positive factor $b.\text{den}$, prove
+$(a.\text{num} \cdot c.\text{den}) \cdot b.\text{den} \leq (c.\text{num} \cdot a.\text{den}) \cdot b.\text{den}$,
+then cancel it using \lstinline[language=lean]|Int.le_of_mul_le_mul_right|.
+The \lstinline[language=lean]|calc| chain proceeds as follows: we rearrange to
+introduce $a.\text{num} \cdot b.\text{den}$, apply $hab$ (multiplying by the
+positive factor $c.\text{den}$ to preserve the inequality), rearrange to
+introduce $b.\text{num} \cdot c.\text{den}$, apply $hbc$ (multiplying by
+$a.\text{den}$), and finally rearrange to match the required form. After
+canceling $b.\text{den}$, we obtain $a \leq c$.
+Here the full construction of myRat: [\href{https://live.lean-lang.org/#codez=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}{link to Lean live}]
 
 \subsection{Type Classes and Algebraic Hierarchy in Lean}
 
-In our proof of \lstinline[language=lean]|rat_add_nonneg|,
-we used many generalized lemmas from Mathlib, such as \lstinline[language=lean]|add_nonneg|,
-\lstinline[language=lean]|mul_nonneg|, and \lstinline[language=lean]|div_nonneg|,
-which apply to a wide range of types beyond just rational numbers.
 Similarly, in our earlier work with natural numbers, we used \lstinline[language=lean]|Nat.le_trans|,
 a theorem specifically for natural numbers that is part of Lean's core library
 (\lstinline[language=lean]|lean/Init/Prelude.lean|). Mathlib is built on top of this base library.
@@ -1447,6 +1934,7 @@ by defining a \lstinline[language=lean]|Monoid| structure that extends the
 \lstinline[language=lean]|Group| structure that extends the
 \lstinline[language=lean]|Monoid| structure using the
 \lstinline[language=lean]|extends| keyword:
+\newpage
 \begin{lstlisting}[language=lean]
 -- A semigroup has an associative binary operation
 structure Semigroup (α : Type*) where
