@@ -1,8 +1,13 @@
-\documentclass{article}
+
+
+
+% \title{An introduction to formal mathematics in Lean}
+% \author{Daniele Bolla}
+% \date{\today}
+
+\documentclass[12pt,a4paper]{book}
+\usepackage{thesis}
 \usepackage{hyperref}
-\usepackage{tikz}
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
 \usepackage{stmaryrd}  % For \llbracket and \rrbracket
 \usepackage{listings}
 \usepackage{amssymb}
@@ -28,8 +33,47 @@
 \def\lstlanguagefiles{lstlean.tex}
 % set default language
 \lstset{language=lean}
+
+% Optional packages for your specific needs
+% \usepackage{tikz}           % For diagrams
+% \usepackage{pgfplots}       % For plots
+% \usepackage{listings}       % For code listings
+% \usepackage{algorithm2e}    % For algorithms
+% \usepackage{hyperref}       % For hyperlinks (load last)
+
+% Thesis metadata - CUSTOMIZE THESE
+\title{Introduction to Formal Mathematics in Lean  with an example in Topology}
+\author{Daniele Bolla}
+\matrikelnr{21-694-187}
+\supervisor{Prof. David Loeffler}
+\submitdate{December 31, 2025}
+% \thesistype{Bachelor Thesis}  % Optional: defaults to "Bachelor Thesis"
+% \faculty{Faculty of Mathematics and Computer Science}  % Optional: already set
+% \universitylogo{FernUni}      % Optional: path to logo file
+
+% Theorem environments
+% \newtheorem{thm}{Theorem}[chapter]
+% \newtheorem{cor}[thm]{Corollary}
+% \newtheorem{prop}[thm]{Proposition}
+% \newtheorem{lem}[thm]{Lemma}
+% \theoremstyle{definition}
+% \newtheorem{defn}[thm]{Definition}
+% \newtheorem{axiom}[thm]{Axiom}
+% \theoremstyle{remark}
+% \newtheorem{rmk}[thm]{Remark}
+% \newtheorem{exmp}[thm]{Example}
+% \newtheorem{exer}[thm]{Exercise}
+
+% Custom commands for mathematics
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
 \newtheorem{theorem}{Theorem}[section]
-\newtheorem{proof}[theorem]{Proof}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{definition}[theorem]{Definition}  
 \newtheorem{remark}[theorem]{Remark}
@@ -37,12 +81,44 @@
 \newtheorem{notation}[theorem]{Notation}
 \newtheorem{note}[theorem]{Note}
 \numberwithin{figure}{theorem}
-
-\title{An introduction to formal mathematics in Lean}
-\author{Daniele Bolla}
-\date{\today}
 \begin{document}
+
+% Title page
+\makethesistitle
+
+% Declaration
+\begin{declaration}
+    I hereby declare that this thesis is my own work, and that no other sources have been used except those indicated in the bibliography. I confirm that generative AI tools were not used in writing any part of this thesis, though they may have been used for preliminary research purposes only.
+
+    \vspace{3cm}
+
+    \noindent
+    Place, Date \hfill Signature
+
+    \vspace{1cm}
+
+    \noindent
+    \rule{4cm}{0.5pt} \hfill \rule{6cm}{0.5pt}
+\end{declaration}
+
+% Abstract
+\begin{thesisabstract}
+    This bachelor thesis explores applications of fixed point theory in mathematical analysis, with particular focus on the Banach fixed point theorem and its generalizations. The work investigates both theoretical foundations and practical applications of fixed point theorems in solving equations and optimization problems.
+
+    The main contributions of this thesis include a comprehensive survey of classical fixed point theorems, detailed proofs of key results, and several novel applications to problems in numerical analysis and differential equations. We demonstrate how fixed point theory provides a unifying framework for understanding convergence properties of iterative methods and existence theorems for solutions of functional equations.
+
+    The thesis concludes with a discussion of recent developments in the field and potential directions for future research, including extensions to non-metric spaces and applications to machine learning algorithms.
+\end{thesisabstract}
+
+% Acknowledgments
+\begin{acknowledgments}
+    I would like to express my sincere gratitude ...
+\end{acknowledgments}
+
+% Table of contents
 \tableofcontents
+
+
 
 \input{intro}
 % \input{constructive_math}

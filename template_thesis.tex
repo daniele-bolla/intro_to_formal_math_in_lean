@@ -1,0 +1,291 @@
+\documentclass[12pt,a4paper]{book}
+\usepackage{thesis}
+
+% Optional packages for your specific needs
+% \usepackage{tikz}           % For diagrams
+% \usepackage{pgfplots}       % For plots
+% \usepackage{listings}       % For code listings
+% \usepackage{algorithm2e}    % For algorithms
+% \usepackage{hyperref}       % For hyperlinks (load last)
+
+% Thesis metadata - CUSTOMIZE THESE
+\title{Applications of Fixed Point Theory in Mathematical Analysis}
+\author{John Doe}
+\matrikelnr{12345678}
+\supervisor{Prof. Dr. Jane Smith}
+\submitdate{March 31, 2024}
+% \thesistype{Bachelor Thesis}  % Optional: defaults to "Bachelor Thesis"
+% \faculty{Faculty of Mathematics and Computer Science}  % Optional: already set
+% \universitylogo{FernUni}      % Optional: path to logo file
+
+% Theorem environments
+\newtheorem{thm}{Theorem}[chapter]
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{lem}[thm]{Lemma}
+\theoremstyle{definition}
+\newtheorem{defn}[thm]{Definition}
+\newtheorem{axiom}[thm]{Axiom}
+\theoremstyle{remark}
+\newtheorem{rmk}[thm]{Remark}
+\newtheorem{exmp}[thm]{Example}
+\newtheorem{exer}[thm]{Exercise}
+
+% Custom commands for mathematics
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+
+\begin{document}
+
+% Title page
+\makethesistitle
+
+% Declaration
+\begin{declaration}
+I hereby declare that this thesis is my own work, and that no other sources have been used except those indicated in the bibliography. I confirm that generative AI tools were not used in writing any part of this thesis, though they may have been used for preliminary research purposes only.
+
+\vspace{3cm}
+
+\noindent
+Place, Date \hfill Signature
+
+\vspace{1cm}
+
+\noindent
+\rule{4cm}{0.5pt} \hfill \rule{6cm}{0.5pt}
+\end{declaration}
+
+% Abstract
+\begin{thesisabstract}
+This bachelor thesis explores applications of fixed point theory in mathematical analysis, with particular focus on the Banach fixed point theorem and its generalizations. The work investigates both theoretical foundations and practical applications of fixed point theorems in solving equations and optimization problems.
+
+The main contributions of this thesis include a comprehensive survey of classical fixed point theorems, detailed proofs of key results, and several novel applications to problems in numerical analysis and differential equations. We demonstrate how fixed point theory provides a unifying framework for understanding convergence properties of iterative methods and existence theorems for solutions of functional equations.
+
+The thesis concludes with a discussion of recent developments in the field and potential directions for future research, including extensions to non-metric spaces and applications to machine learning algorithms.
+\end{thesisabstract}
+
+% Acknowledgments
+\begin{acknowledgments}
+I would like to express my sincere gratitude ...
+\end{acknowledgments}
+
+% Table of contents
+\tableofcontents
+
+% Main content begins here
+\chapter{Introduction}
+
+Fixed point theory is a fundamental area of mathematics that studies the conditions under which mappings have points that remain unchanged under the transformation. This field has profound applications across various branches of mathematics, including analysis, topology, differential equations, and numerical analysis.
+
+The concept of a fixed point is deceptively simple: given a function $f: X \to X$ on a set $X$, a fixed point is an element $x^* \in X$ such that $f(x^*) = x^*$. Despite this simplicity, fixed point theorems provide powerful tools for proving existence and uniqueness of solutions to a wide variety of mathematical problems.
+
+\section{Motivation and Background}
+
+The study of fixed points has its roots in the early 20th century, with seminal contributions from mathematicians such as Brouwer, Schauder, and Banach. The Banach fixed point theorem \cite{banach1922}, also known as the contraction mapping theorem, stands as one of the most important and widely applicable results in this field.
+
+Fixed point theory addresses fundamental questions such as:
+\begin{itemize}
+\item When does a mapping have a fixed point?
+\item Is the fixed point unique?
+\item How can we compute or approximate fixed points?
+\item What can we say about the stability of fixed points?
+\end{itemize}
+
+These questions arise naturally in many contexts, from solving systems of linear equations to analyzing the long-term behavior of dynamical systems.
+
+\section{Objectives and Scope}
+
+The primary objectives of this thesis are:
+
+\begin{enumerate}
+\item To provide a comprehensive introduction to the fundamental concepts and classical results of fixed point theory
+\item To present detailed proofs of the most important fixed point theorems, with emphasis on the Banach fixed point theorem
+\item To explore various applications of these theorems in mathematical analysis and numerical methods
+\item To discuss recent developments and open problems in the field
+\end{enumerate}
+
+The scope of this work is primarily focused on metric spaces and complete metric spaces, though we will also touch upon generalizations to more abstract settings.
+
+\chapter{Mathematical Preliminaries}\label{ch:preliminaries}
+
+In this chapter, we establish the mathematical foundations necessary for our study of fixed point theory. We begin with basic concepts from metric space theory and topology, then proceed to more specialized topics that will be essential for our later developments.
+
+\section{Metric Spaces and Completeness}
+
+\begin{defn}[Metric Space]
+A \emph{metric space} is a pair $(X, d)$ where $X$ is a non-empty set and $d: X \times X \to [0, \infty)$ is a function satisfying:
+\begin{enumerate}
+\item $d(x, y) = 0$ if and only if $x = y$ (identity of indiscernibles)
+\item $d(x, y) = d(y, x)$ for all $x, y \in X$ (symmetry)
+\item $d(x, z) \leq d(x, y) + d(y, z)$ for all $x, y, z \in X$ (triangle inequality)
+\end{enumerate}
+The function $d$ is called a \emph{metric} or \emph{distance function}.
+\end{defn}
+
+\begin{exmp}[Standard Examples]
+The following are important examples of metric spaces:
+\begin{enumerate}
+\item The real line $\R$ with the standard metric $d(x, y) = \abs{x - y}$
+\item Euclidean space $\R^n$ with the Euclidean metric $d(x, y) = \sqrt{\sum_{i=1}^n (x_i - y_i)^2}$
+\item Any normed vector space $(V, \norm{\cdot})$ with the metric $d(x, y) = \norm{x - y}$
+\item The space $C([0, 1])$ of continuous functions on $[0, 1]$ with the supremum metric
+    $d(f, g) = \sup_{t \in [0, 1]} \abs{f(t) - g(t)}$
+\end{enumerate}
+\end{exmp}
+
+\begin{defn}[Cauchy Sequence]
+A sequence $(x_n)_{n \in \N}$ in a metric space $(X, d)$ is called a \emph{Cauchy sequence} if for every $\varepsilon > 0$, there exists $N \in \N$ such that $d(x_m, x_n) < \varepsilon$ for all $m, n \geq N$.
+\end{defn}
+
+\begin{defn}[Complete Metric Space]
+A metric space $(X, d)$ is called \emph{complete} if every Cauchy sequence in $X$ converges to a point in $X$.
+\end{defn}
+
+\section{Contraction Mappings}
+
+The concept of a contraction mapping is central to the Banach fixed point theorem and many of its applications.
+
+\begin{defn}[Contraction Mapping]
+Let $(X, d)$ be a metric space. A mapping $T: X \to X$ is called a \emph{contraction} (or \emph{contraction mapping}) if there exists a constant $k \in [0, 1)$ such that
+\[
+d(T(x), T(y)) \leq k \cdot d(x, y)
+\]
+for all $x, y \in X$. The constant $k$ is called the \emph{contraction factor}.
+\end{defn}
+
+\begin{rmk}
+Every contraction mapping is uniformly continuous. This follows immediately from the definition with $\delta = \varepsilon/k$ for any given $\varepsilon > 0$.
+\end{rmk}
+
+\begin{exmp}[Simple Contraction]
+Consider the mapping $T: \R \to \R$ defined by $T(x) = \frac{1}{2}x + 1$. Then
+\[
+\abs{T(x) - T(y)} = \abs{\frac{1}{2}x + 1 - \frac{1}{2}y - 1} = \frac{1}{2}\abs{x - y}
+\]
+So $T$ is a contraction with contraction factor $k = 1/2$.
+\end{exmp}
+
+\chapter{Classical Fixed Point Theorems}\label{ch:classical}
+
+This chapter presents the most important classical results in fixed point theory. We begin with the Banach fixed point theorem, which is arguably the most fundamental and widely applicable result in this area.
+
+\section{The Banach Fixed Point Theorem}
+
+The Banach fixed point theorem, also known as the contraction mapping theorem, is one of the most elegant and powerful results in mathematics. It provides both existence and uniqueness of fixed points, along with a constructive method for finding them.
+
+\begin{thm}[Banach Fixed Point Theorem]\label{thm:banach}
+Let $(X, d)$ be a complete metric space and let $T: X \to X$ be a contraction mapping with contraction factor $k \in [0, 1)$. Then:
+\begin{enumerate}
+\item $T$ has a unique fixed point $x^* \in X$
+\item For any starting point $x_0 \in X$, the sequence $(T^n(x_0))_{n \in \N}$ converges to $x^*$
+\item The convergence is exponential: $d(T^n(x_0), x^*) \leq k^n \cdot d(x_0, x^*)$
+\item We have the error estimate: $d(T^n(x_0), x^*) \leq \frac{k^n}{1-k} \cdot d(x_0, T(x_0))$
+\end{enumerate}
+\end{thm}
+
+\begin{proof}
+The proof is constructive and proceeds in several steps.
+
+\textbf{Step 1: Construction of the sequence.}
+Let $x_0 \in X$ be arbitrary and define the sequence $(x_n)_{n \in \N}$ by $x_n = T^n(x_0) = T(x_{n-1})$ for $n \geq 1$.
+
+\textbf{Step 2: The sequence is Cauchy.}
+For any $n, m \in \N$ with $n > m$, we have:
+\begin{align}
+d(x_n, x_m) &= d(T^n(x_0), T^m(x_0)) \\
+&\leq d(T^n(x_0), T^{n-1}(x_0)) + d(T^{n-1}(x_0), T^{n-2}(x_0)) + \cdots + d(T^{m+1}(x_0), T^m(x_0)) \\
+&\leq k^{n-1} d(T(x_0), x_0) + k^{n-2} d(T(x_0), x_0) + \cdots + k^m d(T(x_0), x_0) \\
+&= d(T(x_0), x_0) \sum_{i=m}^{n-1} k^i \\
+&\leq \frac{k^m}{1 - k} d(T(x_0), x_0)
+\end{align}
+
+Since $k < 1$, we have $k^m \to 0$ as $m \to \infty$, so $(x_n)$ is a Cauchy sequence.
+
+\textbf{Step 3: Convergence to a fixed point.}
+Since $X$ is complete, there exists $x^* \in X$ such that $x_n \to x^*$. Since $T$ is a contraction, it is continuous, so:
+\[
+T(x^*) = T(\lim_{n \to \infty} x_n) = \lim_{n \to \infty} T(x_n) = \lim_{n \to \infty} x_{n+1} = x^*
+\]
+
+Thus $x^*$ is a fixed point of $T$.
+
+\textbf{Step 4: Uniqueness.}
+Suppose $x^*$ and $y^*$ are both fixed points of $T$. Then:
+\[
+d(x^*, y^*) = d(T(x^*), T(y^*)) \leq k \cdot d(x^*, y^*)
+\]
+
+Since $k < 1$, this implies $d(x^*, y^*) = 0$, so $x^* = y^*$.
+
+\textbf{Step 5: Error estimates.}
+The exponential convergence and error estimate follow from the construction above.
+\end{proof}
+
+\chapter{Applications and Examples}
+
+This chapter explores various applications of fixed point theory to concrete problems in mathematical analysis and numerical mathematics.
+
+\section{Iterative Methods for Linear Systems}
+
+\begin{exmp}[Jacobi Method]
+Consider the linear system $Ax = b$ where $A$ is an $n \times n$ matrix. The Jacobi method rewrites this as $x = (I - D^{-1}A)x + D^{-1}b$, where $D$ is the diagonal part of $A$.
+
+If the spectral radius of $(I - D^{-1}A)$ is less than 1, then this iteration converges to the unique solution by the Banach fixed point theorem.
+\end{exmp}
+
+\section{Differential Equations}
+
+One of the most important applications of the Banach fixed point theorem is in proving existence and uniqueness of solutions to differential equations.
+
+\begin{thm}[Picard-Lindelöf Theorem]
+Consider the initial value problem
+\begin{align}
+y'(t) &= f(t, y(t)) \\
+y(t_0) &= y_0
+\end{align}
+where $f$ is continuous and satisfies a Lipschitz condition in the second variable. Then there exists a unique local solution.
+\end{thm}
+
+\begin{proof}[Proof Sketch]
+The idea is to convert the differential equation into an integral equation and apply the Banach fixed point theorem to an appropriate operator on a function space.
+\end{proof}
+
+\chapter{Conclusion}
+
+This thesis has provided a comprehensive introduction to fixed point theory and its applications in mathematical analysis. We have explored both classical results and their practical applications, demonstrating the central role that fixed point theorems play in various areas of mathematics.
+
+\section{Summary of Main Results}
+
+The key contributions of this thesis include:
+
+\begin{itemize}
+\item A detailed exposition of the Banach fixed point theorem with complete proofs and error estimates
+\item Comprehensive coverage of classical applications to numerical analysis
+\item Detailed examples demonstrating the practical utility of the theory
+\item Applications to differential equations and iterative methods
+\end{itemize}
+
+\section{Future Research Directions}
+
+Several promising directions for future research emerge from our study:
+
+\begin{enumerate}
+\item Development of more efficient algorithms based on fixed point iterations, particularly for large-scale problems
+\item Investigation of fixed point methods in machine learning and data science applications
+\item Extensions to stochastic settings and applications to random dynamical systems
+\item Further development of fixed point theory in non-metric spaces
+\end{enumerate}
+
+The elegance of the Banach fixed point theorem, with its simultaneous guarantee of existence, uniqueness, and constructive approximation, serves as a model for what mathematical theory should strive to achieve: profound insight coupled with practical utility.
+
+% Bibliography
+\bibliography{references}
+\bibliographystyle{fernuni}
+
+\end{document}

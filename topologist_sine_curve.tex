@@ -1,4 +1,4 @@
-\section{Formalizing the topologist's sine curve}
+\chapter{Formalizing the topologist's sine curve}
 
 As part of my thesis work, with the help and revision from Prof David Loeffler,
 I have formalized a well-known counterexample in topology:
@@ -51,7 +51,7 @@ The sin function \lstinline[language=lean]|sin| is defined in the
 
 The goal is to prove that $T$ is connected but not path-connected.
 Let's start with connectedness.
-\subsection{$T$ is connected}
+\section{$T$ is connected}
 First of all one can directlly see that  $S$ is connected, since it is the
 image of the set ($(0, \infty)$) under the continuous map
 $x \mapsto (x, \sin(1/x))$ and a interval in $\mathbb{R}$ is connected.
@@ -579,7 +579,7 @@ Here is the link to the entire first part of the proof:
   Showing that forming closure can destroy
   the property of path connectedness for subsets of a topological space.
 \end{note}
-\subsection{$T$ is not path-connected}
+\section{$T$ is not path-connected}
 The main and most substantial part is showing that $T$ is not path-connected.
 Showing this informally already requires constructing and
 pointing out various steps in order to convince
@@ -875,7 +875,8 @@ linarith
 %   \item $\|p(t') - p(t_0)\| = \text{dist}(p(t'), p(t_0))$ by the definition of distance in a normed space
 % \end{itemize}
 % This completes the proof by contradiction, showing that $T$ is not path-connected.
-\subsection{$T$ is connected not path-connected}
+% \section{$T$ is connected not path-connected}
+\section{Wrapping up}
 Finally, we combine the two parts in the following concise and pleasant theorem:
 \begin{lstlisting}[language=lean]
 theorem T_is_conn_not_pathconn : IsConnected T ∧ ¬IsPathConnected T :=

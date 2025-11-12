@@ -1,0 +1,239 @@
+% thesis.sty - Style file for UniDistance Suisse Bachelor Thesis
+% Version 1.0
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{thesis}[2024/03/31 v1.0 FernUni Thesis Style]
+
+% Required packages
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[T1]{fontenc}
+\RequirePackage[english]{babel}
+\RequirePackage{amsmath,amsfonts,amssymb,amsthm}
+\RequirePackage{microtype}
+\RequirePackage[cm]{sfmath}
+% \RequirePackage{sansmathaccent}
+% \RequirePackage[default]{sourcesanspro}
+\RequirePackage{mathtools}
+\RequirePackage{enumitem}
+\RequirePackage{geometry}
+\RequirePackage{fancyhdr}
+\RequirePackage{xcolor}
+\RequirePackage{graphicx}
+
+% Page geometry
+\geometry{a4paper,left=3cm,right=3cm,top=3cm,bottom=2.5cm}
+
+% Paragraph settings
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0pt}
+\renewcommand{\baselinestretch}{1.2}
+
+% Define university colors
+\definecolor{fernuni_darkblue}{RGB}{0,70,153}
+\definecolor{fernuni_lightblue}{RGB}{0,113,185}
+\definecolor{fernuni_darkgrey}{RGB}{26,26,26}
+\definecolor{fernuni_lightgrey}{RGB}{144,144,144}
+
+% Equation and figure numbering by chapter
+\numberwithin{equation}{chapter}
+\numberwithin{figure}{chapter}
+\numberwithin{table}{chapter}
+
+% Custom thesis commands for metadata
+\newcommand{\supervisor}[1]{\gdef\thesupervisor{#1}}
+\newcommand{\thesupervisor}{}
+\newcommand{\matrikelnr}[1]{\gdef\thematrikelnr{#1}}
+\newcommand{\thematrikelnr}{}
+\newcommand{\submitdate}[1]{\gdef\thesubmitdate{#1}}
+\newcommand{\thesubmitdate}{\today}
+\newcommand{\thesistype}[1]{\gdef\thethesistype{#1}}
+\newcommand{\thethesistype}{Bachelor Thesis}
+\newcommand{\faculty}[1]{\gdef\thefaculty{#1}}
+\newcommand{\thefaculty}{Faculty of Mathematics and Computer Science}
+\newcommand{\university}[1]{\gdef\theuniversity{#1}}
+\newcommand{\theuniversity}{UniDistance Suisse}
+\newcommand{\universitylogo}[1]{\gdef\theuniversitylogo{#1}}
+\newcommand{\theuniversitylogo}{FernUni}
+
+% Custom title page for thesis
+\makeatletter
+\newcommand{\makethesistitle}{%
+  \begin{titlepage}
+    \centering
+    \vspace*{1cm}
+
+    % University logo and name
+    \ifx\theuniversitylogo\empty
+    {\large\sffamily\textbf{\theuniversity}\\[1cm]}
+    \else
+    {\includegraphics[scale=0.6]{\theuniversitylogo}\\[1cm]}
+    \fi
+
+    {\large\sffamily\textbf{\thefaculty}\\[0.5cm]}
+
+    \vspace{1.5cm}
+
+    % Thesis type
+    {\LARGE\bfseries\sffamily\textcolor{fernuni_darkblue}{
+        \thethesistype\\[1cm]
+      }}
+
+    % Title
+    {\Huge\bfseries\sffamily\textcolor{fernuni_lightblue}{
+        \@title\\[1.5cm]
+      }}
+
+    \vfill
+
+    % Author information
+    \begin{flushleft}
+      {\large\sffamily
+        \textbf{Submitted by:}\\
+        \@author\\
+        \ifx\thematrikelnr\empty\else
+          Student ID: \thematrikelnr\\[1cm]
+        \fi
+
+        \ifx\thesupervisor\empty\else
+          \textbf{Supervisor:}\\
+          \thesupervisor\\[1cm]
+        \fi
+
+        \textbf{Submission date:}\\
+        \thesubmitdate
+      }
+    \end{flushleft}
+
+    \vspace{1cm}
+
+  \end{titlepage}
+  \cleardoublepage
+}
+\makeatother
+
+% Set up header height first
+\setlength{\headheight}{15pt}
+
+% Set up thesis page style
+\fancypagestyle{thesis}{%
+  \fancyhf{}% Clear all headers and footers
+  \fancyfoot[R]{\textcolor{fernuni_lightblue}{\rule[5pt]{2cm}{1pt}}\\\footnotesize\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \fancyhead[L]{\bfseries\sffamily\footnotesize\textcolor{fernuni_lightgrey}{\leftmark}}%
+  \fancyhead[R]{\bfseries\sffamily\footnotesize\textcolor{fernuni_lightgrey}{\rightmark}}%
+}
+
+% Override the plain page style to match thesis style
+\fancypagestyle{plain}{%
+  \fancyhf{}% Clear all headers and footers
+  \fancyfoot[R]{\textcolor{fernuni_lightblue}{\rule[5pt]{2cm}{1pt}}\\\footnotesize\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+}
+
+% Use thesis page style
+\pagestyle{thesis}
+
+% Set up chapter marks for headers
+\makeatletter
+\newcommand{\mythesischaptertitle}[1]{\chaptername~\thechapter~---~#1}
+\renewcommand{\chaptermark}[1]{\markboth{\mythesischaptertitle{#1}}{\mythesischaptertitle{#1}}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection~---~#1}}
+
+% Modify proof environment
+\renewenvironment{proof}[1][\proofname]{\par
+  \pushQED{\qed}%
+  \normalfont \topsep6\p@\@plus6\p@\relax
+  \trivlist
+  \item[\hskip\labelsep
+              \bfseries
+              #1]\ignorespaces
+}{%
+  \popQED\endtrivlist\@endpefalse
+}
+
+
+% Adjust chapter headings for thesis
+\renewcommand{\@makechapterhead}[1]{%
+  \thispagestyle{plain}%
+  \vspace*{50\p@}%
+  {\parindent \z@ \raggedright \normalfont
+    \ifnum \c@secnumdepth >\m@ne
+      \Huge\bfseries\sffamily\color{fernuni_darkblue} \@chapapp\space \thechapter
+      \par\nobreak
+      \vskip 20\p@
+    \fi
+    \interlinepenalty\@M
+    \Huge \bfseries\sffamily\color{fernuni_lightblue} #1\par\nobreak
+    \vskip 40\p@
+  }}
+
+\renewcommand{\@makeschapterhead}[1]{%
+  \thispagestyle{plain}%
+  \vspace*{50\p@}%
+  {\parindent \z@ \raggedright
+    \normalfont
+    \interlinepenalty\@M
+    \Huge \bfseries\sffamily\color{fernuni_darkblue} #1\par\nobreak
+    \vskip 40\p@
+  }}
+\makeatother
+
+% Define thesis environments
+\newenvironment{declaration}{%
+  \chapter*{Declaration}
+  \thispagestyle{plain}
+}{%
+}
+
+\newenvironment{thesisabstract}{%
+  \chapter*{Abstract}
+  \thispagestyle{plain}
+}{%
+}
+
+\newenvironment{acknowledgments}{%
+  \chapter*{Acknowledgments}
+  \thispagestyle{plain}
+}{%
+}
+
+\colorlet{thmcolor}{fernuni_darkgrey}
+\colorlet{defncolor}{fernuni_lightblue}
+
+\newtheoremstyle{plain}
+{8pt} % Space above
+{8pt} % Space below
+{\itshape} % Body font
+{} % Indent amount
+{\bfseries\color{thmcolor}} % Theorem head font
+{} % Punctuation after theorem head
+{0.5em} % Space after theorem head
+{}
+
+\newtheoremstyle{definition}
+{8pt} % Space above
+{8pt} % Space below
+{} % Body font
+{} % Indent amount
+{\bfseries\color{defncolor}} % Theorem head font
+{} % Punctuation after theorem head
+{0.5em} % Space after theorem head
+{}
+
+\newtheoremstyle{remark}
+{8pt} % Space above
+{8pt} % Space below
+{} % Body font
+{} % Indent amount
+{\bfseries\color{thmcolor}} % Theorem head font
+{} % Punctuation after theorem head
+{0.5em} % Space after theorem head
+{}
+
+% Additional utility commands
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{TODO: #1}}}
+\newcommand{\NOTE}[1]{\textcolor{blue}{\textbf{NOTE: #1}}}
+
+
+% End of package
+\endinput
