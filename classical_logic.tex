@@ -1905,20 +1905,17 @@ $a.\text{den}$), and finally rearrange to match the required form. After
 canceling $b.\text{den}$, we obtain $a \leq c$.
 Here the full construction of myRat: [\href{https://live.lean-lang.org/#codez=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}{link to Lean live}]
 
-\section{Type Classes and Algebraic Hierarchy in Lean}
+With  the use of a type class suich as PartialOrder we thus nenahnced myRat to be
+a member of an algebraic hierarchy. This allows us to use general theorems
+about partial orders, such as transitivity of less-or-equal, without
+redefining them specifically for myRat.
+This apporoach is at the base of Mathlib's design, and needs some discussion.
+\section{Type Classes and Algebraic Hierarchy}
 
-Similarly, in our earlier work with natural numbers, we used \lstinline[language=lean]|Nat.le_trans|,
-a theorem specifically for natural numbers that is part of Lean's core library
-(\lstinline[language=lean]|lean/Init/Prelude.lean|). Mathlib is built on top of this base library.
-However, the transitivity property holds not only for naturals but also for integers,
-reals, and, in fact, for any partially ordered set.
-Rather than duplicating this theorem for each type, Mathlib provides a general
-lemma \lstinline[language=lean]|le_trans| that works for any type \lstinline[language=lean]|α|
-endowed with a partial ordering.
-This is achieved through \textbf{type classes}, Lean's mechanism for defining and working with
-abstract algebraic structures in an ad hoc polymorphic manner.
-Type classes provide a powerful and flexible way to specify properties and operations that can be
-shared across different types, thereby enabling polymorphism and code reuse. Ad hoc polymorphism
+Type classes provide a powerful and flexible
+way to specify properties and operations that can be
+shared across different types, thereby enabling polymorphism and code reuse.
+Ad hoc polymorphism
 arises when a function or operator is defined over several distinct types, with behavior that varies
 depending on the type.
 A standard example \cite{wadler_blott_ad_hoc_polymorphism_1988} is overloaded multiplication:
@@ -2001,44 +1998,6 @@ instance : Group ℤ where
 \end{lstlisting}
 Now, any theorem proven for an arbitrary \lstinline[language=lean]|Group α|
 automatically applies to \lstinline[language=lean]|ℤ| without any additional work.
-This mechanism is particularly useful for defining and working with order structures
-like preorders and partial orders. Mathematically, a preorder consists
-of a set \lstinline[language=lean]|P| and a binary relation \lstinline[language=lean]|≤|
-on \lstinline[language=lean]|P| that is reflexive and transitive \cite{mathinlean}.
-\newpage
-\begin{lstlisting}[language=lean, caption=Preorder Type Class in Lean]
--- A preorder is a reflexive, transitive relation `≤` with `<` defined in terms of `≤`
-class Preorder (α : Type*) extends LE α, LT α where
-  le_refl : ∀ a : α, a ≤ a
-  le_trans : ∀ a b c : α, a ≤ b → b ≤ c → a ≤ c
-  lt := fun a b => a ≤ b ∧ ¬ b ≤ a
-  lt_iff_le_not_ge : ∀ a b : α, a < b ↔ a ≤ b ∧ ¬ b ≤ a := by intros; rfl
-
-instance [Preorder α] : Lean.Grind.Preorder α where
-  le_refl := Preorder.le_refl
-  le_trans := Preorder.le_trans _ _ _
-  lt_iff_le_not_le := Preorder.lt_iff_le_not_ge _ _
-\end{lstlisting}
-
-The \lstinline[language=lean]|class Preorder| declares a type class over a type
-\lstinline[language=lean]|α|, bundling the \lstinline[language=lean]|≤|
-and \lstinline[language=lean]|<| relations
-(inherited via \lstinline[language=lean]|extends LE α, LT α|)
-with the preorder axioms: reflexivity (\lstinline[language=lean]|le_refl|)
-and transitivity (\lstinline[language=lean]|le_trans|).
-The field \lstinline[language=lean]|lt| provides a default definition of strict
-inequality in terms of \lstinline[language=lean]|≤|,
-and the theorem \lstinline[language=lean]|lt_iff_le_not_ge| characterizes this relationship,
-proved automatically via reflexivity (\lstinline[language=lean]|by intros; rfl|).
-The \lstinline[language=lean]|instance| declaration connects the \lstinline[language=lean]|Preorder|
-class to Lean's \lstinline[language=lean]|Grind| tactic automation, which allows automatic
-reasoning with preorder properties during proof search.
-Returning to our rational number proof, this explains why lemmas
-like \lstinline[language=lean]|add_nonneg| and \lstinline[language=lean]|mul_nonneg|
-work seamlessly: \lstinline[language=lean]|ℚ| is an instance of
-\lstinline[language=lean]|OrderedSemiring|, which extends
-\lstinline[language=lean]|Preorder| and other algebraic structures,
-automatically providing all their theorems.
 
 
 We have roughly seen how Lean constructively builds the rational numbers
