@@ -338,15 +338,19 @@ Moreover, once understood, filters often make proofs more
 concise and elegant by allowing us to reason
 at a higher level of abstraction.
 \subsubsection{Limits and Convergence with Filters}
-As seen before, continuity is defined in the \lstinline[language=lean]|Topology| type class.
+As seen before, continuity is defined in the \lstinline[language=lean]|Topology|
+type class, in terms of open sets.
 One can create their own epsilon-delta definition given a notion of distance.
-Similarly, defining the convergence of a sequence in $\mathbb{R}$ can be done manually as follows:
-\begin{lstlisting}[language=lean]
-def ConvergesTo (ε : ℝ > 0)(s : ℕ → ℝ) (a : ℝ) :=
-  ∀ ε > 0, ∃ N, ∀ n ≥ N, |s n - a| < ε
-\end{lstlisting}
+Another common definition of continuity is via limits and convergence.
+
+% Similarly, defining the convergence of a sequence in $\mathbb{R}$ can be done manually as follows:
+% \begin{lstlisting}[language=lean]
+% def ConvergesTo (ε : ℝ > 0)(s : ℕ → ℝ) (a : ℝ) :=
+%   ∀ ε > 0, ∃ N, ∀ n ≥ N, |s n - a| < ε
+% \end{lstlisting}
 Where \lstinline[language=lean]|s| is a sequence and \lstinline[language=lean]|a| is the limit point.
-However, there are many other types of limits to consider, like lmits of a function at a point,
+The concept of a lmit is quiet extended, there are many types of limits to consider.
+For intance the lmiti of a function at a point,
 limits at infinity (from above or below), one-sided limits (from the left or right) and so on.
 Defining each of these separately would require a huge amount of work to include in Mathlib,
 with significant duplication of theorems and proofs. Moreover, many fundamental theorems
@@ -395,16 +399,58 @@ We are going to use some of the following concetps:
         % preimage $f^{-1}(U) \in l_1$.
 \end{itemize}
 \begin{example}
-  Here some examples of the use of filter in Lean.
+  Coming back to limits and convergence, we can express various notions using filters:
   \begin{itemize}
     \item Sequence convergence: \lstinline[language=lean]|Tendsto s atTop (𝓝 a)| means $s_n \to a$ as $n \to \infty$
-    \item Function limits: \lstinline[language=lean]|Tendsto f (𝓝 x) (𝓝 y)| means $f(x') \to y$ as $x' \to x$
     \item Continuity: A function is continuous at $x$ iff \lstinline[language=lean]|Tendsto f (𝓝 x) (𝓝 (f x))|
           (does this remember the continuity in terms of open sets?)
           % \item Limits at infinity: \lstinline[language=lean]|Tendsto f atTop (𝓝 y)| means $f(x) \to y$ as $x \to \infty$
           % \item One-sided limits: \lstinline[language=lean]|Tendsto f (𝓝[>] x) (𝓝 y)| means $f$ approaches $y$ from the right of $x$
   \end{itemize}
 \end{example}
+In Mathlib, \lstinline[language=lean]|Continuous| is a structure defined in terms of open sets,
+as stated before, for global continuity. However, Mathlib also provides alternative definitions
+for local continuity: \lstinline[language=lean]|ContinuousAt| defines continuity at a single point,
+\lstinline[language=lean]|ContinuousWithinAt| defines continuity within a set at a point, and
+\lstinline[language=lean]|ContinuousOn| defines continuity on an entire set.
+All these local characterizations are defined in terms of filters, providing a more flexible
+framework than the global open set definition.
+
+The connection between the global continuity definition and the filter-based local definitions
+is established by the following fundamental theorem:
+
+\begin{lstlisting}[language=lean]
+theorem Continuous.tendsto (hf : Continuous f) (x) : 
+    Tendsto f (𝓝 x) (𝓝 (f x)) :=
+  ((nhds_basis_opens x).tendsto_iff <| nhds_basis_opens <| f x).2 fun t ⟨hxt, ht⟩ =>
+    ⟨f ⁻¹' t, ⟨hxt, ht.preimage hf⟩, Subset.rfl⟩
+\end{lstlisting}
+
+This theorem shows that global continuity implies continuity at every point in the filter-based sense.
+Using this bridge, we can derive the following corollary:
+
+\begin{lstlisting}[language=lean]
+theorem Continuous.continuousAt (h : Continuous f) : ContinuousAt f x :=
+  h.tendsto x
+\end{lstlisting}
+
+Thus, \lstinline[language=lean]|Continuous| implies \lstinline[language=lean]|ContinuousAt|,
+establishing that global continuity is equivalent to pointwise continuity at every point.
+The remaining local continuity concepts are defined similarly, all in terms of the limit
+characterization:
+
+\begin{lstlisting}[language=lean]
+def ContinuousAt (f : X → Y) (x : X) :=
+  Tendsto f (𝓝 x) (𝓝 (f x))
+def ContinuousWithinAt (f : X → Y) (s : Set X) (x : X) : Prop :=
+  Tendsto f (𝓝[s] x) (𝓝 (f x))
+def ContinuousOn (f : X → Y) (s : Set X) : Prop :=
+  ∀ x ∈ s, ContinuousWithinAt f s x
+\end{lstlisting}
+
+Note that \lstinline[language=lean]|𝓝[s] x| denotes the neighborhood filter of $x$ restricted
+to the set $s$, allowing us to study the behavior of functions on arbitrary subsets.
+
 Using filters, we can prove that $T \subseteq \overline{S}$ by
 showing that the origin is a
 limit point of $S$.
