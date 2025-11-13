@@ -22,18 +22,18 @@ while leaving the remaining checks to be performed at runtime.
   In a dynamically typed language, like JavaScript, variables can change type after
   they are created. For example, a variable defined as a number can later
   be reassigned to a string:
-  % \begin{lstlisting}[language=JavaScript]
-  %   let price = 100; // Javascript internal system recognize this variable as a number
-  %   price = "100";   // "100" transform the number 100 to a string. This is valid in JavaScript
-  %   \end{lstlisting}
+  \begin{lstlisting}[language=JavaScript]
+    let price = 100; // Javascript internal system recognize this variable as a number
+    price = "100";   // "100" transform the number 100 to a string. This is valid in JavaScript
+  \end{lstlisting}
   TypeScript is a statically typed superset of JavaScript.
   Unlike JavaScript, it performs type checking at compile time.
   This means we can prevent the previous behavior, while writing our code, simply by adding
   a type annotation:
-  % \begin{lstlisting}[language=TypeScript]
-  %   let price: number = 100;
-  %   price = "100";  // Error: Type 'string' is not assignable to type 'number'
-  %   \end{lstlisting}
+  \begin{lstlisting}[language=TypeScript]
+    let price: number = 100;
+    price = "100";  // Error: Type 'string' is not assignable to type 'number'
+  \end{lstlisting}
   Now converting a variable with type annotation number to a string results into a compile time error.
 \end{example}
 
