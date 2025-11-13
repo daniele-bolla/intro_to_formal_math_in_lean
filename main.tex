@@ -1,19 +1,12 @@
-
-
-
-% \title{An introduction to formal mathematics in Lean}
-% \author{Daniele Bolla}
-% \date{\today}
-
 \documentclass[12pt,a4paper]{book}
 \usepackage{thesis}
 \usepackage{hyperref}
-\usepackage{stmaryrd}  % For \llbracket and \rrbracket
+\usepackage{stmaryrd} 
 \usepackage{listings}
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{mathtools}
-\usepackage{bussproofs} % for natural deduction rules
+\usepackage{bussproofs}
 \usepackage{color}
 \usepackage[backend=biber,style=alphabetic]{biblatex}
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -103,256 +96,73 @@
 
 % Abstract
 \begin{thesisabstract}
-    This bachelor thesis explores applications of fixed point theory in mathematical analysis, with particular focus on the Banach fixed point theorem and its generalizations. The work investigates both theoretical foundations and practical applications of fixed point theorems in solving equations and optimization problems.
+    % This bachelor thesis explores applications of fixed point theory
+    % in mathematical analysis, with particular focus on
+    % the Banach fixed point theorem and its generalizations.
+    % The work investigates both theoretical foundations and practical
+    % applications of fixed point theorems in solving equations and
+    % optimization problems.
 
-    The main contributions of this thesis include a comprehensive survey of classical fixed point theorems, detailed proofs of key results, and several novel applications to problems in numerical analysis and differential equations. We demonstrate how fixed point theory provides a unifying framework for understanding convergence properties of iterative methods and existence theorems for solutions of functional equations.
+    % The main contributions of this thesis include a comprehensive
+    % survey of classical fixed point theorems, detailed proofs of key
+    % results, and several novel applications to problems in numerical
+    % analysis and differential equations. We demonstrate how fixed
+    % point theory provides a unifying framework for understanding
+    % convergence properties of iterative methods and existence theorems
+    % for solutions of functional equations.
 
-    The thesis concludes with a discussion of recent developments in the field and potential directions for future research, including extensions to non-metric spaces and applications to machine learning algorithms.
+    % The thesis concludes with a discussion of recent developments in the
+    % field and potential directions for future research, including extensions
+    % to non-metric spaces and applications to machine learning algorithms.
+
+    This thesis serves as an introduction to formal mathematics using the
+    Lean proof assistant. After a brief overview of the Curry--Howard
+    correspondence, we explore how mathematical structures and
+    properties are defined and utilized in Lean and Mathlib.
+    Finally, we present a formalization of the topologist's sine curve,
+    which has been merged into the Mathlib library,
+    contributing to the broader Lean community.
+
+    During the work on this thesis, I have explored new concepts
+    in both mathematics and computer science, starting from logic and
+    type theory within the Curry--Howard correspondence.
+    The practice of formal and constructive mathematics has influenced
+    my approach to mathematical reasoning. In constructing the rational
+    numbers in Lean, I explored the algebraic construction using quotients,
+    which is reflected in Lean through quotient types. I further examined
+    how algebraic structures such as groups and rings are defined using
+    structures and type classes. For more technical depth, I studied
+    filters to generalize the notion of convergence in topology.
+    The formalization of the topologist's sine curve has deepened
+    my understanding of connectedness, closures, and continuity in topology.
+
+
 \end{thesisabstract}
 
 % Acknowledgments
 \begin{acknowledgments}
-    I would like to express my sincere gratitude ...
+    I would like to express my sincere gratitude to Prof. David Loeffler for
+    the consistent support.
+    His mentorship has been particualary beneficial in enlightening my path through
+    formal mathematics, shaping the thesis and giving me a chance to
+    actually contribute to Lean community.
+
+    Moreover, I deeply thank FernUni for the opportunity to pursue my
+    studies. I feel honored to have been able to study
+    mathematics at this stage of my life through a flexible and
+    high-quality program.
+
+    The expertise of all professors have
+    been exceptional, and I hope to continue my studies in the future.
 \end{acknowledgments}
 
 % Table of contents
 \tableofcontents
 
-
-
 \input{intro}
-% \input{constructive_math}
-% \input{simply_typed_lambda_calculus}
-% \input{types_tems_judgments}
-% \input{function_types}
-% \input{product_types}
-% \input{sum_types}
-% \input{curry_howard}
-% \input{dependent_types}
-
-\input{classical_logic}
+\input{logic_prop_as_types}
+\input{describe_use_properties}
 \input{topologist_sine_curve}
 
-% \section{TODOs and Next Sections}
-
-% \begin{itemize}
-%     \item Revisit Section 2
-%           \begin{itemize}
-%               \item Make it more practical by removing most of the rules and type theory details.
-%               \item Add more Lean code examples and emphasize the Curry–Howard correspondence.
-%           \end{itemize}
-%     \item Example on Rational Numbers
-%     \item Overview of \texttt{mathlib}
-%     \item Lean Tactics
-%     \item Type Coercions
-%     \item Structures and Type Classes
-%     \item Constructive Mathematics (briefly):
-%           \begin{itemize}
-%               \item Decidable and inherited type classes
-%               \item \texttt{noncomputable} theorems/lemmas vs. \texttt{def}, etc.
-%           \end{itemize}
-%     \item Construction of Rationals and the Classical Logic Module
-%     \item Sets in Lean
-%     \item Topology in Lean
-%     \item Filters
-%     \item Describe the code example submitted  (this will start in the previous sections)
-%     \item This is the core part of the work; if needed, I can expand it with more
-%           type-theoretical discussion, as I spent quite some time studying it.
-% \end{itemize}
-
-% \input{constructive_math}
-% \input{types_tems_judgments}
-% \input{function_types}
-% \input{product_types}  
-% \input{sum_types}  
-% \input{curry_howard}
-% \input{dependent_types}
-% \section{Inductive Types}
-% \section{Universes and Prop}
-% Propositions is a type in that should have only one elemnt or none. (Thorsten / Vladimir Voevodsky)
-
-% proposaitional truncation. if a type is inhabited then it's true otherwise false.
-% with proposaitional truncation we hide the witness adn we can rwerite 
-% propostion as types (thorsten)
-% Diaconescu's theorem: the axiom of choice implies the law of the excluded middle.
-
-% \section{Proof Evaluation}
-
-% In type theory, proof evaluation is achieved through \textbf{normalization}, a process that simplifies terms (proofs) into irreducible forms while preserving their semantic meaning. This computational foundation underlies how logical reasoning translates into algorithmic verification.
-
-% If $p$ is a proof of $A$ and $q$ is a proof of $B$, then the pair $(p, q)$ constitutes a proof of $A \land B$. Conversely, given such a proof, we can extract the individual proofs of $A$ and $B$ using the projection functions $\mathsf{fst}$ and $\mathsf{snd}$, which extract the first and second components of the pair, respectively. The computational behavior of these projections is governed by the reduction rules $\mathsf{fst}(p, q) \rightsquigarrow p$ and $\mathsf{snd}(p, q) \rightsquigarrow q$, where the symbol $\rightsquigarrow$ denotes \emph{reduces to}, indicating a single computational step. We use $\twoheadrightarrow$ to denote the reflexive-transitive closure of this relation, representing multi-step reduction.
-
-% Normalization applies two fundamental reduction rules. \textbf{Beta-reduction} substitutes arguments into function bodies, as exemplified by $(\lambda x. x + 1)(2) \rightsquigarrow 2 + 1 \rightsquigarrow 3$. \textbf{Eta-reduction} eliminates redundant lambda abstractions, such as $\lambda x. f(x) \rightsquigarrow f$.
-
-% Lean's kernel validates proofs by normalizing proof terms through type checking, which verifies that terms conform to their assigned types (propositions), and reduction, which simplifies proof terms using beta and eta rules to confirm equivalence. 
-% \begin{example}
-%     For example, when proving $2 + 2 = 4$, the system reduces the left-hand side to its normal form and verifies definitional equality with the right-hand side.
-
-%     \begin{lstlisting}[language=Lean]
-%     example : 2 + 2 = 4 := by
-%       simp [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
-%     \end{lstlisting}
-% \end{example}
-
-% Here, the \textbf{simp} tactic applies computational rules to simplify the terms. In this simple case, one could have directly use \textbf{rfl} (reflexivity) to check for the equality.
-
-
-% Profof by inducirton lic associativer for Nat  addition
-% is recurisonj and pattern matching  
-
-% You can prove induction by recursion thus induction and recursion are the same  in Type Theory      
-% \begin{lstlisting}[language=Lean]
-% theorem t_add_assoc (a b c : Nat) : (a + b) + c = a + (b + c) := by
-%   induction a with
-%   | zero => rw[Nat.zero_add, Nat.add_zero] -- Base case: normalizes ‘0 + b + c‘ to ‘b + c‘ and proves ‘b + c = 0 + (b + c)‘
-%   | succ a ih => -- Inductive step: uses hypothesis ‘ih : (a + b) + c = a + (b + c)‘
-%     rw [Nat.succ_add, Nat.add_succ, ih] -- Normalizes ‘(a + b) + c + 1‘ to ‘(a + b + 1)‘ and proves ‘(a + b) + c + 1 = a + (b + c + 1)‘
-% \end{lstlisting}
-% \section{Equality}
-
-% \begin{quote}
-% "Syntactic equality is they look identical, definitional equality is they are the same, propositional equality is they turn out to be the same." – Bhavik Mehta
-% \end{quote}
-% There is no relevant distinction between the keywords def and lemma for our purposes,
-% apart from indicating whether the declaration exists in a Type or the Prop universe
-% Lean distinguishes between three different kinds of equality, and understanding their differences is crucial for effective proof development.
-
-% \textbf{Syntactic equality} is the strongest form, where two expressions are literally identical in their textual representation. This is primarily what tactics like \textbf{rw} and \textbf{simp} work with when performing substitutions (eta conversion).
-
-% \textbf{Definitional equality} ($\equiv$) occurs when two expressions represent the same mathematical object after applying computational reductions and definitional unfolding. For example, $2 + 2 \equiv 4$ because the left side reduces to the right side through computation. This is the equality that tactics like \textbf{exact}, \textbf{intro}, and \textbf{refl} recognize automatically without requiring explicit proof.
-
-% \textbf{Propositional equality} ($=$) corresponds to the "usual" mathematical notion of equality and requires an explicit proof term to establish. For instance, proving $a + b = b + a$ requires demonstrating commutativity through mathematical reasoning rather than mere computation.
-
-% The relationship between these equalities follows a hierarchy: syntactic equality implies definitional equality, which in turn can be used to establish propositional equality, but not vice versa.
-
-% Identity type J combinator
-% % \textbf{Subject Reduction and Kernel Validation:} Lean's type system ensures that if $t : T$ and $t$ reduces through normalization to $t'$ (written $t \rightsquigarrow t'$), then $t'$ maintains the same type: $t' : T$. This property guarantees that well-typed terms remain well-typed throughout evaluation.
-
-% % Lean's kernel validates proofs through a systematic process. It first normalizes proof terms by reducing complex expressions to their canonical forms through $\beta$-reduction and definitional unfolding. Then it checks syntactic equality by verifying that normalized proof terms are syntactically identical to what the target type expects.
-% \begin{example}
-% Consider this proof of commutativity for natural number addition:
-
-% \begin{lstlisting}[language=Lean]
-% theorem t_add_comm (a b : Nat) : a + b = b + a := by
-%   induction a with
-%   | zero => rw[Nat.zero_add, Nat.add_zero] -- Base case: normalizes ‘0 + b‘ to ‘b‘ and proves ‘b = b + 0‘
-%   | succ a ih => -- Inductive step: uses hypothesis ‘ih : a + b = b + a‘
-%     rw [Nat.succ_add, Nat.add_succ, ih] -- Normalizes ‘(a + b) + 1‘ to ‘b + (a + 1)‘ and proves ‘b + a + 1 = b + (a + 1)‘
-
-% \end{lstlisting}
-
-% \end{example}
-
-% During type checking, Lean normalizes the proof terms at each step, ensuring that the inductive reasoning is sound and that the final proof term indeed has type \textbf{a + b = b + a}. This demonstrates how all three forms of equality work together: the kernel uses definitional equality to normalize terms, checks syntactic equality for verification, and ultimately establishes propositional equality through the completed proof.
-% Definitional equality ($\equiv$) is equality verified by computational reduction, determined by the type checker automatically (e.g., $2 + 2 \equiv 4$), as seen in precedence. Propositional equality ($=$) is equality that requires an explicit proof term to establish (e.g., $a + b = b + a$).
-
-% If $t : T$ and $t$ reduces (by normalizaion) to $t'$ (written $t \rightsquigarrow t'$), then $t'$ maintains the same type: $t' : T$. This guarantees that well-typed terms remain well-typed throughout evaluation.
-
-% From a computational perspective, any two proofs are essentially the same. If $P : \text{Prop}$ is any proposition, Lean's kernel treats any two elements $t_1, t_2 : P$ as being definitionally equal, much the same way as it treats $(\lambda x \mapsto t) \, s$ and $t[s/x]$ as definitionally equal. This principle is known as \textbf{proof irrelevance}.
-
-% % \begin{definition}[Proof Irrelevance] 
-% % For any proposition $P : \text{Prop}$ and any two proof terms $t_1, t_2 : P$, we have:
-% % $$t_1 \equiv t_2$$
-% % where $\equiv$ denotes definitional equality in Lean's type theory.
-% % \end{definition}
-
-% This means that even though we can treat proofs $t : P$ as ordinary objects in the language of type theory, they carry no computational information beyond the fact that $P$ is true. 
-
-% \begin{example}
-% Consider two different proofs of the same proposition:
-
-% \begin{lstlisting}[language=Lean]
-% theorem proof1 (p q : Prop) (hp : p) (hq : q) : p \land q := 
-%   And.intro hp hq
-
-% theorem proof2 (p q : Prop) (hp : p) (hq : q) : p \land q := 
-%   ⟨hp, hq⟩
-
-% -- These are definitionally equal despite different constructions
-% example (p q : Prop) (hp : p) (hq : q) : 
-%   proof1 p q hp hq = proof2 p q hp hq := rfl
-% \end{lstlisting}
-% \end{example}
-
-% As a consequence, proofs can be erased during compilation without affecting program behavior, allowing computational efficiency.
-
-
-% \section{Summary}
-% It's a quiet informal and naive introduction. I intend to add more refinements such as proper definitions and examples (i need to work on the lean formatting as well), but the overall style and approach will stay the same.
-% Anyway o don't want to give a full explanation of Lean tactic or syntax, just briefly touching some of those concepts.
-
-% I mostly used Type Theory and Functional
-% Programming by Simon Thompson \cite{thompson1999type} and the Theorem Prover Book. 
-% I've borrowed the lambda calculus part from the Hott Book and conveniently 
-% added when discussing function types.
-% Later, i may add a dedicated (short) section on lambda calculus, although i am still deciding.
-
-% I'd like to add more context throughout, especially some Lean examples. 
-% For instance the first part need bit of more attention.
-
-% I'm planning to continue with these topics next, though i want to revisit what i've written 
-% so far since i'm not entirely happy with it yet:
-
-
-% From Programming in Martin-Löf's Type Theory:
-
-% \begin{itemize}
-% \item Quantifiers and Dependent Types
-% \item Universes
-% \item Inductive Types
-
-
-% \end{itemize}
-
-% "Intuitively, a type is a collection of objects together with an equivalence relation. 
-% Examples of types are the type of sets, the type of elements in a set, the type of propositions, 
-% ...the type of predicates over a given set."
-
-% % nice larticle: https://functional.works-hub.com/learn/dependent-types-explained-2e233
-% \section{Lean's specific flavor of DTT has:}
-
-
-% \begin{itemize}
-%   \item an impredicative universe \texttt{Prop} of propositions
-%   \item definitional proof irrelevance
-%   \item no universe cumulativity
-%   \item indexed, mutual and nested inductive types
-%   \item an $\eta$ reduction rule for lambdas and structures
-% \end{itemize}
-
-% \section{Actual axioms}
-
-% \begin{itemize}
-%   \item Propositional extensionality
-%   \[
-%     \mathsf{propext} : \forall p, q : \mathbb{P},\ (p \leftrightarrow q) \to p = q
-%   \]
-
-%   \item Quotient types
-%   \[
-%     \mathsf{quot} : \forall \alpha : U_n,\ (\alpha \to \alpha \to \mathbb{P}) \to U_n
-%   \]
-%   \[
-%     \mathsf{mk}_{\alpha, r} : \alpha \to \alpha / r
-%   \]
-%   \[
-%     \mathsf{lift}_{\alpha, r} : \forall \beta.\ \forall f : \alpha \to \beta.\ 
-%     (\forall x\, y.\ r\ x\ y \to f\ x = f\ y) \to \alpha / r \to \beta
-%   \]
-%   \[
-%     \mathsf{sound}_{\alpha, r} : \forall x\, y.\ r\ x\ y \to \mathsf{mk}\ x = \mathsf{mk}\ y
-%   \]
-%   \[
-%     \mathsf{lift}\ \beta\ f\ H\ (\mathsf{mk}\ x) \equiv f\ x
-%   \]
-
-%   \item The axiom of choice
-%   \[
-%     \mathsf{nonempty}\ \alpha := \mu T : U_0.\ (\mathsf{intro} : \alpha \to T)
-%   \]
-%   \[
-%     \mathsf{choice} : \forall \alpha : U_n,\ \mathsf{nonempty}\ \alpha \to \alpha
-%   \]
-% \end{itemize}
 \printbibliography
 \end{document}
