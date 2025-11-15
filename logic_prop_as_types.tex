@@ -4,8 +4,7 @@
 Logic is the study of reasoning, branching into various systems.
 We refer to \textbf{classical logic} as the one that underpins much
 of traditional mathematics.
-It's the logic of the ancient Greeks (not fair) and truthtables, and it remains
-used nowadays for pedagogical reasons.
+It's the logic of truthtables.
 We first introduce \textbf{propositional logic}, which is the simplest
 form of classical logic.
 Later we will extend this to \textbf{predicate (or first-order) logic}, which includes
@@ -14,22 +13,18 @@ In this setting, a \textbf{proposition} is a statement that is either true or fa
 and a \textbf{proof} is a logical argument that establishes the truth of a
 proposition.
 Propositions can be combined with logical \textbf{connectives} such as ``and'' ($\wedge$),
-``or'' ($\vee$), ``not'' ($\neg$),``false'' ($\bot$), ,``true'' ($\top$) ``implies'' ($\Rightarrow$),  and ``if and only if'' ($\Leftrightarrow$).
+``or'' ($\vee$), ``not'' ($\neg$),``false'' ($\bot$), ,``true'' ($\top$)
+``implies'' ($\Rightarrow$),  and ``if and only if'' ($\Leftrightarrow$).
 These connectives allow the creation of complex or compound propositions.
-\newpage
 Here how connectives are defined in Lean:
 \begin{example}[LogicaL connectives in Lean]\mbox{}
   \begin{lstlisting}[language=lean]
     #check And (a b : Prop) : Prop
     #check Or (a b : Prop) : Prop
-    #check True : Prop
-    #check False : Prop
-    #check Not (a : Prop) : Prop
-    #check Iff (a b : Prop) : Prop
   \end{lstlisting}
   \lstinline[language=lean]|Prop| stands for proposition, and it is an
   essential component of Lean’s type system.
-  For now, we can think of it as a special type whose
+  We can think of it as a special type whose
   inhabitants are proofs; somewhat
   paradoxically, a type of types.
 \end{example}
@@ -40,7 +35,7 @@ It specifies rules for deriving
 \textbf{conclusions} from \textbf{premises} (assumptions from other propositions),
 called \textbf{inference rules}.
 \begin{example}[Deductive style rule]
-  Here is an hypothetical example of inference rule.
+  Here is an hypothetical example of inference rule (\cite{nordstrom1990programming}, page 35).
   \begin{prooftree}
     \AxiomC{$P_1$}
     \AxiomC{$P_2$}
@@ -50,12 +45,11 @@ called \textbf{inference rules}.
   \end{prooftree}
   Where the $P_1, P_2, \ldots, P_n$, above the line, are hypothetical premises and, the hypothetical conclusion $C$ is below the line.
 \end{example}
-The inference rules needed are:
-\begin{itemize}
-  \item \textbf{Introduction rules} specify how to form compound propositions from simpler ones, and
-  \item \textbf{Elimination rules} specify how to use compound propositions to derive information about their components.
-\end{itemize}
-Let's look at how we can define some connectives first using natural deduction.
+The inference rules needed are, \textbf{introduction rules} wich specify
+how to form compound propositions from simpler ones, and
+\textbf{Elimination rules} needed to derive information about their components.
+Let's look at how we can define some connectives first using
+natural deduction, (from \cite{thompson1999types}, Section 1.1).
 \paragraph{Conjunction ($\land$)}
 \paragraph{Introduction Rule}
 \begin{prooftree}
@@ -128,17 +122,14 @@ Let's look at how we can define some connectives first using natural deduction.
 \begin{notation}
   We use $A \vdash B$ (called turnstile) to designate a
   deduction of $B$ from $A$.
-  It is employed in Gentzen’s \textbf{sequent calculus}
-  (\cite{girard1989proofs})
-  and moslty used in type theory.
+  It is used in judgments and type theory with
+  the meaning of ``entails that''.
   The square brackets around a premise $[A]$ mean that the premise $A$ is meant to
   be \textbf{discharged} at the conclusion. The classical example is the
   introduction rule for the implication connective.
   To prove an implication $A \to B$, we assume $A$
   (shown as $[A]$), derive $B$ under this assumption, and then discharge the
   assumption $A$ to conclude that $A \to B$ holds without the assumption.
-  The turnstile is predominantly used in judgments and type theory with
-  the meaning of ``entails that''.
 \end{notation}
 \section{Primitive Types}
 Type theory employs this porocedure too,
@@ -184,8 +175,8 @@ called the \textbf{product type}.
   \AxiomC{$b : B$}
   \BinaryInfC{$(a, b) : A \times B$}
 \end{prooftree}
-
-\noindent In Lean:
+\newpage
+In Lean:
 \begin{lstlisting}[language=lean]
 Prod.mk a b : Prod A B   -- or A × B
 (a, b) : A × B           
@@ -247,7 +238,7 @@ Sum.inr b : Sum A B
   \AxiomC{$\begin{array}{c}  g : (B \implies C) \end{array}$}
   \TrinaryInfC{$\mathsf{cases}(p, f, g) : C$}
 \end{prooftree}
-In Lean, we can use the \lstinline[language=lean]|cases|:
+In Lean:
 \begin{lstlisting}[language=lean]
 example (p : Sum A B) (f : A → C) (g : B → C) : C := by
   cases p with
@@ -257,20 +248,17 @@ example (p : Sum A B) (f : A → C) (g : B → C) : C := by
 \paragraph{Function Types}
 The type of the form $A \to B$, used in the sum elimination rule
 represents functions from $A$ to $B$.
-\paragraph{Introduction Rule (lambda abstraction)}
+\paragraph{Introduction Rule (function application or lambda abstraction)}
 \begin{prooftree}
   \AxiomC{$\begin{array}{c} x : A  \vdash  \Phi : B \end{array}$}
-  \UnaryInfC{$\lambda x.\Phi : A \to B$}
+  % \UnaryInfC{$\lambda x.\Phi : A \to B$}
+  \UnaryInfC{$f  : A \to B$}
 \end{prooftree}
+Where $f$ is a function that maps any element $x : A$ to an element $\Phi : B$.
 In Lean, lambda abstraction is written using \lstinline[language=lean]|fun| or \lstinline[language=lean]|λ|:
 \begin{lstlisting}[language=lean]
-fun (x : A) => Φ : A → B
--- or using λ notation
-λ (x : A) => Φ : A → B
--- Example: identity function
-def id : A → A := fun x => x
--- or
-def id : A → A := λ x => x
+variable (A : Type*)
+def identityFun : A → A := fun x => x
 \end{lstlisting}
 \paragraph{Elimination Rule (application)}
 \begin{prooftree}
@@ -282,263 +270,161 @@ In Lean, function application is written using juxtaposition:
 \begin{lstlisting}[language=lean]
 example (f : A → B) (a : A) : B := f a
 \end{lstlisting}
-Functions are a primitive concept in type theory,
-and we provide a brief introduction here.
-We can \textbf{apply} a function $f : A \to B$
-to an element $a : A$ to obtain an element of $B$,
-denoted $f(a)$. In type theory, it is common to omit
-the parentheses and write the application simply
-as $f\, a$.
+Functions are a primitive concept in type theory. We can \textbf{apply} a function
+$f : A \to B$ to an element $a : A$ to obtain an element of $B$, denoted $f(a)$.
+In type theory, it is common to omit the parentheses and write the application
+simply as $f \, a$.
+% Functions can also be introduced through \textbf{lambda abstraction}, a concept
+% from lambda calculus, developed by Alonzo Church in the 1930s. Lambda calculus
+% is fundamental in functional programming and represents one of the first
+% appearances of the Curry--Howard correspondence, specifically the connection
+% between function application (lambda abstraction) and implication
+% \cite{church1940formulation}. We will not delve into lambda calculus here.
+For functions of multiple variables, we employ \textbf{currying} (named after
+mathematician Haskell Curry). Instead of using product types $(a,b) : A \times B$,
+we represent
+a two-argument function as a function returning another function. A function
+taking inputs $a : A$ and $b : B$ to produce output in $C$ has type:
+$$f : A \to (B \to C) \equiv A \to B \to C$$
+where the arrow associates to the right by convention. Given $a : A$ and $b : B$,
+we apply $f$ sequentially to obtain $f(a)(b) : C$. To simplify notation,
+we write $f(a)(b)$ as $f(a, b)$, and $f \, a \, b$ as $(f \, a) \, b$
+following left-associative application.
 
-There are two equivalent ways to construct function
-types: either by direct definition or by using
-$\lambda$-abstraction.
-Introducing a function by definition means that
-we introduce a function by giving it a name (let's say, $f$) and saying we define $f : A \to B$ by giving an equation
-\begin{equation} \label{lambda_definition}
-  f(x) \coloneqq \Phi
-\end{equation}
-where $x$ is a variable and $\Phi$ is an expression
-which may use $x$. In order for this to be valid,
-we have to check that $\Phi : B$ assuming $x : A$.
-Now we can compute $f(a)$ by replacing the variable $x$ in $\Phi$ with $a$. As an example,
-consider the function $f : \mathbb{N} \to \mathbb{N}$ which
-is defined by $f(x) \coloneqq x + x$. Then $f(2)$ is \textbf{definitionally equal} to $2 + 2$.
-If we don't want to introduce a name for the
-function, we can use \textbf{$\lambda$-abstraction}.
-Given an expression $\Phi$ of type $B$ which
-may use $x : A$, as above, we write $\lambda(x : A). \Phi$ to
-indicate the same function defined by
-(\ref{lambda_definition}). Thus, we have
-$$ (\lambda(x : A). \Phi) : A \to B. $$
-% \begin{example}
-%   The previously defined function  has the typing
-%   judgment
-%   $$ (\lambda(x : \mathbb{N}). x + x) : \mathbb{N} \to \mathbb{N}. $$
-%   As another example, for any types $A$ and $B$
-%   and any element $y : B$, we have a
-%   \textbf{constant function}
-%   $$ (\lambda(x : A). y) : A \to B. $$
-%   The \textbf{identity function} on any
-%   type $A$ is given by
-%   $$ (\lambda(x : A). x) : A \to A. $$
+% There are two equivalent ways to construct function
+% types: either by direct definition or by using
+% $\lambda$-abstraction.
+% Introducing a function by definition means that
+% we introduce a function by giving it a name (let's say, $f$) 
+% and saying we define $f : A \to B$ by giving an equation
+% \begin{equation} \label{lambda_definition}
+%   f(x) \coloneqq \Phi
+% \end{equation}
+% where $x$ is a variable and $\Phi$ is an expression
+% which may use $x$. In order for this to be valid,
+% we have to check that $\Phi : B$ assuming $x : A$.
+% Now we can compute $f(a)$ by replacing the variable $x$ in $\Phi$ with $a$. As an example,
+% consider the function $f : \mathbb{N} \to \mathbb{N}$ which
+% is defined by $f(x) \coloneqq x + x$. Then $f(2)$ is \textbf{definitionally equal} to $2 + 2$.
+% If we don't want to introduce a name for the
+% function, we can use \textbf{$\lambda$-abstraction}.
+% Given an expression $\Phi$ of type $B$ which
+% may use $x : A$, as above, we write $\lambda(x : A). \Phi$ to
+% indicate the same function defined by
+% (\ref{lambda_definition}). Thus, we have
+% $$ (\lambda(x : A). \Phi) : A \to B. $$
+% % \begin{example}
+% %   The previously defined function  has the typing
+% %   judgment
+% %   $$ (\lambda(x : \mathbb{N}). x + x) : \mathbb{N} \to \mathbb{N}. $$
+% %   As another example, for any types $A$ and $B$
+% %   and any element $y : B$, we have a
+% %   \textbf{constant function}
+% %   $$ (\lambda(x : A). y) : A \to B. $$
+% %   The \textbf{identity function} on any
+% %   type $A$ is given by
+% %   $$ (\lambda(x : A). x) : A \to A. $$
+% % \end{example}
+% [Skippable Part]
+% By convention, the ``scope'' of the variable
+% binding ``$\lambda x.$''
+% is the entire rest of the expression,
+% unless delimited with parentheses.
+% Thus, for instance, $\lambda x. x + x$
+% should be parsed as $\lambda x.(x + x)$,
+% not as $(\lambda x. x) + x$ .
+% Now a $\lambda$-abstraction is a function,
+% so we can apply it to an argument $a : A$.
+% We then have the following computation
+% rule ($\beta$-reduction), which is a
+% \textbf{definitional equality}:
+% $$ (\lambda x. \Phi)(a) \equiv \Phi' $$
+% where $\Phi'$ is the expression $\Phi$ in
+% which all occurrences of $x$ have been
+% replaced by $a$.
+% Continuing the above example, we have
+% $(\lambda x. x + x)(2) \equiv 2 + 2. $
+% % Note that from any function $f : A \to B$,
+% % we can construct a lambda abstraction
+% % function $\lambda x. f(x)$.
+% % Since this is by definition ``the function
+% % that applies $f$ to its argument'' we consider
+% % it to be definitionally
+% % equal to $f$ (\textbf{$\eta$-conversion}):
+% % $$ f \equiv (\lambda x. f(x)). $$
+% % This equality is the uniqueness principle
+% % for function types, because it shows that $f$
+% % is uniquely determined by its values.
+% % The introduction of functions by definitions
+% % with explicit parameters can be reduced to
+% % simple definitions by using $\lambda$-abstraction:
+% % i.e., we can read a definition of $f : A \to B$ by
+% % $$ f(x) \coloneqq \Phi
+% % $$
+% % as
+% % $$ f \coloneqq \lambda x. \Phi. $$
+% When performing calculations involving variables,
+% we must carefully preserve the \textbf{binding structure} of expressions during substitution.
+% Consider the function $f : \mathbb{N} \to (\mathbb{N} \to \mathbb{N})$ defined as:
+% $$ f(x) \coloneqq \lambda y. x + y $$
+% Suppose we have assumed $y : \mathbb{N}$ somewhere in our context. What is $f(y)$?
+% A naive approach would replace $x$ with $y$ directly
+% in the expression $\lambda y. x + y$, yielding $\lambda y. y + y$.
+% However, this substitution is \textbf{semantically incorrect}
+% because it causes \textbf{variable capture}:
+% the free variable $y$ (referring to our assumption)
+% becomes bound by the $\lambda$-abstraction, fundamentally altering the expression's meaning.
+% The correct approach uses \textbf{$\alpha$-conversion} (variable renaming).
+% Since bound variables have only local scope, we can consistently
+% rename them while preserving binding structure.
+% The expression $\lambda y. x + y$ is judgmentally equal to $\lambda z. x + z$ for any fresh variable $z$. Therefore:
+% $$ f(y) \equiv \lambda z. y + z $$
+% This phenomenon parallels familiar mathematical
+% practice: if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$,
+% then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, not the
+% ill-defined $\int_1^2 \frac{dt}{t-t}$.
+% Lambda abstractions bind dummy variables exactly as integrals do.
+% For functions of multiple variables, we employ \textbf{currying}
+% (named after mathematician Haskell Curry).
+% Instead of using product types, we represent a two-argument
+% function as a function returning another function.
+% A function taking inputs $a : A$ and $b : B$ to produce output in $C$ has type:
+% $$ f : A \to (B \to C) \equiv A \to B \to C $$
+% where the arrow associates to the right by convention.
+% Given $a : A$ and $b : B$, we apply $f$ sequentially:
+% first to $a$, then the result to $b$, obtaining $f(a)(b) : C$.
+% To simplify notation and avoid excessive parentheses,
+% we adopt several conventions. We write $f(a)(b)$ as $f(a, b)$
+% for abbreviated application. Without parentheses
+% entirely, $f \, a \, b$ means $(f \, a) \, b$
+% following left-associative application.
+% For multi-parameter definitions,
+% we write $f(x, y) \coloneqq \Phi$ where $\Phi : C$
+% under assumptions $x : A$ and $y : B$.
+% Using $\lambda$-abstraction, such definitions correspond to:
+% $$ f \coloneqq \lambda x. \lambda y. \Phi $$
+% Alternative notation using map symbols:
+% $$ f \coloneqq x \mapsto y \mapsto \Phi $$
+% This currying approach extends naturally to functions of three
+% or more arguments, allowing us to represent any multi-argument
+% function as a sequence of single-argument functions.
+% \begin{example}\mbox{}
+%   \begin{lstlisting}[language=lean]
+% def add : Nat -> (Nat -> Nat) := fun x => (fun y => x + y)
+% #eval add 3 4   -- Output: 7
+% \end{lstlisting}
+%   Theoretically, lambda evaluation proceeds in steps:
+%   \begin{align*}
+%     \text{add } 3\, 4 & \equiv (\text{add } 3)\, 4                         \\
+%                       & \equiv ((\lambda x.\, \lambda y.\, x + y)\, 3)\, 4 \\
+%                       & \equiv ((\lambda y.\, x + y)[x := 3])\, 4          \\
+%                       & \equiv (\lambda y.\, 3 + y)\, 4                    \\
+%                       & \equiv (3 + y)[y := 4]                             \\
+%                       & \equiv 3 + 4                                       \\
+%                       & \equiv 7
+%   \end{align*}
 % \end{example}
-By convention, the ``scope'' of the variable
-binding ``$\lambda x.$''
-is the entire rest of the expression,
-unless delimited with parentheses.
-Thus, for instance, $\lambda x. x + x$
-should be parsed as $\lambda x.(x + x)$,
-not as $(\lambda x. x) + x$ .
-Now a $\lambda$-abstraction is a function,
-so we can apply it to an argument $a : A$.
-We then have the following computation
-rule ($\beta$-reduction), which is a
-\textbf{definitional equality}:
-$$ (\lambda x. \Phi)(a) \equiv \Phi' $$
-where $\Phi'$ is the expression $\Phi$ in
-which all occurrences of $x$ have been
-replaced by $a$.
-Continuing the above example, we have
-$(\lambda x. x + x)(2) \equiv 2 + 2. $
-% Note that from any function $f : A \to B$,
-% we can construct a lambda abstraction
-% function $\lambda x. f(x)$.
-% Since this is by definition ``the function
-% that applies $f$ to its argument'' we consider
-% it to be definitionally
-% equal to $f$ (\textbf{$\eta$-conversion}):
-% $$ f \equiv (\lambda x. f(x)). $$
-% This equality is the uniqueness principle
-% for function types, because it shows that $f$
-% is uniquely determined by its values.
-% The introduction of functions by definitions
-% with explicit parameters can be reduced to
-% simple definitions by using $\lambda$-abstraction:
-% i.e., we can read a definition of $f : A \to B$ by
-% $$ f(x) \coloneqq \Phi
-% $$
-% as
-% $$ f \coloneqq \lambda x. \Phi. $$
-When performing calculations involving variables, we must carefully preserve the \textbf{binding structure} of expressions during substitution. Consider the function $f : \mathbb{N} \to (\mathbb{N} \to \mathbb{N})$ defined as:
-$$ f(x) \coloneqq \lambda y. x + y $$
-Suppose we have assumed $y : \mathbb{N}$ somewhere in our context. What is $f(y)$?
-A naive approach would replace $x$ with $y$ directly in the expression $\lambda y. x + y$, yielding $\lambda y. y + y$. However, this substitution is \textbf{semantically incorrect} because it causes \textbf{variable capture}: the free variable $y$ (referring to our assumption) becomes bound by the $\lambda$-abstraction, fundamentally altering the expression's meaning.
-The correct approach uses \textbf{$\alpha$-conversion} (variable renaming).
-Since bound variables have only local scope, we can consistently rename them while preserving binding structure.
-The expression $\lambda y. x + y$ is judgmentally equal to $\lambda z. x + z$ for any fresh variable $z$. Therefore:
-$$ f(y) \equiv \lambda z. y + z $$
-This phenomenon parallels familiar mathematical practice: if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$,
-then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, not the ill-defined $\int_1^2 \frac{dt}{t-t}$.
-Lambda abstractions bind dummy variables exactly as integrals do.
-For functions of multiple variables, we employ \textbf{currying} (named after mathematician Haskell Curry). Instead of using product types, we represent a two-argument function as a function returning another function.
-A function taking inputs $a : A$ and $b : B$ to produce output in $C$ has type:
-$$ f : A \to (B \to C) \equiv A \to B \to C $$
-where the arrow associates to the right by convention.
-Given $a : A$ and $b : B$, we apply $f$ sequentially: first to $a$, then the result to $b$, obtaining $f(a)(b) : C$.
-To simplify notation and avoid excessive parentheses, we adopt several conventions. We write $f(a)(b)$ as $f(a, b)$ for abbreviated application. Without parentheses entirely, $f \, a \, b$ means $(f \, a) \, b$ following left-associative application. For multi-parameter definitions, we write $f(x, y) \coloneqq \Phi$ where $\Phi : C$ under assumptions $x : A$ and $y : B$.
-Using $\lambda$-abstraction, such definitions correspond to:
-$$ f \coloneqq \lambda x. \lambda y. \Phi $$
-Alternative notation using map symbols:
-$$ f \coloneqq x \mapsto y \mapsto \Phi $$
-This currying approach extends naturally to functions of three or more arguments, allowing us to represent any multi-argument function as a sequence of single-argument functions.
-\begin{example}\mbox{}
-  \begin{lstlisting}[language=lean]
-def add : Nat -> (Nat -> Nat) := fun x => (fun y => x + y)
-#eval add 3 4   -- Output: 7
-\end{lstlisting}
-  Theoretically, lambda evaluation proceeds in steps:
-  \begin{align*}
-    \text{add } 3\, 4 & \equiv (\text{add } 3)\, 4                         \\
-                      & \equiv ((\lambda x.\, \lambda y.\, x + y)\, 3)\, 4 \\
-                      & \equiv ((\lambda y.\, x + y)[x := 3])\, 4          \\
-                      & \equiv (\lambda y.\, 3 + y)\, 4                    \\
-                      & \equiv (3 + y)[y := 4]                             \\
-                      & \equiv 3 + 4                                       \\
-                      & \equiv 7
-  \end{align*}
-\end{example}
-% \paragraph{Computation Rules}
-% \[
-%   \mathsf{match}\ \mathsf{inl}(a) \ \mathsf{with} \ \dots \equiv f(a)
-%   \qquad
-%   \mathsf{match}\ \mathsf{inr}(b) \ \mathsf{with} \ \dots \equiv g(b)
-% \]
-
-% \section{Judgments and Propositions}
-
-% Logic is often formalized through a framework that distinguishes clearly between
-% \textbf{judgments} and \textbf{propositions}, following Martin-Löf's foundational approach
-% (\cite{martin-lof-1983}, \cite{plato:intuitionistic-type-theory}).
-% A \textbf{judgment} represents something we may know — an object of knowledge that becomes
-% evident once we have a proof of it.
-
-% The most fundamental form of judgment in logic is ``\textit{A is true}'', where \( A \) is a
-% proposition. This is formally written as \( A\ \text{true} \).  
-% When we derive such judgments under assumptions, we write
-% $$
-% \Gamma \vdash A\ \text{true},
-% $$
-% where \( \Gamma \) represents our hypothetical assumptions
-% (\cite{pfenning-natded}).
-
-% \begin{example}[Judgment-Based Inference Rules]
-% All logical reasoning can be expressed through \textbf{introduction} and
-% \textbf{elimination} rules for judgments.
-% For instance, conjunction is characterized as follows.
-
-% \textbf{Introduction:} how to establish the judgment \( A \land B\ \text{true} \):
-
-% \begin{prooftree}
-%   \AxiomC{\(A\ \text{true}\)}
-%   \AxiomC{\(B\ \text{true}\)}
-%   \RightLabel{\(\land\text{-I}\)}
-%   \BinaryInfC{\(A \land B\ \text{true}\)}
-% \end{prooftree}
-
-% \textbf{Elimination:} how to use the judgment \( A \land B\ \text{true} \):
-
-% \begin{minipage}[t]{0.45\textwidth}
-% \begin{prooftree}
-%   \AxiomC{\(A \land B\ \text{true}\)}
-%   \RightLabel{\(\land\text{-E}_1\)}
-%   \UnaryInfC{\(A\ \text{true}\)}
-% \end{prooftree}
-% \end{minipage}\hfill
-% \begin{minipage}[t]{0.45\textwidth}
-% \begin{prooftree}
-%   \AxiomC{\(A \land B\ \text{true}\)}
-%   \RightLabel{\(\land\text{-E}_2\)}
-%   \UnaryInfC{\(B\ \text{true}\)}
-% \end{prooftree}
-% \end{minipage}
-% \end{example}
-
-% \begin{notation}[The Turnstile Symbol]
-% The symbol \( \vdash \) (the \textit{turnstile}) separates assumptions from conclusions
-% in judgments.  
-% $$
-% \Gamma \vdash J
-% $$
-% means that the judgment \( J \) follows from the assumptions \( \Gamma \), or equivalently,
-% that \( J \) is evident given evidence for \( \Gamma \).
-
-% When assumptions are \textit{discharged} during reasoning, we indicate this with square
-% brackets \([A]\).
-% For example, to establish an implication \( A \rightarrow B \), we assume \( A \)
-% (written \([A]\)), derive \( B \) under this assumption, then discharge \( A \):
-
-% \begin{prooftree}
-%   \AxiomC{\([A\ \text{true}]^{u}\)}
-%   \AxiomC{\(\vdots\)}
-%   \AxiomC{\(B\ \text{true}\)}
-%   \RightLabel{\(\rightarrow\text{-I}^{u}\)}
-%   \TrinaryInfC{\(A \rightarrow B\ \text{true}\)}
-% \end{prooftree}
-% \end{notation}
-
-% This judgment-based framework extends naturally to \textbf{type theory}, where additional
-% judgment forms are introduced.  
-% While logic focuses on the judgment \( A\ \text{true} \),
-% type theory introduces several fundamental forms 
-% (\cite{plato:intuitionistic-type-theory}):
-
-% \begin{align}
-%   &\Gamma \vdash A\ \text{type}
-%     && \text{(\(A\) is a well-formed type)} \notag \\
-%   &\Gamma \vdash t : A
-%     && \text{(\(t\) is a term of type \(A\))} \notag \\
-%   &\Gamma \vdash A \equiv B\ \text{type}
-%     && \text{(types \(A\) and \(B\) are judgmentally equal)} \notag \\
-%   &\Gamma \vdash t_1 \equiv t_2 : A
-%     && \text{(terms \(t_1\) and \(t_2\) are judgmentally equal)} \notag \\
-% \end{align}
-
-% The \textbf{context} \( \Gamma \) represents a list of assumptions about variables and
-% their types:
-% $$
-% \Gamma = x_1 : A_1,\, x_2 : A_2,\, \ldots,\, x_n : A_n.
-% $$
-
-% \begin{example}[Unified Introduction/Elimination Pattern]
-% Both logical connectives and type constructors follow the same
-% \textit{introduction/elimination} pattern.
-% For function types (corresponding to implication):
-
-% \textbf{Formation:}
-% \begin{prooftree}
-%   \AxiomC{\(\Gamma \vdash A\ \text{type}\)}
-%   \AxiomC{\(\Gamma \vdash B\ \text{type}\)}
-%   \BinaryInfC{\(\Gamma \vdash A \rightarrow B\ \text{type}\)}
-% \end{prooftree}
-
-% \textbf{Introduction:}
-% \begin{prooftree}
-%   \AxiomC{\(\Gamma, x : A \vdash b : B\)}
-%   \RightLabel{\(\rightarrow\text{-I}\)}
-%   \UnaryInfC{\(\Gamma \vdash \lambda x : A.\, b : A \rightarrow B\)}
-% \end{prooftree}
-
-% \textbf{Elimination:}
-% \begin{prooftree}
-%   \AxiomC{\(\Gamma \vdash f : A \rightarrow B\)}
-%   \AxiomC{\(\Gamma \vdash a : A\)}
-%   \RightLabel{\(\rightarrow\text{-E}\)}
-%   \BinaryInfC{\(\Gamma \vdash f(a) : B\)}
-% \end{prooftree}
-
-% This correspondence reveals a deep connection:
-% logical implication and function types share the same structural rules,
-% differing only in focus — whether on truth (\(A \rightarrow B\ \text{true}\))
-% or on typing (\(\lambda x.\,b : A \rightarrow B\)).
-% \end{example}
-
-% \subsection*{References}
-% Per Martin-Löf, \textit{Intuitionistic Type Theory}, 1983–1984. \\
-% P. Dybjer, \textit{Intuitionistic Type Theory}, \textit{Stanford Encyclopedia of Philosophy}, 2016. \\
-% Frank Pfenning, \textit{Logical Frameworks and Natural Deduction}, lecture notes. \\
-% Additional formal presentations and lecture notes on type theory and natural deduction, CMU (various).
-
+% [End Skippable Part]
 
 \section{Curry Howard isomorphism}
 We have been preparing for this argument, and the reader will have surely
@@ -578,10 +464,12 @@ rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.righ
 \begin{example}\label{ex:conj_intro_2}
   Let's look at a simple Lean example:
   \begin{lstlisting}[language=lean]
-    example (ha : a) (hb : b) : (a ∧ b) := And.intro ha hb
+    example {a b : Prop} (ha : a) (hb : b) : (a ∧ b) := And.intro ha hb
   \end{lstlisting}
-  This means: given a proof of $a$ ( \lstinline[language=lean]|ha|)
-  and a proof of $b$  ( \lstinline[language=lean]|hb|) ,
+  Using brackets \lstinline[language=lean]|{ }|, we let Lean infer
+  that $a$ and $b$ are propositions (\lstinline[language=lean]|Prop|).
+  The example means that given a proof of $a$ (\lstinline[language=lean]|ha|)
+  and a proof of $b$  (\lstinline[language=lean]|hb|) ,
   we can form a proof of $(a \land b)$.
   \lstinline[language=lean]|And.intro| is implemented as:
   \begin{lstlisting}[language=lean]
@@ -596,11 +484,12 @@ rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.righ
     example (ha : a) (hb : b) : And(a, b) := ⟨ha, hb⟩
   \end{lstlisting}
 \end{example}
+\noindent
 For a more concrete example, let's look at how
 proof normalization using a system of inference rules
 corresponds to computation in Lean.
 To reduce complexity of a \textbf{proof tree} in natural deduction,
-one follows a
+one, tipically, follows a
 \textbf{top-down} approach,
 unfolding each component to be proved step by step.
 \begin{example}[Associativity of Conjunction]
@@ -636,9 +525,8 @@ unfolding each component to be proved step by step.
 \end{example}
 \begin{example}[Lean Implementation]
   Let us now implement the same proof in Lean.
-  \newpage
   \begin{lstlisting}[language=lean]
-theorem and_associative (a b c : Prop) : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
+theorem and_associative {a b c : Prop} : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
   fun h : (a ∧ b) ∧ c →
   -- First, from the assumption (a ∧ b) ∧ c, we can derive a:
   have hab : a ∧ b := h.left
@@ -671,16 +559,16 @@ theorem and_associative (a b c : Prop) : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
   hb : b
   ⊢ a ∧ b ∧ c
 \end{lstlisting}
+  Resembling type judgments, the goal is juxtaposed after the turnstile.
+  What comes before the turnstile ($\vdash$) is the current context.
   Finally, the \lstinline[language=lean]|show| keyword explicitly states what
   we are proving and verifies that our provided term has the correct type.
   In this case, \lstinline[language=lean]|show a ∧ (b ∧ c) from ⟨ha, ⟨hb, hc⟩⟩|
   asserts that we are constructing a proof of \lstinline[language=lean]|a ∧ (b ∧ c)|
   using the term \lstinline[language=lean]|⟨ha, ⟨hb, hc⟩⟩|.
-  The \lstinline[language=lean]|show| keyword serves two
-  purposes:
-  it makes the proof more readable by explicitly
-  documenting what is being proved at this step,
-  and it performs a type check to ensure the provided
+  The \lstinline[language=lean]|show| keyword makes the proof
+  more readable
+  and ensures the provided
   proof term matches the stated
   goal up to \textbf{definitional equality}.
   Two types are definitionally equal in Lean when they
@@ -699,7 +587,8 @@ To capture more complex mathematical ideas, we extend our system from
 propositional logic to \textbf{predicate logic}.
 A \textbf{predicate} is a statement or proposition that depends on a variable.
 In propositional logic we represent a proposition simply by $P$.
-In predicate logic, this is generalized: a predicate is written as $P(a)$,
+In predicate logic, this is generalized.
+A predicate is written as $P(a)$,
 where $a$ is a variable. Notice that a predicate is just a function.
 This extension allows us to introduce \textbf{quantifiers}:
 $\forall$ (``for all'') and $\exists$ (``there exists'').
@@ -783,7 +672,6 @@ holding for \lstinline[language=lean]|x|.
 %     To eliminate an existential quantifier, we assume $A$ holds for some witness 
 %     and derive $B$ without making any assumptions about the specific witness.
 % \end{itemize}
-
 We can give an informal reading of the quantifiers as infinite logical operations:
 \begin{align*}
   \forall x.\,P(x) & \equiv P(a) \land P(b) \land P(c) \land \ldots \\
@@ -809,24 +697,19 @@ by presenting the Lean syntax.
   \begin{lstlisting}[language=lean]
   ∀ (x : X), P x
   Forall (x : X), P x
-  -- Equivalently, using Pi types
-  Π (x : X), P x
-  \end{lstlisting}
-  \begin{lstlisting}[language=lean]
+  Π (x : X), P x -- Equivalently, using Pi types
   ∃ x : α, p
   Exists (λ x : α => p)
-  -- Equivalently, using Sigma types
-  Σ x : α, p
+  Σ x : α, p -- Equivalently, using Sigma types
   \end{lstlisting}
 \end{example}
 \begin{example}[Universal introduction in Lean]
   The \textbf{universal introduction rule} allows us to prove $\forall x, P(x)$
   by proving $P(x)$ for an \textbf{arbitrary} $x$.
   In Lean, this corresponds to lambda abstraction (constructing a function):
-  \newpage
   \begin{lstlisting}[language=lean]
   example : ∀ n : Nat, n ≥ 0 :=
-    fun n => Nat.zero_le n
+    fun n => Nat.zero_le n -- this is a built-in theorem in Mathlib, we will look into it later.
   \end{lstlisting}
 \end{example}
 \begin{example}[Universal elimination in Lean]
@@ -860,7 +743,6 @@ by presenting the Lean syntax.
   (with a single case).
   In Lean, this is done using \textbf{pattern matching}
   with \lstinline[language=lean]|cases|:
-  \newpage
   \begin{lstlisting}[language=lean]
   example (h : ∃ n : Nat, n > 0) : ∃ n : Nat, n > 0 := by
     cases h with
@@ -877,7 +759,6 @@ nor is it built by first applying logic and then adding structure.
 Instead, logic is internal to type theory and is based on \textbf{constructive}
 (or \textbf{intuitionistic}) logic, introduced by Brouwer and formalized by
 Heyting (see, e.g., \cite{girard1989proofs}).
-
 A major point of departure from classical logic is that, in constructive logic,
 statements cannot simply be classified as true or false;
 their truth depends on whether a proof exists.
@@ -889,12 +770,10 @@ as the \textbf{axiom of choice} or the \textbf{law of excluded middle}
 (every proposition is either true or false) as axioms.
 As a consequence, proof by contradiction does not work in this setting
 without additional justification.
-
 Constructive logic emphasizes that a statement is only
 considered true if we can explicitly construct
 a proof or provide a \textbf{witness} for it.
 This is what makes constructive mathematics inherently \textbf{computable}.
-
 We already touched on this concept in the previous section.
 In particular, we presented the logical connectives via the
 Brouwer--Heyting--Kolmogorov (BHK) interpretation.
@@ -916,7 +795,6 @@ a witness together with a proof that the stated property holds for that witness.
   $3 + 4 = 7$.
   This example is simple enough for Lean to complete the proof automatically.
 \end{example}
-
 In classical mathematics, one might attempt a proof by contradiction.
 However, this approach is not directly accepted in constructive mathematics,
 as it doesn't provide explicit witnesses for the claimed objects.
@@ -924,7 +802,6 @@ Nonetheless, while constructive at its core, Lean allows users to
 invoke classical principles, such as contraposition or proof by contradiction,
 through tactics like \lstinline[language=lean]|exfalso| or by importing
 \lstinline[language=lean]|Classical|.
-
 \begin{example}[Reasoning from false]
   Here is an example of deriving any proposition from a contradiction:
   \begin{lstlisting}[language=lean]
@@ -940,15 +817,3 @@ through tactics like \lstinline[language=lean]|exfalso| or by importing
   This principle is known as \textit{ex falso quodlibet}
   (from falsehood, anything follows).
 \end{example}
-
-% \paragraph{Key Principles of Constructive Mathematics}
-% Some fundamental principles that distinguish constructive from classical mathematics include:
-% \begin{itemize}
-%   \item The law of excluded middle $P \lor \neg P$ is not universally accepted.
-%   \item $\forall (x: \mathbb{N}). (\text{isPrime}(x) \lor \neg \text{isPrime}(x))$
-%         is constructively valid because primality is a decidable property.
-%   \item $\forall (x: \mathbb{N}). (\text{halts}(x) \lor \neg \text{halts}(x))$
-%         is not decidable (where $\text{halts}$ determines if a program terminates).
-%   \item Double negation elimination $\neg \neg P \to P$ is not constructively valid in general,
-%         though $P \to \neg \neg P$ always holds.
-% \end{itemize}

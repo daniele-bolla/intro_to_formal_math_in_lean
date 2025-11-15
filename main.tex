@@ -1,4 +1,5 @@
 \documentclass[12pt,a4paper]{book}
+
 \usepackage{thesis}
 \usepackage{hyperref}
 \usepackage{stmaryrd} 
@@ -9,65 +10,29 @@
 \usepackage{bussproofs}
 \usepackage{color}
 \usepackage[backend=biber,style=alphabetic]{biblatex}
+\addbibresource{bibliography.bib}
+% Listings settings
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
-
-\addbibresource{bibliography.bib}
-
 \definecolor{keywordcolor}{rgb}{0.7, 0.1, 0.1}   % red
 \definecolor{tacticcolor}{rgb}{0.0, 0.1, 0.6}    % blue
 \definecolor{commentcolor}{rgb}{0.4, 0.4, 0.4}   % grey
 \definecolor{symbolcolor}{rgb}{0.0, 0.1, 0.6}    % blue
 \definecolor{sortcolor}{rgb}{0.1, 0.5, 0.1}      % green
 \definecolor{attributecolor}{rgb}{0.7, 0.1, 0.1} % red
-\def\lstlanguagefiles{lstlean.tex, lsttypescript.tex, lstjavascript.tex} % specify the files to load
-% \lstloadlanguages{lean, TypeScript} % load the languages
-% \lstloadlanguages{lean, Javascript} % load the languages
+\def\lstlanguagefiles{lstlean.tex, lsttypescript.tex, lstjavascript.tex}
 % set default language
 \lstset{language=lean}
 
-% Optional packages for your specific needs
-% \usepackage{tikz}           % For diagrams
-% \usepackage{pgfplots}       % For plots
-% \usepackage{listings}       % For code listings
-% \usepackage{algorithm2e}    % For algorithms
-% \usepackage{hyperref}       % For hyperlinks (load last)
-
-% Thesis metadata - CUSTOMIZE THESE
+% Thesis metadata
 \title{Introduction to Formal Mathematics in Lean  with an example in Topology}
 \author{Daniele Bolla}
 \matrikelnr{21-694-187}
 \supervisor{Prof. David Loeffler}
 \submitdate{December 31, 2025}
-% \thesistype{Bachelor Thesis}  % Optional: defaults to "Bachelor Thesis"
-% \faculty{Faculty of Mathematics and Computer Science}  % Optional: already set
-% \universitylogo{FernUni}      % Optional: path to logo file
 
-% Theorem environments
-% \newtheorem{thm}{Theorem}[chapter]
-% \newtheorem{cor}[thm]{Corollary}
-% \newtheorem{prop}[thm]{Proposition}
-% \newtheorem{lem}[thm]{Lemma}
-% \theoremstyle{definition}
-% \newtheorem{defn}[thm]{Definition}
-% \newtheorem{axiom}[thm]{Axiom}
-% \theoremstyle{remark}
-% \newtheorem{rmk}[thm]{Remark}
-% \newtheorem{exmp}[thm]{Example}
-% \newtheorem{exer}[thm]{Exercise}
-
-% Custom commands for mathematics
-\newcommand{\R}{\mathbb{R}}
-\newcommand{\N}{\mathbb{N}}
-\newcommand{\Z}{\mathbb{Z}}
-\newcommand{\Q}{\mathbb{Q}}
-\newcommand{\C}{\mathbb{C}}
-\newcommand{\set}[1]{\{#1\}}
-\newcommand{\abs}[1]{\lvert#1\rvert}
-\newcommand{\norm}[1]{\lVert#1\rVert}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{definition}[theorem]{Definition}  
@@ -83,62 +48,42 @@
 
 % Declaration
 \begin{declaration}
-    I hereby declare that this thesis is my own work, and that no other sources have been used except those indicated in the bibliography. I confirm that generative AI tools were not used in writing any part of this thesis, though they may have been used for preliminary research purposes only.
-
+    I hereby declare that this thesis is my own work, and that no other
+    sources have been used
+    except those indicated in the bibliography.
+    I confirm that generative AI tools were not used in writing any
+    part of this thesis, though they may have been used
+    for preliminary research purposes only.
     \vspace{3cm}
-
     \noindent
     Place, Date \hfill Signature
-
     \vspace{1cm}
-
     \noindent
     \rule{4cm}{0.5pt} \hfill \rule{6cm}{0.5pt}
 \end{declaration}
 
 % Abstract
 \begin{thesisabstract}
-    % This bachelor thesis explores applications of fixed point theory
-    % in mathematical analysis, with particular focus on
-    % the Banach fixed point theorem and its generalizations.
-    % The work investigates both theoretical foundations and practical
-    % applications of fixed point theorems in solving equations and
-    % optimization problems.
-
-    % The main contributions of this thesis include a comprehensive
-    % survey of classical fixed point theorems, detailed proofs of key
-    % results, and several novel applications to problems in numerical
-    % analysis and differential equations. We demonstrate how fixed
-    % point theory provides a unifying framework for understanding
-    % convergence properties of iterative methods and existence theorems
-    % for solutions of functional equations.
-
-    % The thesis concludes with a discussion of recent developments in the
-    % field and potential directions for future research, including extensions
-    % to non-metric spaces and applications to machine learning algorithms.
-
     This thesis serves as an introduction to formal mathematics using the
     Lean proof assistant. After a brief overview of the Curry--Howard
     correspondence, we explore how mathematical structures and
     properties are defined and utilized in Lean and Mathlib.
     Finally, we present a formalization of the topologist's sine curve,
-    which has been merged into the Mathlib library,
-    contributing to the broader Lean community.
+    which has been merged into the Mathlib library as a modest contribution
+    to the broader Lean community.
 
     During the work on this thesis, I have explored new concepts
     in both mathematics and computer science, starting from logic and
-    type theory within the Curry--Howard correspondence.
+    type theory within the Curry-Howard correspondence.
     The practice of formal and constructive mathematics has influenced
     my approach to mathematical reasoning. In constructing the rational
-    numbers in Lean, I explored the algebraic construction using quotients,
+    numbers, I explored their algebraic construction using quotients,
     which is reflected in Lean through quotient types. I further examined
     how algebraic structures such as groups and rings are defined using
     structures and type classes. For more technical depth, I studied
     filters to generalize the notion of convergence in topology.
     The formalization of the topologist's sine curve has deepened
     my understanding of connectedness, closures, and continuity in topology.
-
-
 \end{thesisabstract}
 
 % Acknowledgments

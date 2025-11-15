@@ -66,24 +66,25 @@ Various proof assistants have been developed based on different variants of type
 including Agda, Coq, Idris, and Lean. Each system makes different design choices regarding
 which rules and features to include. Lean adopts the \textbf{Calculus of Inductive Constructions},
 which extends the Calculus of Constructions, introduced in Coq, with \textbf{inductive types}.
-Inductive types allow for the definition of structures
-such as natural numbers, lists, and trees.
+Inductive types allow for the definition of compound types from primitives ones
+such as \textbf{structures}, natural numbers, lists, and trees.
+Another important addition in Lean are \textbf{quotient types},
+which facilitate working with equivalence relations.
 
-A fundamental design feature of Lean is its \textbf{universe hierarchy} of types, with \textbf{Prop}
+A fundamental design feature of Lean is its \textbf{universe hierarchy} of types,
+with \textbf{Prop}
 (the proposition type) as a distinguished universe at the bottom.
-The \textbf{Prop} universe exhibits two
-special properties: \textbf{impredicativity} and \textbf{proof irrelevance}.
-Proof irrelevance means that all proofs of the same proposition are considered equivalent. What matters
+The \textbf{Prop} universe exhibits \textbf{proof irrelevance}.
+Proof irrelevance means that all proofs of the same proposition
+are considered equivalent (definitional equivalent in type theory).
+What matters
 is whether a proposition can be proven, not which specific proof is given.
 This separation between propositions (\textbf{Prop}) and data types (\textbf{Type}) was first
 introduced in \textbf{N.G. de Bruijn's AUTOMATH system} (1967)
-(\cite{thompson1999types}).
+(\cite{thompson1999types}, Section 9.1.4, page 334).
 
 For our purposes, we do not need to delve deeply into the theoretical foundations;
 instead, we will introduce the relevant concepts as needed while working with Lean.
-The practical aspects of writing proofs in Lean will be our primary focus,
-and the theoretical machinery will be explained only insofar as it aids understanding
-of how to formalize mathematics effectively.
 \section{Lean first steps}
 
 In the language of type theory, and by extension in Lean, we write \lstinline[language=lean]|x : X|
@@ -114,8 +115,8 @@ symbol $\in$ from set theory, treating types as if they were sets.
 While this intuition can be helpful initially, type theory offers a fundamentally richer perspective.
 The crucial insight is the \textbf{Curry-Howard correspondence},
 also known as the \textbf{propositions-as-types} principle.
-This correspondence establishes a deep connection between mathematical proofs and programs:
-\textbf{propositions correspond to types}, and \textbf{proofs correspond to terms} inhabiting those types.
+This correspondence establishes a deep connection between mathematical proofs and programs.
+\textbf{Propositions correspond to types}, and \textbf{proofs correspond to terms} inhabiting those types.
 Under this interpretation, a term $x : X$ can be understood in two more ways:
 \begin{itemize}
   \item As a \textbf{computational object}: $x$ is a program or data structure of type $X$
@@ -168,123 +169,3 @@ For example, consider proving that $2 + 2 = 4$:
 \end{example}
 Let's now turn to how logic is handled in Lean and how the Curry-Howard
 isomorphism is reflected concretely.
-% \section{Introduction}
-% This serves as a brief starting point for understanding how the Curry-Howard correspondence appears in Lean, 
-% as well as being an introduction to the language itslef. 
-% Lean is both a \textbf{functional programming language} and a \textbf{theorem prover}.
-% We'll focus primarily on its role as a theorem prover. 
-% But what does this mean, and how can that be achieved?
-
-% A programming language defines a \textbf{set of rules, semantics, and syntax} for writing programs. 
-% To achieve a goal, a programmer must write a program that meets given specifications. 
-% There are two primary approaches: \textbf{program derivation} and \textbf{program verification} 
-% ( \cite{nordstrom1990programming} Section 1.1).
-% In \textbf{program verification}, the programmer first writes a program and then proves it meets 
-% the specifications. This approach checks for errors at \textbf{run-time} when the code executes.
-% In \textbf{program derivation}, the programmer writes a proof that a program with certain properties exists, 
-% then extracts a program from that proof. This approach enables specification 
-% checking at \textbf{compilation-time}, catching errors before execution.
-% This distinction corresponds to \textbf{dynamic} versus \textbf{static} \textbf{type systems}. 
-% Most programming languages combine both approaches; providing basic types for annotation and compile-time checking, 
-% while leaving the remaining checks to be performed at runtime.
-% \begin{example}
-%     In a dynamically typed language, like JavaScript, variables can change type after 
-%     they are created. For example, a variable defined as a number can later 
-%     be reassigned to a string:
-%     \begin{lstlisting}[language=JavaScript]
-%     let price = 100; // Javascript internal system recongize thi variable as a number
-%     price = "100";   // "100" tranform the number 100 to a string, Notice that this is valid in JavaScript
-%     \end{lstlisting}
-%     TypeScript is a statically typed superset of JavaScript.  
-%     Unlike JavaScript, it performs type checking at compile time.  
-%     This means we can prevent the previous behavior simply by adding 
-%     a type annotation:
-%     \begin{lstlisting}[language=TypeScript]
-%     let price: number = 100;
-%     price = "100";  // Error: Type 'string' is not assignable to type 'number'
-%     \end{lstlisting} 
-%     Now converting a varibale with type asnnotation number to a string results into a compuile time error.
-% \end{example}
-% Nonetheless, TypeScript, even though it has a quite sophisticated type system, cannot fully 
-% capture complex data structures. In many cases, program specifications can 
-% only be enforced at runtime.  
-% Lean, by contrast, is fully grounded in program derivation and static type checking, 
-% which is precisely what makes it a powerful \textbf{theorem prover}.  
-% At its core lies an advanced and flexible type system, capable of expressing 
-% and verifying a wide range of mathematical statements.  
-% This system is built on on \textbf{Type Theory}, a branch of marthematics and logic 
-% that aims to provide a foundation for all mathematics and wich is a (abstract) 
-% programming language itself.
-
-
-% It's important to note that Type Theory is not a single, unified theory, but rather a family of 
-% related theories with various extensions, ongoing developments and rich hiostorical ramifications. 
-% Creating a language like Lean requirev careful consideration of which rules and features to include.
-% We shall give a brief overview of the historical development of type theory, and an a introduction on 
-% what comes next.
-
-% (From \cite{carneiro2019typetheorylean} Introduction)
-% Type theory emerged as a fundamental response to Bertrand Russell's paradox. 
-% Considers the set $S = \{x \mid x \notin x\}$ 
-% (the set of all sets that do not contain themselves). This is a paradoxical construction, 
-% leading to the contradiction $S \in S \iff S \notin S$. 
-% Ernst Zermelo and Fraenkel addressed the contradiction by introducing Zermelo-Fraenkel set theory (ZFC), 
-% which became the standard in modern mathematics. 
-% ZFC maintains Set theory and \textbf{classical logical} principles while avoiding paradoxes through careful axiomatization.
-% Russell chose a fundamentally different path. He recognized expressions 
-% like $A(A)$ or $x \in x$ as ill-typed, introducing his theory of types.
-% Hs's first systematic response was \textbf{Ramified Type Theory}, wich turned out to be problematic.
-% In the 1930s, Alonzo Church developed \textbf{Lambda Calculus} as a foundation for mathematics, 
-% initially pursuing a type-free approach. However, Church's original untyped system suffered from 
-% inconsistencies similar to Russell's paradox (\cite{wadler2015propositions}). 
-% To address these issues, 
-% Church introduced the \textbf{Simply Typed Lambda Calculus} in 1940 (\cite{church1940formulation}).  
-% This system is a version of \textbf{Simple Type Theory}, a framework able to replace 
-% set-theory and propositional logic.
-% Lambda calculus influenced the development of many programming languages as being a foundation for
-% functional programming.
-% Per Martin-L\"{o}f revolutionized type theory in the 1970s by introducing 
-% \textbf{dependent types} that can depend on values of other types.
-% Think for instance of a of vectors of length $n$ or a sequence of $n$ elements.
-% \textbf{Dependent Type Theory} extends the expressive power of type systems by allowing the 
-% direct representation of predicates and quantifiers (in the sense of Frege), 
-% powerful enough to replace set theory and predicate logic.
-% Dependent Type Theory is a derivation of \textbf{Martin-L\"{o}f Type Theory} 
-% (also known as \textbf{Intuitionistic Type Theory}).
-% Martin-L\"{o}f's system embraced constructive (intuitionistic) principles, 
-% requiring that the existence of mathematical 
-% objects be demonstrated through explicit construction rather than classical proof by contradiction. 
-% Martin-L\"{o}f Type Theory also introduced \textbf{identity types} to represent equality.
-% In the 1980s, Thierry Coquand and G\'{e}rard Huet introduced the \textbf{Calculus of Constructions} (CoC), 
-% synthesizing insights from Martin-L\"{o}f's dependent type theory with higher-order \textbf{polymorphism}. 
-% The Calculus of Constructions served as the theoretical foundation for the Coq proof assistant, 
-% one of the most influential interactive theorem provers.
-% The original CoC was later extended with \textbf{inductive types} to form the 
-% \textbf{Calculus of Inductive Constructions} (CIC). Inductive types allow for the definition 
-% of data structures like natural numbers, lists, and trees. 
-% The Lean theorem prover, developed by Leonardo de Moura and others, is also based on CIC 
-% but incorporates several important refinements and differences from Coq's implementation. 
-
-% A central insight in type theory is the \textbf{Curry-Howard correspondence}, 
-% which establishes a profound connection between logic and computation. 
-% Also known as the \textbf{propositions-as-types} principle, this correspondence 
-% represents one of the most elegant discoveries in the foundations 
-% of mathematics and computer science.
-% It serves also well as a good introduction to type theory, and will be used in this discussion.
-% Nontheless it continuelsy shows new applications and interpretations in modern type theories.
-% The Curry-Howard correspondence was independently discovered by multiple researchers.
-% \textbf{Haskell Curry} (1934) first observed the connection between combinatory logic and 
-% Hilbert-style proof systems.
-% \textbf{William Alvin Howard} (1969) significantly extended the correspondence to natural deduction 
-% and the simply typed lambda calculus in his seminal work ``The Formulae-as-Types Notion of Construction.'' 
-% The correspondence was further developed through \textbf{N.G. de Bruijn's AUTOMATH system} (1967), 
-% which was the first working proof checker and demonstrated the practical viability of mechanical 
-% proof verification. Amongst its technical innovations are a discussion of the
-% irrelevance of proofs when working in a classical context, which is one
-% of the reasons advanced by de Bruijn for the separation between the notions of 
-% \textbf{type} and \textbf{prop} in the system \cite{thompson1999types}. Lean also adopts this separation.
-% \textbf{Per Martin-L\"{o}f's type theory} extended the correspondence to
-% dependent types, allowing for the representation of quantifiers and identity types.
-% Modern proof assistants like Coq, Lean, Agda, and Idris all leverage 
-% variants of the Curry-Howard correspondence to enable formal verification of mathematical theorems 
-% and software correctness properties.

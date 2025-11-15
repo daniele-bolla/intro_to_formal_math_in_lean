@@ -42,8 +42,6 @@ and \lstinline[language=lean]|T|
 are defined using set operations,
 and \lstinline[language=lean]|{ (0, 0) }| denotes the singleton
 set containing the point $(0, 0)$.
-\lstinline[language=lean]|Set| is the type of sets, defined as predicates
-(i.e., functions from a type to \lstinline[language=lean]|Prop|).
 The sets are subsets of the product space $\mathbb{R}^2$,
 represented as \lstinline[language=lean]|ℝ × ℝ|.
 The sin function \lstinline[language=lean]|sin| is defined in the
@@ -64,22 +62,19 @@ For instance, justifying that $S$ is connected
 requires proving that the map
 $x \mapsto (x, \sin(1/x))$ is continuous on $(0, \infty)$
 and that $(0, \infty)$ is connected.
-
 As we have seen, even showing that a rational number is non-negative
 requires several steps and the use of various lemmas from Mathlib.
 Similarly, proving that a set is connected can involve multiple steps
 for the
 newer programmer.
-
-We can use the structure \lstinline[language=lean]|IsConnected|
+We can use the structure \lstinline[language=lean]|IsConnected|,
 to set up the statement and see if we can argue similarly in Lean.
 \begin{lstlisting}[language=lean]
 lemma S_is_conn : IsConnected S := by sorry
 \end{lstlisting}
 In the file where \lstinline[language=lean]|IsConnected| is defined,
 \texttt{Topology/Connected/Basic.lean}, we see that it requires $S$ to be nonempty and preconnected.
-You can verify this by unfolding \lstinline[language=lean]|IsConnected| in the goal.
-\newpage
+One can verify this by unfolding \lstinline[language=lean]|IsConnected| in the goal.
 \begin{lstlisting}[language=lean]
 lemma S_is_conn : IsConnected S := by
   unfold IsConnected 
@@ -87,8 +82,9 @@ lemma S_is_conn : IsConnected S := by
   sorry
 \end{lstlisting}
 Following the definition of \lstinline[language=lean]|IsPreconnected|, we see that it captures
-the usual definition of preconnectedness: that $S$ cannot be
-partitioned into two nonempty disjoint open sets. This trivially requires
+the usual definition; $S$ cannot be
+partitioned into two nonempty disjoint open sets.
+This trivially requires
 nonemptiness to make sense.
 The \lstinline[language=lean]|unfold| tactic helps to expand definitions; one can use it to expand the definition of $S$ or
 \lstinline[language=lean]|pos_real| defined before, as well as other Mathlib expressions.
@@ -107,18 +103,14 @@ lemma S_is_conn : IsConnected S := by
   -- ⊢ ContinuousOn sine_curve (Ioi 0) 
   sorry
 \end{lstlisting}
-The \lstinline[language=lean]|apply| tactic applies the theorem similar to
-\lstinline[language=lean]|exact|, the latter tries
-to close the goal with \lstinline[language=lean]|rfl|.
 The theorem \lstinline[language=lean]|isConnected_Ioi.image| requires proving the continuity of the map
 on the interval $(0, \infty)$, which is expressed as
 \lstinline[language=lean]|ContinuousOn sine_curve (Ioi 0)|.
 The predicate \lstinline[language=lean]|ContinuousOn f S|
 expresses that a function $f$ is continuous on a set $S$, which is what we need to prove now.
 The function $x \mapsto (x, \sin(1/x))$ is continuous on $(0, \infty)$ as the
-product of two functions continuous on the given domain: the identity map $x \mapsto x$
+product of two functions continuous on the given domain; the identity map $x \mapsto x$
 and the map $x \mapsto \sin(1/x)$.
-\newpage
 Here is the full proof in Lean:
 \begin{lstlisting}[language=lean]
 lemma inv_is_continuous_on_pos_real : ContinuousOn (fun x : ℝ => x⁻¹) (pos_real) := by
@@ -139,14 +131,18 @@ The first component is the identity map, which is continuous on any set. Mathlib
 The second component is the composition of the sine function with the inverse function.
 The sine function is continuous everywhere, and for this we can use
 \lstinline[language=lean]|continuous_sin|.
-The method \lstinline[language=lean]|comp_continuousOn| is accessible from the fact that \lstinline[language=lean]|continuous_sin| gives
-an instance of a continuous map and is generalized in the \lstinline[language=lean]|ContinuousOn| module.
-The theorem \lstinline[language=lean]|Continuous.comp_continuousOn| states that the composition of a continuous function with a function
-that is continuous on a set is continuous on that set, and requires proof of the continuity
+The method \lstinline[language=lean]|comp_continuousOn| is accessible from the
+fact that \lstinline[language=lean]|continuous_sin| gives
+an instance of a continuous map and is generalized
+in the \lstinline[language=lean]|ContinuousOn| module.
+The theorem \lstinline[language=lean]|Continuous.comp_continuousOn|
+states that the composition of a continuous function with a function
+that is continuous on a set is continuous on that set,
+and requires proof of the continuity
 on the set of the inner function.
 We separate the proof that the inverse function is continuous on the positive reals
 into the auxiliary lemma \lstinline[language=lean]|inv_is_continuous_on_pos_real|.
-The theorem \lstinline[language=lean]|continuousOn_inv₀| states that if a function
+The theorem \lstinline[language=lean]|continuousOn_inv₀| states that, if a function
 is continuous and non-zero on a set, then its inverse is continuous on that set.
 The continuity of the identity map is proved as before.
 The second argument requires proving that $x \neq 0$ for all $x$ in $(0, \infty)$.
@@ -156,7 +152,8 @@ The second argument requires proving that $x \neq 0$ for all $x$ in $(0, \infty)
 \end{lstlisting}
 The hypothesis \lstinline[language=lean]|hx| states that $x$ is in $(0, \infty)$,
 which implies that $x > 0$.
-The theorem \lstinline[language=lean]|ne_of_gt| states that if a real number is greater than zero,
+The theorem \lstinline[language=lean]|ne_of_gt| states that if a
+real number is greater than zero,
 then it is non-zero, which completes the proof.
 Thus the final proof goes as follows:
 \begin{lstlisting}[language=lean]
@@ -173,7 +170,6 @@ and there are obviously ways to achieve this with less work.
 Let's showcase a refactoring of the entire proof.
 First, the auxiliary lemmas
 can be reduced to one-liners.
-\newpage
 \begin{lstlisting}[language=lean]
 lemma inv_is_continuous_on_pos_real : ContinuousOn (fun x : ℝ => x⁻¹) (pos_real) :=
   ContinuousOn.inv₀ (continuous_id.continuousOn) (fun _ hx =>  ne_of_gt hx)
@@ -235,12 +231,10 @@ The entire chain can be read as building the continuity proof from the innermost
 Since the intersection of $Z$ and $S$ is empty, we cannot
 directly conclude that $T$ is connected from the connectedness of its components alone.
 However, we can use the fact that every subset between a connected set and its closure is connected.
-
 \begin{theorem}
   Let $C$ be a connected topological space, and denote $\overline{C}$ as its closure.
   It follows that every subset $C \subseteq S \subseteq \overline{C}$ is connected.
 \end{theorem}
-
 In Mathlib, this theorem is available as
 \lstinline[language=lean]|IsConnected.subset_closure|.
 We can set up the statement and progress from there.
@@ -251,14 +245,13 @@ theorem T_is_conn : IsConnected T := by
   · tauto_set -- ⊢ S ⊆ T
   · sorry -- ⊢ T ⊆ closure S
 \end{lstlisting}
-
 The theorem requires three goals:
-\begin{enumerate}
+\begin{itemize}
   \item That $S$ is connected, which was already proved in \lstinline[language=lean]|S_is_conn|.
   \item That $S \subseteq T$, which is a trivial set operation.
         The tactic \lstinline[language=lean]|tauto_set| handles this kind of set tautologies.
   \item That $T \subseteq \overline{S}$ (the closure of $S$), which requires proof.
-\end{enumerate}
+\end{itemize}
 Let's continue with the final point.
 \begin{lstlisting}[language=lean]
 lemma T_sub_cls_S : T ⊆ closure S := by
@@ -274,66 +267,55 @@ Since $T$ is a union, we use \lstinline[language=lean]|cases| to separate the tw
 When $x \in S$, the goal is trivially solved by \lstinline[language=lean]|exact subset_closure hxS|.
 The case where $x \in Z$, requires more work.
 
-Now a trick. One of the most painful issue in fomralizing math in Lean is the
-use of existing theorems. One can use several ways to look for the exact theorem.
-Let's try using the \lstinline[language=lean]|apply?|
-tactic to see what the infoview suggests:
-\begin{lstlisting}[language=lean]
-lemma T_sub_cls_S : T ⊆ closure S := by
-  intro x hx
-  cases hx with
-  | inl hxS => exact subset_closure hxS
-  | inr hxZ =>
-      apply?
-      sorry
-\end{lstlisting}
-Depending on the previous work in the file, Lean can already unify the goal with available theorems and suggest the next step.
-Similar tactics include:
-\begin{itemize}
-  \item \lstinline[language=lean]|exact?| for finding an exact match to close the goal
-  \item \lstinline[language=lean]|rw?| for suggesting rewrites and definitionally equal replacements
-  \item \lstinline[language=lean]|simp?| for suggesting simplifications
-\end{itemize}
-Another useful tool is Loogle (similar to Haskell's Hoogle),
+Now a trick. Looking for existing theorems using mathlib documentation is
+quiet challenging, while you are still learning
+the sintax and adapt to the naming convention.
+One can use several ways to look for the exact theorems.
+A useful tool is Loogle (similar to Haskell's Hoogle),
 which helps you find theorems by their type signature or name patterns.
 You can access it at \url{https://loogle.lean-lang.org/} or
 use it directly in VS Code.
-The best approach is, anyway, to think first about how you would tackle the problem on
-a piece of paper, as mentioned earlier.
-Since we are working with a topology on $\mathbb{R}$,
-we know that
-this is a metrizable topology, therefore it is induced by the metric
-space structure on $\mathbb{R}$.
-Thus, we can expand our toolkit by working with Lean's
-\lstinline[language=lean]|MetricSpace| module,
-which provides specialized tools for reasoning about
-metric spaces, such as balls, distances, and
-metric-specific characterizations of continuity and convergence.
-We know that the closure of a set contains all its limit points.
-To show that the point $(0, 0)$ is contained in the closure of $S$,
-we need to show that it is a limit point of $S$.
-Thus, one can define a sequence in $S$ tending to $(0, 0)$, and we are done.
-At this point, \lstinline[language=lean]|apply?| suggests several ways to proceed, involving new symbols such as
-\lstinline[language=lean]|𝓝| (neighborhoods) and
-\lstinline[language=lean]|ᶠ| (eventually/frequently). For example:
+Depending on the previous work in the file,
+Lean can already unify the goal with available
+theorems and suggest the next step.
+For some tactics, adding a question mark causes Lean to automatically search for
+the next step involving the use of that tactic.
+For instance, one can type
+\lstinline[language=lean]|apply?| or
+\lstinline[language=lean]|exact?|, which search
+for applicable lemmas or definitions
+to close the goal.
+The tactics \lstinline[language=lean]|rw?|
+and \lstinline[language=lean]|simp?|
+work similarly but for rewriting and simplification.
+
+At this point, \lstinline[language=lean]|apply?| suggests several ways to proceed,
+some involving filters:
 \begin{lstlisting}
 Try this: refine Frequently.mem_closure ?_
 Remaining subgoals:
   ⊢ ∃ᶠ (x : ℝ × ℝ) in 𝓝 x, x ∈ S
 \end{lstlisting}
-or the more familiar metric space approach:
+and others following the more familiar metric space approach:
 \begin{lstlisting}
 Try this: refine Metric.mem_closure_iff.mpr ?_
 Remaining subgoals:
   ⊢ ∀ ε > 0, ∃ b ∈ S, dist x b < ε
 \end{lstlisting}
 
-Using filters, we can prove that $T \subseteq \overline{S}$ by
-showing that the origin is a
-limit point of $S$.
+The best approach, however, is to think first about how you would tackle the problem
+on paper, as mentioned earlier. Since we are working with a metrizable topology on $\mathbb{R}$,
+we know that the closure of a set contains all its limit points.
+To show that the point $(0, 0)$ is contained in the closure of $S$,
+we need to show that it is a limit point of $S$.
+Thus, one can define a sequence in $S$ tending to $(0, 0)$,
+and the result follows. Instead of using properties of a metric space,
+we use filters, as explained before to work with limits.
+We can prove that $T \subseteq \overline{S}$, by
+showing that the origin is a limit point of $S$.
 We construct a sequence $f : \mathbb{N} \to \mathbb{R}^2$ in $S$
-converging to $(0,0)$ using the
-\lstinline[language=lean]|Tendsto| framework:
+converging to $(0,0)$ using
+\lstinline[language=lean]|Tendsto|:
 \newpage
 \begin{lstlisting}[language=lean]
 lemma T_sub_cls_S : T ⊆ closure S := by
@@ -365,37 +347,33 @@ $f(n) = \left(\frac{1}{n\pi}, 0\right)$,
 which we will show converges to $(0,0)$
 and stays in $S$.
 
-\begin{enumerate}
+\begin{itemize}
 
   \item \textbf{Convergence proof} (\lstinline[language=lean]|hf|):
         We show \lstinline[language=lean]|Tendsto f atTop (𝓝 (0, 0))|.
-        \begin{itemize}
-          \item We use \lstinline[language=lean]|Tendsto.prodMk_nhds| to split the product:
-                we need to show the first coordinate tends to $0$ and the
-                second is constantly $0$.
-          \item For the first coordinate, we compose
-                \lstinline[language=lean]|tendsto_inv_atTop_zero|
-                (which states $\frac{1}{x} \to 0$ as $x \to \infty$) with the
-                fact that $n\pi \to \infty$.
-          \item The second constant coordinate is handled by
-                \lstinline[language=lean]|tendsto_const_nhds|.
-        \end{itemize}
+        With \lstinline[language=lean]|Tendsto.prodMk_nhds|,
+        we need to show that both coordinates tend to $0$, separately.
+        For the first coordinate, we compose
+        \lstinline[language=lean]|tendsto_inv_atTop_zero|
+        (which states $\frac{1}{x} \to 0$ as $x \to \infty$) with the
+        fact that $n\pi \to \infty$.
+        The second constant coordinate is handled by
+        \lstinline[language=lean]|tendsto_const_nhds|
   \item \textbf{Membership proof} (\lstinline[language=lean]|hf'|):
         We show \lstinline[language=lean]|∀ᶠ n in atTop, f n ∈ S|, meaning $f(n) \in S$
         for all sufficiently large $n$.
-        \begin{itemize}
-          \item We use \lstinline[language=lean]|filter_upwards|, which allows us to combine
-                hypotheses about properties that hold eventually to prove another property holds eventually.
-                Here, we combine it with \lstinline[language=lean]|eventually_gt_atTop 0|,
-                which states that eventually $n > 0$.
-          \item For such $n$, we show $f(n) = \left(\frac{1}{n\pi}, 0\right)$ is in $S$ by noting that
-                the second term is:
-                $$
-                  \sin\left(\frac{1}{\left(\frac{1}{n\pi}\right)}\right) = \sin(n\pi) = 0.
-                $$
-        \end{itemize}
+        We use \lstinline[language=lean]|filter_upwards|,
+        which allows us to combine
+        hypotheses about properties that hold eventually to prove another property holds eventually.
+        Here, we combine it with \lstinline[language=lean]|eventually_gt_atTop 0|,
+        which states that eventually $n > 0$.
+        For such $n$, we show $f(n) = \left(\frac{1}{n\pi}, 0\right)$ is in $S$ by noting that
+        the second term is:
+        $$
+          \sin\left(\frac{1}{\left(\frac{1}{n\pi}\right)}\right) = \sin(n\pi) = 0.
+        $$
 
-\end{enumerate}
+\end{itemize}
 Finally, \lstinline[language=lean]|mem_closure_of_tendsto|
 combines these facts:
 if a sequence eventually stays in $S$ and converges to $x$,
@@ -436,7 +414,7 @@ entering tactic mode or using multiple tactics.
 Tactics internally hide many operations they automatically perform to close the goal.
 Moreover, if we directly provide
 a term for the proof, Lean will infer and unify everything by definitional
-equality; remember the very first example we did.
+equality.
 By providing explicit proof terms, we give Lean less work to do, making the
 proof more transparent and efficient.
 This practice of "golfing" is essential in a huge library such as Mathlib
@@ -445,13 +423,12 @@ From now on the rest of th code will be presented in it's reduced form.
 Here is the link to the entire first part of the proof:
 [\href{https://live.lean-lang.org//#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQEwCmAdnACr4ToQDmAnnAGLDowFRwDKB8A8lACZscOQQDM4kAM4B9KASTo4ALgC8nbgDoAkhGBwAFAAZlcQLiEAShxEIRAMYRwAVxhIs6AnDFxJwIgWm2jlAAbh6qcKKOJAAecIBlhAbRADRwAEry6Bo+JPrRgN4EAJ3mll4cJlzw+qZwAOtm5spq+tn+gSEEDQDknRIQMnIKIgTiAFrl3AbVdRaNcADeBoYphg0AvkPipOOVU/WzZYBURHAjwu4gIEhk0pKOWAHoMmVKZHCAYURwtlQ3cpyzWLQ4OBwXwwKAQOCxVDRQEfJCSAiSOBQuAAd2AaBhAB9gURFFCyioAHxwAjRJC2eA3LDwmD3PpBDz4rE49hQsZEmFAoFQFFwADabIAupyue54OJnoBUQjggCTCMy1eXhSIkEhEgz6EgAKjSGQ0YGA5kKy0sXK5qCQoSRErIxH4khg4PEKHIYAMgFYNwC7O4tjQ1wv8Raa5KJfB49WD+AgANbSIioO1wAD80jgrCIdodARs9pjcckAa5pPJ8FT6Yg0l8wWkzvw0gAXmwIBp7OB86b9EwWGwNKRbfbG9WwNIQI50JmiPaeukFHrgNIpCnexmiCgAMJw2kDqswF0m01Ii2M0Q9Z6AACJAAW4cBIvjgA5S4hIgAgiX5+gF7rnBztQaSOMAopACRE+QIUIiBgRwFHQWhpGoDdt3wOBDEFVF0VQS8kSIVsSTJCk4EAC/INTgbUp0yfVDQKJJMKBCs5z6DRwHYfRh1Hed9AAORQJt1xoyQ6LAVkiAaYiZ248wKLfU1/m8UBXT5UQUhaAIglCFJqIrFIhOyGMUCHEc52AQVAEvyfNCxwkACBAOlvn8CBRGkEs+ytK1OmENACGgcyrmAGR7CIEhni0SQVxsPwKQIfgXlUGEAqC3yCFC/gsluGlLIZAwvJikLWH4aQdGADRQCQagPAUtpLQAHkxEUfJgXxHAgRwZGABLqtq+rJB4IgwwgCNIzgCqRSElqiDqhrrl8JsHEHIaRvakh+tNGKauGtqOvyohgkAAIIPhsJaZvLZqdtahqOpFfRlTgZNkTVPxpBs6D4ChYoDEklxnDLGkGlIa5bnuR4gA}{link to Lean live}]
 \begin{note}
-  The proof merged into the Mathlib library takes $Z$ as $\{0\} \times [-1,1]$
+  The proof merged into the Mathlib library,
+  takes $Z$ as $\{0\} \times [-1,1]$
   instead of the singleton $\{(0,0)\}$.
   This, together with the fact that $T$ equals the closure of $S$,
   yields a stronger and more general result.
-  The Mathlib version demonstrates that the entire vertical segment at $x = 0$
-  lies in the closure of the oscillating curve, providing a more complete characterization
-  of the topologist's sine curve. This stronger version shows that a closed set
+  This stronger version shows that a closed set
   (specifically, the closure of $S$) can be connected but not path-connected.
   Showing that forming closure can destroy
   the property of path connectedness for subsets of a topological space.
@@ -461,8 +438,8 @@ The main and most substantial part is showing that $T$ is not path-connected.
 Showing this informally already requires constructing and
 pointing out various steps in order to convince
 an ideal reader.
-One can argue informally by contradiction:
-suppose a path exists in the topologist's sine curve $T$
+One can argue informally by contradiction.
+Suppose a path exists in the topologist's sine curve $T$
 connecting a point in $S$ to a point in $Z$.
 As the path approaches the $y$-axis (where $x \to 0$),
 the $y$-coordinate must oscillate infinitely between $-1$ and $1$
@@ -482,8 +459,8 @@ In mathematics, we normally define a path-connected space as follows.
   exists a path, i.e., a continuous map $p : [0, 1] \to X$ such that $p(0) = a$ and $p(1) = b$.
 \end{definition}
 The interval $[0, 1]$ is the standard choice for the domain of paths.
-In Mathlib, \lstinline[language=lean]|PathConnectedSpace X| is a type class that asserts the entire
-topological space $X$ is path-connected, while
+% In Mathlib, \lstinline[language=lean]|PathConnectedSpace X| is a type class that asserts the entire
+% topological space $X$ is path-connected, while
 \lstinline[language=lean]|IsPathConnected S| is a predicate used to infer that a subset $S$
 of a topological space is path-connected.
 \begin{lstlisting}[language=lean]
@@ -497,9 +474,9 @@ def JoinedIn (S : Set X) (x y : X) : Prop :=
 \end{lstlisting}
 where \lstinline[language=lean]|Path x y| denotes a continuous map $\gamma : [0,1] \to X$ with
 $\gamma(0) = x$ and $\gamma(1) = y$.
-Mathlib uses \lstinline[language=lean]|unitInterval| as the standard definition for
-$[0,1]$ in constructions such as the definition of a path.
-\newpage
+We can use the \lstinline[language=lean]|unitInterval| \textbf{subtype} of
+\lstinline[language=lean]|ℝ| representing the interval
+$[0,1]$.
 Now let's start with the first part of the proof:
 \begin{lstlisting}[language=lean]
 theorem T_is_not_path_conn : ¬ (IsPathConnected T) := by
@@ -511,19 +488,20 @@ theorem T_is_not_path_conn : ¬ (IsPathConnected T) := by
   specialize p_conn z hz w hw
   let p := JoinedIn.somePath p_conn
 \end{lstlisting}
-We introduce two points: $z = (0, 0)$ and $w = (1, \sin(1))$, and prove they are both in $T$.
+We introduce two points: $z = (0, 0)$ and $w = (1, \sin(1))$, and prove they are both in $T$, in
+\lstinline[language=lean]|hz hw| and \lstinline[language=lean]|hw| (we use the introduction rule
+for Or, seen it as a sum type).
 Using \lstinline[language=lean]|intro p_conn|, we assume that $T$ is path-connected.
 Notice that the goal is now \lstinline[language=lean]|False|, meaning we must find a contradiction.
-The last three lines extract an explicit path \lstinline[language=lean]|p| connecting $z$ and $w$:
-\begin{itemize}
-  \item \lstinline[language=lean]|apply IsPathConnected.joinedIn at p_conn|
-        transforms the path-connectedness assumption into the statement
-        that any two points in $T$ are joined.
-  \item \lstinline[language=lean]|specialize p_conn z hz w hw| specializes this
-        to our specific points $z$ and $w$.
-  \item \lstinline[language=lean]|let p := JoinedIn.somePath p_conn| extracts a concrete
-        path from the existential statement.
-\end{itemize}
+The last three lines extract an explicit path \lstinline[language=lean]|p| connecting $z$ and $w$.
+\lstinline[language=lean]|apply IsPathConnected.joinedIn at p_conn|
+transforms the path-connectedness assumption into the statement
+that any two points in $T$ are joined.
+\lstinline[language=lean]|specialize p_conn z hz w hw| specializes this
+to our specific points $z$ and $w$.
+Then we extrat a path and store it using
+\lstinline[language=lean]|let p := JoinedIn.somePath p_conn|.
+
 Conrad's paper (\cite{Conrad_connnotpathconn}) defines a time $t_0 \in [0, 1]$
 as the first time the path $p$ jumps from $(0,0)$ to the graph of $\sin(1/x)$, where
 the x-coordinate map ($x: \mathbb{R}^2 \to \mathbb{R} $) of $p$ is positive.
@@ -542,7 +520,6 @@ $$
 $$
 to be the last time the path remains at $(0,0)$.
 The same continuity argument applies with this definition.
-\newpage
 \begin{lstlisting}[language=lean]
 -- Consider the composition of the x-coordinate map with p, which is continuous
 have xcoord_pathcont : Continuous fun t ↦ (p t).1 := continuous_fst.comp p.continuous
@@ -560,29 +537,25 @@ obtain ⟨δ, hδ, ht⟩ : ∃ δ > 0, ∀ t, dist t t₀ < δ →
   Metric.eventually_nhds_iff.mp <| Metric.tendsto_nhds.mp (p.continuousAt t₀) _ one_half_pos
 \end{lstlisting}
 The final statement uses the \lstinline[language=lean]|obtain| tactic to extract witnesses from an existential statement.
-This tactic destructures the existential quantifier $\exists \delta > 0, \ldots$ into concrete values:
+This tactic destructures the existential quantifier $\exists \delta > 0, \ldots$ into
 \lstinline[language=lean]|δ| (the distance), \lstinline[language=lean]|hδ| (the proof that $\delta > 0$),
 and \lstinline[language=lean]|ht| (the proof that the distance condition holds).
 Since $\mathbb{R}^2$ is a metric space, we can work with the distance function \lstinline[language=lean]|dist : ℝ × ℝ → ℝ × ℝ → ℝ|,
 which computes the Euclidean distance between two points.
 The statement \lstinline[language=lean]|dist t t₀ < δ| expresses $|t - t_0| < \delta$ in the unit interval,
 while \lstinline[language=lean]|dist (p t) (p t₀) < 1/2| expresses $\|p(t) - p(t_0)\| < 1/2$ in $\mathbb{R}^2$.
-The proof itself leverages \lstinline[language=lean]|Metric| module.
-\begin{itemize}
-  \item \lstinline[language=lean]|p.continuousAt t₀| asserts that the path $p$ is
-        continuous at $t_0$
-  \item \lstinline[language=lean]|Metric.tendsto_nhds.mp| converts this
-        to the metric space characterization:
-        for any $\varepsilon > 0$, there exists $\delta > 0$ such that
-        points within $\delta$ of $t_0$ map to points within $\varepsilon$ of $p(t_0)$
-  \item \lstinline[language=lean]|Metric.eventually_nhds_iff.mp| further unpacks
-        this into the $\forall t, dist\ t\ t_0 < \delta \to dist\ (p\ t)\ (p\ t_0) < \varepsilon$
-        form
-  \item We instantiate with $\varepsilon = 1/2$ using \lstinline[language=lean]|one_half_pos|
-\end{itemize}
+We assert that the path $p$ is
+continuous at $t_0$ by \lstinline[language=lean]|p.continuousAt t₀|.
+\lstinline[language=lean]|Metric.tendsto_nhds.mp| converts this
+to the metric space characterization:
+for any $\varepsilon > 0$, there exists $\delta > 0$ such that
+points within $\delta$ of $t_0$ map to points within $\varepsilon$ of $p(t_0)$.
+While, \lstinline[language=lean]|Metric.eventually_nhds_iff.mp| further unpacks
+this into the $\forall t, dist\ t\ t_0 < \delta \to dist\ (p\ t)\ (p\ t_0) < \varepsilon$
+form, requiring positivity of $\varepsilon = 1/2$ (\lstinline[language=lean]|one_half_pos|).
+
 We can find a time $t_1$ greater than $t_0$ that remains in the neighborhood of $t_0$,
 and obtain a point $a = x(p(t_1))) > 0$ which is positive.
-\newpage
 \begin{lstlisting}[language=lean]
 -- Let t₁ be a time when the path is not on the y-axis
 -- t₁ is in (t₀, t₀ + δ], hence t₁ > t₀
@@ -611,7 +584,7 @@ have ha : a > 0 := by
       linarith
   simpa only [a, ← hx_eq] using hxI
 \end{lstlisting}
-The code is quite convoluted in Lean, and i will omit a
+The code is quite convoluted, and i will omit a
 detailed explanation as well as some part of it.
 However, it's worth mentioning a few key technical points.
 The type \lstinline[language=lean]|unitInterval| is a \textbf{subtype}
@@ -619,12 +592,17 @@ of $\mathbb{R}$,
 defined as $\{x : \mathbb{R} \mid 0 \leq x \leq 1\}$.
 In Lean, a subtype \lstinline[language=lean]|{x : α // P x}|
 bundles a value $x$ of type $\alpha$
-together with a proof that $x$ satisfies the predicate $P$.
-Manipulating terms of \lstinline[language=lean]|unitInterval|
-directly is challenging because
-this type lacks many algebraic operations such as addition, minimum, etc.
-Therefore, we cast to $\mathbb{R}$ (with \lstinline[language=lean]|let s₀ := (t₀ : ℝ)|)
-to perform arithmetic operations, then cast back to \lstinline[language=lean]|unitInterval|
+together with a proof that $x$ satisfies the predicate $P$,
+similar as for  \lstinline[language=lean]|Set|.
+Anyway, rather than
+being \lstinline[language=lean]|Set| (as subsets), they are type itself.
+In particular, their terms do not share the type
+of the underlying \lstinline[language=lean]|Set|.
+Consequently, they lack of arithmetic properties
+of the real numbers for instance.
+We need to cast them to $\mathbb{R}$
+(with \lstinline[language=lean]|let s₀ := (t₀ : ℝ)|)
+first, then cast back to \lstinline[language=lean]|unitInterval|
 by providing proofs that the bounds $[0, 1]$ are satisfied (\lstinline[language=lean]|hs₁|, \lstinline[language=lean]|hs₁'|).
 In the second case of the inner statment of have \lstinline[language=lean]|ha : a > 0|,
 if $p(t_1) \in Z$, then $(p\ t_1).1 = 0$ by definition of $Z = \{(0,0)\}$.
@@ -648,7 +626,7 @@ in the reverse direction, transforming the goal from \lstinline[language=lean]|(
 to \lstinline[language=lean]|(sine_curve x).1 > 0|.
 Since \lstinline[language=lean]|sine_curve x = (x, sin(1/x))|, this simplifies to \lstinline[language=lean]|x > 0|,
 which is exactly the hypothesis \lstinline[language=lean]|hxI|.
-The \lstinline[language=lean]|using hxI| clause applies this hypothesis to close the goal.
+The \lstinline[language=lean]|using hxI| clause, applies this hypothesis to close the goal.
 
 Next, the image $x(p([t_0, t_1]))$ is connected (as the continuous image of a connected set),
 and it contains $0 = x(p(t_0))$ and $a = x(p(t_1))$.
@@ -761,8 +739,8 @@ theorem T_is_conn_not_pathconn : IsConnected T ∧ ¬IsPathConnected T :=
 \end{lstlisting}
 And now, since this code compiles successfully, these two lines stand as verified witnesses
 to the correctness of our entire proof.
-This showcases the power of proof assistants and formal reasoning:
-mathematics becomes not only more rigorous but also automatically verifiable.
+This showcases the power of proof assistants and formal reasoning.
+Mathematics becomes not only more rigorous but also automatically verifiable.
 Furthermore, the formalization becomes a learning tool in its own right.
 Future readers can inspect each part of the code.
 Here the full proof: [\href{https://live.lean-lang.org/#codez=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}{link to Lean live}]

@@ -22,33 +22,25 @@ To use \lstinline[language=lean]|Transitive|, we must provide both the type
 For example, here is a proof of transitivity for the less-than relation on
 $\mathbb{N}$ ( in Lean \lstinline[language=lean]|Nat| or \lstinline[language=lean]|ℕ|):
 \begin{lstlisting}[language=lean]
-theorem le_trans_proof : Transitive Nat (· ≤ · : Nat → Nat → Prop) :=
-  fun x y z h1 h2 => Nat.le_trans h1 h2 -- this lemma is provided by Lean 
+theorem le_trans_nat : Transitive Nat (· ≤ · : Nat → Nat → Prop) :=
+  fun x y z h1 h2 => Nat.le_trans h1 h2 -- another lemma provided by Lean 
 \end{lstlisting}
+Notice that we used a function to discharge the universal
+quantifiers required by transitivity.
 Looking at this code, we immediately notice that explicitly
 passing the type argument \lstinline[language=lean]|Nat| is somewhat repetitive.
 Lean allows us to omit it by letting the type inference mechanism fill it in automatically.
-This is achieved by using \textbf{implicit arguments} with curly brackets:
+This is achieved by using \textbf{implicit arguments} with curly brackets (we have already used them before):
 \begin{lstlisting}[language=lean]
 def Transitive {α : Type} (R : α → α → Prop) : Prop :=
   ∀ x y z, R x y → R y z → R x z
-theorem le_trans_proof : Transitive (· ≤ · : Nat → Nat → Prop) :=
+theorem le_trans_nat' : Transitive (· ≤ · : Nat → Nat → Prop) :=
   fun x y z h1 h2 => Nat.le_trans h1 h2 
 \end{lstlisting}
-Lean's type inference system is quite powerful: in many cases, types can be completely
-inferred without explicit annotations.
-\newpage
-\begin{example}[Type Inference in Lean]\mbox{}
-  \begin{lstlisting}[language=lean]
-  def double (n : Nat) := n + n
-  -- Lean infers return type is Nat because n : Nat and + : Nat → Nat → Nat
-  def id {α : Type} (x : α) : α := x
-  #check id 5        -- Lean infers α = Nat
-  #check id "hello"  -- Lean infers α = String
-  \end{lstlisting}
-\end{example}
-Let us now revisit the transitivity proof, but this time for the less-than-equal relation on
-the rational numbers (\lstinline[language=lean]|Rat| or \lstinline[language=lean]|ℚ|) instead.
+Let us now revisit the transitivity proof, but this time
+for the less-than-equal relation on
+the rational numbers (\lstinline[language=lean]|Rat|
+or \lstinline[language=lean]|ℚ|) instead.
 \newpage
 \begin{lstlisting}[language=lean]
   import Mathlib
@@ -64,9 +56,8 @@ Mathlib is the community‑driven mathematical
 library for Lean, containing a large body of formalized mathematics
 and ongoing development.
 It is the defacto standard library for both programming and proving
-in Lean \cite{mathlib2020}, we will dig into it as we go along.
-Notice that we used a function to discharge the universal
-quantifiers required by transitivity. The underscores indicate
+in Lean (\cite{mathlib2020}). We will dig into it as we go along.
+The underscores indicate
 unnamed variables that we do not use later. If we had named
 them, say \lstinline|x y z|, then:
 \lstinline[language=lean]|h1| would be a proof of \lstinline[language=lean]|x ≤ y|,
@@ -89,18 +80,18 @@ defined as before.
     intro x y z hxy hyz
     exact Rat.le_trans hxy hyz
 \end{lstlisting}
-  This proof performs the same steps but is much easier to read.
+  This proof performs the same steps, but is much easier to read.
   Using \lstinline[language=lean]|by| we enter Lean's tactic mode.
   Move your cursor just before \lstinline[language=lean]|by|.
   The goal is initially displayed as \lstinline[language=lean]|⊢ Transitive fun x1 x2 ↦ x1 ≤ x2|.
   The tactic \lstinline[language=lean]|intro| is mainly used to introduce
-  variables and hypotheses corresponding to universal quantifiers
-  and assumptions into the context (essentially deconstructing universal quantifiers and implications).
+  variables or hypotheses corresponding to universal quantifiers
+  into the context (essentially deconstructing universal quantifiers and implications).
   Now position your cursor just before \lstinline[language=lean]|exact|
   and observe the info view again.
   The goal is now \lstinline[language=lean]|⊢ x ≤ z|, with the context
   showing the variables and hypotheses introduced by the previous tactic.
-  The \lstinline[language=lean]|exact| tactic closes the goal
+  The \lstinline[language=lean]|exact| tactic closes the goal,
   by supplying the term \lstinline[language=lean]|Rat.le_trans hxy hyz| that exactly matches the goal
   (the specification of \lstinline[language=lean]|Transitive|).
   You can hover over each tactic to see its definition and documentation.
@@ -116,9 +107,12 @@ The Mathlib 4 documentation website is at
 the documentation for
 \lstinline[language=lean]|Rat.le_trans| is at
 \url{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Order/Ring/Unbundled/Rat.html#Rat.le_trans}.
-Click the "source" link there to jump to the implementation in the Mathlib repository. In editors like
-VS Code you can also jump directly to the definition (Ctrl+click; Cmd+click on macOS).
-Another way to check source code is by using \lstinline[language=lean]|#print Rat.le_trans|.
+Click the "source" link there to jump to the implementation in the Mathlib repository.
+In editors like
+VS Code, you can also jump directly to the definition
+(Ctrl+click; Cmd+click on macOS).
+Another way to check source code is
+by using \lstinline[language=lean]|#print Rat.le_trans|.
 \begin{lstlisting}[language=lean]
 variable (a b c : Rat)
 protected lemma le_trans (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
@@ -130,12 +124,17 @@ protected lemma le_trans (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
 The proof uses several tactics and lemmas from Mathlib.
 The \lstinline[language=lean]|rw| or \lstinline[language=lean]|rewrite| tactic
 is very common and sintactically similar to
-the mathematical practice of rewriting an expression using an equality.
-In this case, with \lstinline[language=lean]|at|, we use it to rewrite the
+the mathematical practice of
+rewriting using equalities
+that hold by definitional equality.
+In this case, with \lstinline[language=lean]|at|,
+we use it to rewrite the
 hypotheses \lstinline[language=lean]|hab|
 and \lstinline[language=lean]|hbc|
-using another Mathlib's lemma \lstinline[language=lean]|Rat.le_iff_sub_nonneg|,
-which states that for any two rational numbers \lstinline[language=lean]|x| and
+by another Mathlib's lemma
+\lstinline[language=lean]|Rat.le_iff_sub_nonneg|.
+This states that for any two
+rational numbers \lstinline[language=lean]|x| and
 \lstinline[language=lean]|y|, \lstinline[language=lean]|x ≤ y|
 is equivalent to \lstinline[language=lean]|0 ≤ y - x|.
 Thus we now have the hypotheses tranformerd to :
@@ -152,49 +151,58 @@ are nonnegative, hence their sum is nonnegative:
   this : 0 ≤ b - a + (c - b)
 \end{lstlisting}
 The most involved step uses \lstinline[language=lean]|simp_rw| to
-simplify the expression via a sequence of other existing Mathlib's lemmas.
-The tactic \lstinline[language=lean]|simp_rw| (TO EXPLAIN similar to rw but can see inside bihnders to unfold better,
-in contrast rw haas more option suggesting dfor simple forms and woers beteter in that sense).
-This is particularly useful for simplifying algebraic expressions and equations.
+simplify the expression via a sequence of existing Mathlib lemmas.
+The tactic \lstinline[language=lean]|simp_rw|
+is a variant of \lstinline[language=lean]|rw| but performs another tactic called
+\lstinline[language=lean]|simp| to get inside each binder. For instance,
+in the case of universal quantifiers $\forall x, P(x)$,
+the variable $x$ is a binder,
+and \lstinline[language=lean]|simp_rw| will penetrate
+inside it to simplify $P(x)$
+for all $x$. Unlike \lstinline[language=lean]|rw|,
+which works by definitional equality,
+\lstinline[language=lean]|simp| is a more powerful
+tactic that tries to simplify a goal
+by applying a set of rules tagged as \textbf{simp lemmas}.
 After these simplifications we obtain:
 \begin{lstlisting}[language=lean]
   this : 0 ≤ c - a
 \end{lstlisting}
 Clearly, the proof relies mostly on \lstinline[language=lean]|Rat.add_nonneg|.
-Its source code is fairly involved and uses advanced features
-that are beyond our current scope. Nevertheless, it highlights
-an important aspect of formal mathematics in Mathlib.
 Mathlib defines \lstinline[language=lean]|Rat| as an instance of
 a linear ordered field, implemented via a normalized fraction
 representation: a pair of integers (numerator and denominator)
 with positive denominator and coprime numerator and denominator \cite{mathlibdoc}.
-To achieve this, it uses a \textbf{structure}. In Lean, a structure is a dependent record
-(or product type) type  used to group together related fields or properties as a single data type.
-Unlike ordinary records, the type of later fields may depend on the values of earlier ones.
-Defining a structure automatically introduces a constructor (usually mk) and projection
+To achieve this, it uses a \textbf{structure}.
+In Lean, a structure is a dependent record
+(or product type) type  used to group together related fields
+or properties as a single data type.
+Unlike ordinary records, the type of later fields may
+depend on the values of earlier ones.
+Defining a structure automatically introduces a constructor
+(usually mk) and projection
 functions that retrieve (deconstruct) the values of its fields.
-Structures may also include proofs expressing properties that the fields must satisfy.
+Structures may also include proofs expressing properties
+that the fields must satisfy.
 \begin{lstlisting}[language=lean]
   structure Rat where
-    /-- Constructs a rational number from components.
-    We rename the constructor to `mk'` to avoid a clash with the smart constructor. -/
     mk' ::
-    /-- The numerator of the rational number is an integer. -/
     num : Int
-    /-- The denominator of the rational number is a natural number. -/
     den : Nat := 1
-    /-- The denominator is nonzero. -/
     den_nz : den ≠ 0 := by decide
-    /-- The numerator and denominator are coprime: it is in "reduced form". -/
     reduced : num.natAbs.Coprime den := by decide
 \end{lstlisting}
 In order to work with rational numbers in Mathlib, we use the
 \lstinline[language=lean]|Rat.mk'| constructor to create a rational number from
-its numerator and denominator, if omitted the default would be \lstinline[language=lean]|Rat.mk|.
-The fields \lstinline[language=lean]|den_nz| and \lstinline[language=lean]|reduced| are proofs that
-the denominator is nonzero and that the numerator and denominator are coprime, respectively.
-These proofs are automatically generated by Lean's \lstinline[language=lean]|decide| tactic, which can
-solve certain decidable propositions (to be discussed in the next section).
+its numerator and denominator,
+if omitted, by default would be \lstinline[language=lean]|Rat.mk|.
+The fields \lstinline[language=lean]|den_nz|
+and \lstinline[language=lean]|reduced| are proofs that
+the denominator is nonzero and that the numerator
+and denominator are coprime, respectively.
+These proofs are automatically generated
+by Lean's \lstinline[language=lean]|decide| tactic, which can
+solve certain decidable propositions.
 \begin{example}
   Here is how we can define and manipulate rational numbers in Lean.
   \begin{lstlisting}[language=lean]
@@ -202,25 +210,31 @@ solve certain decidable propositions (to be discussed in the next section).
     def third : Rat := Rat.mk' 1 3
   \end{lstlisting}
 \end{example}
-When working with rational numbers, or more generally with structures, we must provide the
-required proofs as arguments to the constructor (or Lean must be able to ensure them).
-For instance \lstinline[language=lean]|Rat.mk' 1 0| or \lstinline[language=lean]|Rat.mk' 2 6|
+When working with rational numbers, or more generally with structures,
+we must provide the
+required proofs as arguments to the constructor
+(or Lean must be able to ensure them).
+For instance \lstinline[language=lean]|Rat.mk' 1 0|
+or \lstinline[language=lean]|Rat.mk' 2 6|
 would be rejected.
 In the case of rationals, Mathlib unfolds the definition through
-\lstinline[language=lean]|Rat.numDenCasesOn|. This principle states that, to prove a property of an
-arbitrary rational number, it suffices to consider numbers of the form \lstinline[language=lean]|n /. d|
-in canonical (normalized) form, with \lstinline[language=lean]|d > 0| and \lstinline[language=lean]|gcd n d = 1|.
+\lstinline[language=lean]|Rat.numDenCasesOn|. This principle states that,
+to prove a property of an
+arbitrary rational number, it suffices to consider numbers
+of the form \lstinline[language=lean]|n \ d|, with \lstinline[language=lean]|d > 0|
+and \lstinline[language=lean]|gcd n d = 1|.
 This reduction allows mathlib to transform proofs about \lstinline[language=lean]|ℚ|
 into proofs about \lstinline[language=lean]|ℤ| and \lstinline[language=lean]|ℕ|,
 and then lift the result back to rationals.
 
 Let's return to \lstinline[language=lean]|Rat.add_nonneg|, which was the important
 lemma used in the proof of \lstinline[language=lean]|Rat.le_trans|.
-We are going to provide a simplified version by also constructing a different
-implementation of rational numbers from Mathlib's approach.
-However, the main approach for working with rational numbers remains the same as in Mathlib:
-projecting operations to natural numbers and integers first.
-Let's start by creating a structure for our rational numbers:
+We are going to construct our own simplified
+implementation of rational numbers from Mathlib's approach, and use it
+to prove the theorem.
+However, we will keep the same convention used in Mathlib.
+Projecting to natural and integers first to return a proof for rationals.
+Let's start by creating the structure:
 \newpage
 \begin{lstlisting}[language=lean]
 import Mathlib
@@ -231,7 +245,7 @@ structure myPreRat where
   den_pos : 0 < den
 \end{lstlisting}
 Notice the similarity with Mathlib's definition. You might have observed that we are not including
-the coprimality condition, the name \lstinline[language=lean]|myPreRat| will become clear later.
+the coprimality condition, and the name \lstinline[language=lean]|myPreRat| will become clear later.
 Our initial focus is to prove \lstinline[language=lean]|myPreRat.add_nonneg|.
 We structure our code as follows:
 \begin{lstlisting}[language=lean]
@@ -287,19 +301,18 @@ The important features of type classes are type inference and instances.
 When we use these operations, the square brackets in their definitions indicate that the type class
 argument is \textbf{instance implicit}; it should be synthesized automatically using
 typeclass resolution.
-This is Lean's analogue of Haskell's typeclass constraints (e.g., \texttt{add :: Add a => a -> a -> a}).
 We can register instances for specific types:
 \begin{lstlisting}[language=lean]
 instance : Add Nat where
-  add := Nat.add
+  add := Nat.add -- addition for natural numbers
 
 instance : Add Int where
-  add := Int.add
+  add := Int.add -- addition for integers
 \end{lstlisting}
 In our case, we define instances for \lstinline[language=lean]|myPreRat|:
 \begin{lstlisting}[language=lean]
 instance : LE myPreRat where
-  le r₁ r₂ := r₁.num * ↑r₂.den ≤ r₂.num * ↑r₁.den
+  le r₁ r₂ := r₁.num * ↑r₂.den ≤ r₂.num * ↑r₁.den -- ↑ is a coercion from Nat to Int (to be explained later)
 
 instance : Add myPreRat where
   add r₁ r₂ := {
@@ -333,7 +346,7 @@ lemma add_nonneg (a b : myPreRat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
   · exact Int.mul_nonneg ha (Int.natCast_nonneg b.den)
   · exact Int.mul_nonneg hb (Int.natCast_nonneg a.den)
 \end{lstlisting}
-Starting from \lstinline[language=lean]|add_nonneg|, we first simplify using
+We first simplify using
 \lstinline[language=lean]|nonneg_iff| (to be defined), which states that a rational number is non-negative
 if and only if its numerator is non-negative. This transforms the goal to
 \lstinline[language=lean]|⊢ 0 ≤ a.num → 0 ≤ b.num → 0 ≤ (a + b).num|.
@@ -378,7 +391,7 @@ tactic unfolds our definition of \lstinline[language=lean]|≤| for
 \lstinline[language=lean]|myPreRat|. Recall that we defined
 \lstinline[language=lean]|r₁ ≤ r₂| as \lstinline[language=lean]|r₁.num * ↑r₂.den ≤ r₂.num * ↑r₁.den|.
 When applied to \lstinline[language=lean]|0 ≤ r|, this becomes
-\lstinline[language=lean]|0 * r.den ≤ r.num * 1| (since \lstinline[language=lean]|0.den = 1|).
+\lstinline[language=lean]|0 * r.den ≤ r.num * 1|.
 The command \lstinline[language=lean]|change 0 * r.den ≤ r.num * 1 at h| applies
 this transformation to the hypothesis \lstinline[language=lean]|h|.
 Then \lstinline[language=lean]|simp at h| simplifies the arithmetic, reducing
@@ -388,196 +401,6 @@ giving us \lstinline[language=lean]|h : 0 ≤ r.num|.
 Finally, \lstinline[language=lean]|exact h| completes the proof.
 The backward direction follows symmetrically.
 Here the full proof: [\href{https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQODOMUArgMYzFQCmcIAngArUBKKcA7qldTnHAHbEQcAFxwAkvxi84AEyr9RcAHIoZ8/gH1I+JQAY4AHjkK8/JCCr4wSUjXpMqraTmD9CSfnaUAZAKK0jCxsnNxUMug0UICBBHBQgEEEogC8cdEAdILCAFRwgImECWkacIAmRHHxGUJwOfnpGnhuHl40YgCCsrKBjs4cXDx8SO2pZclwAN4yfJkjMRXZeQVFANRls1XztQoANBMmiiIpM0U5C1s7GtoQuvsqKGkgxOgXuocKTyvnOjIAvnjyAGZwABe3AgSgcwXg11GAkq1z0m12IwAjAiPpcRlg6CZSMB5HAfg0YJ5vGIAPJ/VTwcFONgGUJ9OAQClsa7AqAQPCREAgJACCD8fhUADmmmAfwBAAooGCgjSYABKfQlOJwQAphHADKUoKtrpiZKR+YQSORoEYANwAPjgbiIoNQMgA7XBSKhPEKaAZjoUFMrtVMcki4GxUGa4PhQGAg/AQ3AqAAPWzRx3O138d0atbaopa1YB0Ph8Ch+OJuD2nBcnlB9qafj8wVCuAS3lYGVdFCKsSaoNwQBJhBnSi2+13ecsW7q6DIC5H+egsQBtWsC4Wi8UAXRkNvZpd5qFw/TAYFnEikaQGshrdeFyeL5GPMDuDwvS4brsbknv5hgAGEkIQn/W4Cwb1+Hla8E1vd8H0eRcAN3N8T0/H8/xg4Ug2A0CgA}{link to Lean live}]
-% \begin{example}
-%   We present a simplified implementation of addition
-%   non-negativity for rationals (\lstinline[language=lean]|Rat.add_nonneg| ),
-%   maintaining a similar approach: projecting everything to the natural numbers and
-%   integers first. To illustrate the proof technique clearly, we avoid using existing lemmas
-%   from the Rat module in Mathlib.
-%   Mathlib is indeed organized into modules by mathematical
-%   domain (e.g., Nat, Int, Rat).
-%   % Lemmas are typically namespaced (e.g., Rataddnonneg) 
-%   % and often marked protected to prevent namespace pollution. 
-
-%   We start by defining helper lemmas needed in the main proof.
-%   Given a natural number
-%   (which in this case represents the denominator of a rational number) that is not
-%   equal to zero, we prove it must be positive. This follows directly by
-%   applying the Mathlib lemma \lstinline[language=lean]|Nat.pos_of_ne_zero|:
-%   \newpage
-%   \begin{lstlisting}[language=lean]
-%   import Mathlib
-
-%   lemma nat_ne_zero_pos (den : ℕ) (h_den_nz : den ≠ 0) : 0 < den :=
-%     Nat.pos_of_ne_zero h_den_nz
-% \end{lstlisting}
-%   The naming convention follows Mathlib
-%   best practices aiming to be descriptive by indicating
-%   types and properties involved.
-
-%   The following lemma is slightly more involved.
-%   It states that if a rational number (num / den)
-%   is non-negative, then its numerator must also be non-negative:
-%   \begin{lstlisting}[language=lean]
-% lemma rat_num_nonneg {num : ℤ} {den : ℕ} (hden_pos : 0 < den)
-%     (h : (0 : ℚ) ≤ num / den) : 0 ≤ num := by
-%   contrapose! h
-%   have hden_pos_to_rat : (0 : ℚ) < den := Nat.cast_pos.mpr hden_pos
-%   have hnum_neg_to_rat : num < (0 : ℚ) := Int.cast_lt.mpr h
-%   exact div_neg_of_neg_of_pos hnum_neg_to_rat hden_pos_to_rat
-% \end{lstlisting}
-%   The lemma requires the denominator to be positive as well as the non-negativity of the rational number,
-%   expressed as \lstinline[language=lean]|num / den| where the types of
-%   \lstinline[language=lean]|num| and \lstinline[language=lean]|den| are inferred.
-%   First, notice the type annotation \lstinline[language=lean]|(0 : ℚ)|.
-%   This explicit type annotation on zero forces the entire equation to be casted
-%   into rational numbers.
-%   Without this annotation, Lean would infer \lstinline[language=lean]|0|
-%   as a natural number by default. However, since the main theorem we are proving concerns rational numbers,
-%   we must ensure all comparisons occur in \lstinline[language=lean]|ℚ|.
-%   The tactic \lstinline[language=lean]|contrapose!| does what you might expect: it proves a statement by contraposition. According to the documentation:
-%   \begin{itemize}
-%     \item \lstinline[language=lean]|contrapose| turns a goal \lstinline[language=lean]|P → Q| into \lstinline[language=lean]|¬ Q → ¬ P|
-%     \item \lstinline[language=lean]|contrapose!| turns a goal \lstinline[language=lean]|P → Q| into \lstinline[language=lean]|¬ Q → ¬ P| and pushes negations inside \lstinline[language=lean]|P| and \lstinline[language=lean]|Q| using \lstinline[language=lean]|push_neg|
-%     \item \lstinline[language=lean]|contrapose h| first reverts the local assumption \lstinline[language=lean]|h|, then uses \lstinline[language=lean]|contrapose| and \lstinline[language=lean]|intro h|
-%     \item \lstinline[language=lean]|contrapose! h| first reverts the local assumption \lstinline[language=lean]|h|, then uses \lstinline[language=lean]|contrapose!| and \lstinline[language=lean]|intro h|
-%   \end{itemize}
-%   In our case, \lstinline[language=lean]|contrapose! h| transforms the goal from
-%   proving \lstinline[language=lean]|0 ≤ num| to assuming \lstinline[language=lean]|num < 0|
-%   and proving \lstinline[language=lean]|num / den < 0|.
-%   We then introduce two local hypotheses. The first, \lstinline[language=lean]|hden_pos_to_rat|,
-%   proves that the denominator
-%   is positive when cast to rationals, using \lstinline[language=lean]|Nat.cast_pos|.
-%   The suffix \lstinline[language=lean]|.mpr| selects the ``modus ponens reverse''
-%   direction of the biconditional (the \lstinline[language=lean]|←|
-%   direction of the \lstinline[language=lean]|↔|).
-%   Next, we introduce \lstinline[language=lean]|hnum_neg_to_rat|,
-%   which expresses that the numerator is negative when cast to rationals, using \lstinline[language=lean]|Int.cast_lt| with \lstinline[language=lean]|.mpr| again.
-%   Finally, we apply \lstinline[language=lean]|div_neg_of_neg_of_pos|,
-%   which states that dividing a negative number by a positive number yields a
-%   negative result, thus completing the proof by contraposition.
-%   Note that we are allowing ourselves to use existing lemmas from Mathlib,
-%   such as \lstinline[language=lean]|div_neg_of_neg_of_pos| from the \lstinline[language=lean]|Field| module,
-%   but not from the \lstinline[language=lean]|Rat| module,
-%   to keep the presentation clear and focused on the main proof techniques.
-%   \newpage
-%   Now we can prove the main result:
-%   \begin{lstlisting}[language=lean]
-% lemma rat_add_nonneg (a b : Rat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
-
-%   intro ha hb
-%   cases a with | div a_num a_den a_den_nz a_cop =>
-%   cases b with | div b_num b_den b_den_nz b_cop =>
-%   -- Goal: ⊢ 0 ≤ ↑a_num / ↑a_den + ↑b_num / ↑b_den
-%   rw[div_add_div] -- applies the addition formula requiring two new goals 
-%   · sorry 
-%   · sorry 
-%   · sorry
-% \end{lstlisting}
-%   \newpage
-%   We first introduce the two hypotheses \lstinline[language=lean]|ha| and
-%   \lstinline[language=lean]|hb| into the context using \lstinline[language=lean]|intro|.
-%   As mentioned earlier, a structure can be viewed as a product type or a record type with
-%   a single constructor. The tactic \lstinline[language=lean]|cases a with|
-%   exposes the fields of \lstinline[language=lean]|Rat|: the
-%   numerator ()\lstinline[language=lean]|a_num|), denominator
-%   (\lstinline[language=lean]|a_den|), the proof that the denominator is non-zero
-%   (\lstinline[language=lean]|a_den_nz|), and the coprimality condition
-%   (\lstinline[language=lean]|a_cop|). Notice how the goal transforms
-%   the rationals \lstinline[language=lean]|a| and \lstinline[language=lean]|b| into:
-%   \begin{lstlisting}[language=lean]
-% ⊢ 0 ≤ ↑a_num / ↑a_den + ↑b_num / ↑b_den
-% \end{lstlisting}
-%   where \lstinline[language=lean]|↑| denotes type coercion from
-%   \lstinline[language=lean]|ℤ| or \lstinline[language=lean]|ℕ| to
-%   \lstinline[language=lean]|ℚ|.
-%   Now we rewrite the goal using \lstinline[language=lean]|rw [div_add_div]|,
-%   a theoprem from the \lstinline[language=lean]|Field| module,
-%   which applies the addition formula for division.
-%   Let us briefly examine the source code of this theorem:
-%   \begin{lstlisting}[language=lean]
-% variable [Semifield K] {a b d : K}
-
-% theorem div_add_div (a : K) (c : K) (hb : b ≠ 0) (hd : d ≠ 0) :
-%     a / b + c / d = (a * d + b * c) / (b * d) := ...
-% \end{lstlisting}
-%   The type \lstinline[language=lean]|K| here is assumed to be a
-%   \lstinline[language=lean]|Semifield|. The \lstinline[language=lean]|variable|
-%   keyword is a way to declare parameters that are potentially used across
-%   multiple theorems or definitions. We will explore Lean's powerful algebraic
-%   hierarchy and the meaning of the square brackets \lstinline[language=lean]|[ ]|
-%   in a later section.
-%   Using this rewrite is particularly time-saving, since otherwise one would have to
-%   establish the well-definedness of rational addition in terms of the underlying
-%   structure (a non-trivial task).
-%   This theorem requires proofs \lstinline[language=lean]|(hb : b ≠ 0)| and
-%   \lstinline[language=lean]|(hd : d ≠ 0)|, generating two additional side goals.
-%   We handle each goal separately using the focusing bullet \lstinline[language=lean]|·|.
-%   The first bullet addresses the main goal (proving the sum is non-negative),
-%   while the subsequent bullets discharge the non-zero denominator conditions.
-%   I have omitted the actual proofs, here, using \lstinline[language=lean]|sorry|,
-%   which we haven't mentioned before. \lstinline[language=lean]|sorry| is a useful
-%   feature of Lean that tells the system to accept an incomplete proof for the time being,
-%   allowing you to continue development without proving every detail immediately.
-%   We can now tackle the remaining goals:
-%   \newpage
-%   \begin{lstlisting}[language=lean]
-% · -- Goal: ⊢ 0 ≤ (↑a_num * ↑b_den + ↑a_den * ↑b_num) / (↑a_den * ↑b_den)
-%   have hnum_nonneg : (0 : ℚ) ≤ a_num * b_den + a_den * b_num := by
-%     have ha_num_nonneg := by
-%       have ha_den_pos := nat_ne_zero_pos a_den a_den_nz
-%       exact rat_num_nonneg ha_den_pos ha
-%     have hb_num_nonneg := by
-%       have hb_den_pos := nat_ne_zero_pos b_den b_den_nz
-%       exact rat_num_nonneg hb_den_pos hb
-%     apply add_nonneg -- works for any OrderedAddCommMonoid
-%     · apply mul_nonneg -- works for any OrderedSemiring
-%       · exact Int.cast_nonneg.mpr ha_num_nonneg
-%       · exact Nat.cast_nonneg b_den
-%     · apply mul_nonneg
-%       · exact Nat.cast_nonneg a_den
-%       · exact Int.cast_nonneg.mpr hb_num_nonneg
-
-%   have hden_nonneg : (0 : ℚ) ≤ a_den * b_den := by
-%     rw [← Nat.cast_mul]
-%     exact Nat.cast_nonneg (a_den * b_den)
-%   exact div_nonneg hnum_nonneg hden_nonneg
-
-% · exact Nat.cast_ne_zero.mpr a_den_nz -- Goal: ⊢ ↑a_den ≠ 0
-% · exact Nat.cast_ne_zero.mpr b_den_nz -- Goal: ⊢ ↑b_den ≠ 0
-% \end{lstlisting}
-
-%   We introduce two key hypotheses, \lstinline[language=lean]|hnum_nonneg|
-%   and \lstinline[language=lean]|hden_nonneg|, which will be required by
-%   \lstinline[language=lean]|div_nonneg| from the
-%   \lstinline[language=lean]|GroupWithZero| module.
-%   This lemma provides us with a term that directly validates our statement.
-%   Note that \lstinline[language=lean]|div_nonneg| is a generalized lemma that applies
-%   not only to rational numbers but to all ordered groups with zero that are
-%   also partially ordered.
-%   The hypothesis \lstinline[language=lean]|hnum_nonneg| proves that the numerator
-%   is non-negative by working with the coerced expressions in
-%   \lstinline[language=lean]|ℚ|. It uses \lstinline[language=lean]|add_nonneg| and
-%   \lstinline[language=lean]|mul_nonneg|, which are general theorems that work for
-%   any ordered additive commutative monoid and ordered semiring, respectively.
-%   The actual reasoning is done using integer-related theorems
-%   (via \lstinline[language=lean]|Int.cast_nonneg|) for the numerators and natural
-%   number theorems (via \lstinline[language=lean]|Nat.cast_nonneg|) for the denominators.
-%   The hypothesis \lstinline[language=lean]|hden_nonneg| proves that the
-%   denominator is non-negative by working entirely with natural numbers.
-%   We use the rewrite \lstinline[language=lean]|rw [← Nat.cast_mul]|,
-%   which moves the coercion (in this case from \lstinline[language=lean]|ℕ|
-%   to \lstinline[language=lean]|ℚ|) inside the multiplication:
-%   \lstinline[language=lean]|↑(m * n) = ↑m * ↑n|. The \lstinline[language=lean]|←|
-%   symbol means that we want the transformation from right to
-%   left (i.e., we apply the equality in reverse to move the cast inward).
-%   Type casts and coercions require these kinds of rewrite rules, not only
-%   for multiplication but also for addition and other operations, and
-%   similarly for \lstinline[language=lean]|ℤ| or other numerical types.
-%   These lemmas, such as \lstinline[language=lean]|Nat.cast_mul|,
-%   \lstinline[language=lean]|Int.cast_add|, etc., ensure that algebraic operations
-%   commute with type coercions.
-% \end{example}
 \section{Coercions and Type Casting}
 We extensively used type casting and coercions in this proof, which requires some
 explanation \cite{lewis_madelaine_simplifying_casts_coercions_2020}.
@@ -620,7 +443,8 @@ or \lstinline[language=lean]|ℕ|). The simplification should proceed as follows
   \item Eliminate both casts to obtain an inequality over \lstinline[language=lean]|ℕ|:
         \lstinline[language=lean]|m + n < (10 : ℕ)|
 \end{enumerate}
-Lean provides tactics like \lstinline[language=lean]|norm_cast|
+One needs to apply different rewriting rules to achieve waht explained.
+Anyway, Lean provides tactics like \lstinline[language=lean]|norm_cast|
 to simplify expressions involving such coercions.
 The \lstinline[language=lean]|norm_cast| tactic normalizes casts
 by pushing them outward and eliminating redundant coercions, often simplifying
@@ -645,7 +469,7 @@ equivalence class. To be more precise, mathematics uses \textbf{quotients} to
 group elements of a set by an equivalence relation.
 For instance, the equivalence
 class $[\frac{1}{2}] = \{ \ldots, -\frac{1}{2}, \frac{1}{2}, \frac{2}{4}, \frac{3}{6}, \ldots\}$
-represents all fractions equivalent to $\frac{1}{2}$.
+represents all fractions equivalent to $\frac{1}{2}$, up to sign.
 Thus the set of rational numbers is the set of \textbf{representatives}
 $\mathbb{Q} = \{ \ldots, [\frac{0}{1}], [\frac{1}{1}], [\frac{1}{2}], [\frac{1}{3}], \ldots\}$.
 Algebraically, each rational number can be represented as a pair of
@@ -763,7 +587,7 @@ a function from a quotient type, such as $f : \text{Quotient } S \to \beta$
 where $S$ is the setoid, it is necessary to provide an underlying function
 $f' : \alpha \to \beta$ and prove that for all $x, y : \alpha$, if
 $x \approx y$ (under the equivalence relation), then $f'(x) = f'(y)$.
-Morover it helps to splitting the woprk. First we prove the underlying property on
+Morover it helps to split the code. First we prove the underlying property on
 \lstinline[language=lean]|myPreRat|, then lift it to the quotient type.
 Here we extract the main proof into a separate theorem:
 \newpage
@@ -949,99 +773,123 @@ $a.\text{den}$), and finally rearrange to match the required form. After
 canceling $b.\text{den}$, we obtain $a \leq c$.
 Here the full construction of myRat: [\href{https://live.lean-lang.org/#codez=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}{link to Lean live}]
 
-With  the use of a type class suich as PartialOrder we thus nenahnced myRat to be
-a member of an algebraic hierarchy. This allows us to use general theorems
+With the use of type classes such as \lstinline[language=lean]|PartialOrder|,
+we thus enhanced \lstinline[language=lean]|myRat|. This allows us to use general theorems
 about partial orders, such as transitivity of less-or-equal, without
-redefining them specifically for myRat.
-This apporoach is at the base of Mathlib's design, and needs some discussion.
+redefining them specifically for \lstinline[language=lean]|myRat|.
+This approach is at the foundation of Mathlib's design philosophy.
 \section{Type Classes and Algebraic Hierarchy}
 
-Type classes provide a powerful and flexible
-way to specify properties and operations that can be
-shared across different types, thereby enabling polymorphism and code reuse.
-Ad hoc polymorphism
-arises when a function or operator is defined over several distinct types, with behavior that varies
-depending on the type.
-A standard example \cite{wadler_blott_ad_hoc_polymorphism_1988} is overloaded multiplication:
-the same symbol \lstinline[language=lean]|*| denotes multiplication of integers
-(e.g., \lstinline[language=lean]|3 * 3|) and of floating-point numbers
-(e.g., \lstinline[language=lean]|3.14 * 3.14|).
-By contrast, parametric polymorphism occurs when a function is defined over a range of types
-but acts uniformly on each of them. For instance, the \lstinline[language=lean]|List.length|
-function applies in the same way to a list of integers and to a list of floating-point numbers.
-
+Structures and type classes are heavily used in Mathlib for
+providing properties such as ordered rings, fields, metric spaces,
+and topological spaces, which we refer to as \textbf{algebraic structures}.
+An algebraic structure is defined by a carrier type
+and a set of operations and properties.
+We write $C \, \alpha$ where
+$\alpha$ is the \textbf{carrier type} (the underlying set of elements) and $C$ is
+the \textbf{structure} (the operations and properties defined on that type).
+For example, in a group structure $\text{Group} \, \alpha$, $\alpha$
+is the carrier type
+(such as $\mathbb{Z}$ or $\mathbb{Q}$), and $\text{Group}$
+defines the multiplication,
+identity element, and inverse operation on $\alpha$.
 Under the hood, a type class is a structure.
-An important aspect of structures, and hence type classes, is that they support hierarchy
-and composition through inheritance. For example, mathematically, a monoid is a semigroup
-with an identity element, and a group is a monoid with inverses. In Lean, we can express this
-by defining a \lstinline[language=lean]|Monoid| structure that extends the
-\lstinline[language=lean]|Semigroup| structure, and a
-\lstinline[language=lean]|Group| structure that extends the
-\lstinline[language=lean]|Monoid| structure using the
-\lstinline[language=lean]|extends| keyword:
-\newpage
+The main difference between the two
+is that type classes use \textbf{instance resolution};
+a mechanism that allows
+Lean to automatically infer properties about
+a type when the latter is declared
+as an instance of a type class.
+Using structures alone would require explicitly
+passing the structure as an argument to functions
+that need it, which is cumbersome.
+Let's examine a simple example to see the main difference. Using a structure:
 \begin{lstlisting}[language=lean]
--- A semigroup has an associative binary operation
-structure Semigroup (α : Type*) where
+structure Semigroup' (α : Type*) where
   mul : α → α → α
   mul_assoc : ∀ a b c : α, mul (mul a b) c = mul a (mul b c)
 
--- A monoid extends semigroup with an identity element  
-structure Monoid (α : Type*) extends Semigroup α where
-  one : α
-  one_mul : ∀ a : α, mul one a = a
-  mul_one : ∀ a : α, mul a one = a
+def double {α : Type*} (s : Semigroup' α) (x : α) : α :=
+  s.mul x x
 
--- A group extends monoid with inverses
-structure Group (α : Type*) extends Monoid α where
-  inv : α → α
-  mul_left_inv : ∀ a : α, mul (inv a) a = one
-\end{lstlisting}
-The symbol \lstinline[language=lean]|*| in \lstinline[language=lean]|(α : Type*)|
-indicates a universe variable (we will discuss universes later). Sometimes,
-to avoid inconsistencies between types (such as Girard's paradox),
-universes must be specified explicitly. This is an example of universe polymorphism.
-Thus we have now seen all the polymorphism flavors in Lean: parametric, ad hoc, and universe polymorphism.
-
-Type classes are defined using the \lstinline[language=lean]|class| keyword,
-which is syntactic sugar for defining a structure. Thus, the previous example
-can be rewritten using type classes:
-\newpage
-\begin{lstlisting}[language=lean]
--- A semigroup has an associative binary operation
-class Semigroup (α : Type*) where
-  mul : α → α → α
-  mul_assoc : ∀ a b c : α, mul (mul a b) c = mul a (mul b c)
-
--- A monoid extends semigroup with an identity element  
-class Monoid (α : Type*) extends Semigroup α where
-  one : α
-  one_mul : ∀ a : α, mul one a = a
-  mul_one : ∀ a : α, mul a one = a
-
--- A group extends monoid with inverses
-class Group (α : Type*) extends Monoid α where
-  inv : α → α
-  mul_left_inv : ∀ a : α, mul (inv a) a = one
-\end{lstlisting}
-The main difference is that type classes support \textbf{instance resolution}.
-We use the keyword \lstinline[language=lean]|instance| to declare that a particular type is an
-instance of a type class, which inherits the properties and operations defined in the type class.
-Instances can be automatically inferred by Lean's type inference system,
-allowing for concise and expressive code.
-For example, we can declare that \lstinline[language=lean]|ℤ| is a group under addition:
-\begin{lstlisting}[language=lean]
-instance : Group ℤ where
-  mul := Int.add
-  one := 0
-  inv := Int.neg
+def Semigroup'_Int : Semigroup' ℤ where
+  mul := (· + ·)
   mul_assoc := Int.add_assoc
-  one_mul := Int.zero_add
-  mul_one := Int.add_zero
-  mul_left_inv := Int.neg_add_cancel
+
+def Semigroup'_Rat : Semigroup' ℚ where
+  mul := (· + ·)
+  mul_assoc := Rat.add_assoc
+
+#eval double Semigroup'_Int (-2)    -- -4
+#eval double Semigroup'_Rat (1/2)   -- 1
 \end{lstlisting}
-Now, any theorem proven for an arbitrary \lstinline[language=lean]|Group α|
-automatically applies to \lstinline[language=lean]|ℤ| without any additional work.
+The \lstinline[language=lean]|double| function takes an explicit
+\lstinline[language=lean]|Semigroup' α| argument to perform the doubling operation.
+When calling \lstinline[language=lean]|double|, we must explicitly provide the
+semigroup instance, such as \lstinline[language=lean]|Semigroup'_Int| or
+\lstinline[language=lean]|Semigroup'_Rat|.
+\newpage
+In contrast, using a type class:
+\begin{lstlisting}[language=lean]
+class Semigroup'' (α : Type*) where
+  mul : α → α → α
+  mul_assoc : ∀ a b c : α, mul (mul a b) c = mul a (mul b c)
+
+instance : Semigroup'' ℤ where
+  mul := (· + ·)
+  mul_assoc := Int.add_assoc
+
+instance : Semigroup'' ℚ where
+  mul := (· + ·)
+  mul_assoc := Rat.add_assoc
+
+def double' {α : Type*} [Semigroup'' α] (x : α) : α :=
+  Semigroup''.mul x x
+
+#eval double' (-2 : ℤ)    -- -4
+#eval double' (1/2 : ℚ)   -- 1
+\end{lstlisting}
+
+Notice the square brackets \lstinline[language=lean]|[Semigroup'' α]| in the
+definition of \lstinline[language=lean]|double'|. This syntax indicates that
+\lstinline[language=lean]|Semigroup'' α| is a type class constraint.
+When we call \lstinline[language=lean]|double'|, we do not need to explicitly
+provide the semigroup instance. Instead, Lean automatically infers the appropriate
+instance based on the type of the argument. This is the power of instance resolution.
+We chose the semigroup example because it is simple yet demonstrates how algebraic
+structures can be extended. A semigroup can be extended to a monoid or a group by
+adding more properties. Using structures and type classes, we can implement this
+inheritance pattern:
+\begin{lstlisting}[language=lean]
+class Group'' (α : Type*) extends Semigroup'' α where
+  one : α
+  left_id : ∀ a : α, mul one a = a
+  right_id : ∀ a : α, mul a one = a
+  inv : α → α
+  left_inv : ∀ a : α, mul (inv a) a = one
+  right_inv : ∀ a : α, mul a (inv a) = one
+
+instance : Group'' ℤ where
+  --omitted
+
+instance : Group'' ℚ where
+  --omitted
+
+theorem mul_cancel₀ {α : Type*} [Group'' α]  (a b c : α)
+    (h : Semigroup''.mul a b = Semigroup''.mul a c) : b = c := by sorry
+\end{lstlisting}
+
+Now we can embed the algebraic structure of a group and use general theorems
+such as the cancellation law without redefining it for each type.
+We have already demonstrated this principle when discussing transitivity of
+the less-or-equal relation and when enhancing \lstinline[language=lean]|myRat|
+with the partial order algebraic structure.
+
+Mathlib builds an extensive algebraic hierarchy using type classes.
+This hierarchy is far from being a simple tree; there are different nuances
+and technical approaches that are beyond the scope of this thesis.
+For a detailed discussion on the design and implementation of Mathlib's
+algebraic hierarchy, we refer the reader to \cite{mathlib2020}.
 
 \subsubsection{Analysis and the \lstinline[language=lean]|TopologicalSpace| Class}
 
@@ -1049,28 +897,31 @@ We have roughly seen how Lean constructively builds the rational numbers
 from naturals and integers.
 However, when dealing with real numbers, the approach includes
 the use of the axiom of choice, which, as discussed in our section on
-constructive mathematics, is not constructively acceptable.
+constructive mathematics, is not directly computable.
 When constructive methods are insufficient, Lean provides classical
 axioms through the \lstinline[language=lean]|Classical| module.
 Real numbers in Mathlib are constructed as equivalence classes of Cauchy
 sequences of rational numbers \cite{mathlibdoc}.
 This construction, combined with the reliance on classical axioms, comes
-at the cost of computability: most operations on real numbers must be
+at the cost of computability.
+Most operations on real numbers must be
 marked \lstinline[language=lean]|noncomputable|, indicating they cannot
 be executed algorithmically.
 For example, the sine function requires this marker:
 \begin{lstlisting}[language=lean]
 noncomputable def realSin (x : ℝ) : ℝ := Real.sin x
 \end{lstlisting}
-As a linearly ordered field with a metric, they instantiate multiple
-structures: normed space, metric space, uniform space, and normal
+Real numbers are instances of
+various algebraic and topological
+structures like:linear ordered field, normed space, metric space, and
 topological space \cite{mathlib2020}.
-
 In the next section, I will present an example of formalization that requires
-working with real numbers and topological spaces, the latter providing
+working with real numbers and topological spaces.
+The latter provides
 foundational tools for analysis concepts like continuity and convergence.
-Notions such as convergence and continuity in $\mathbb{R}$ can be defined
-using the metric space structure with the familiar $\varepsilon$-$\delta$
+Given that $\mathbb{R}$ is a metric space, these notions in can,
+of course, be defined
+using the familiar $\varepsilon$
 formulation:
 \begin{lstlisting}[language=lean]
 def ConvergesTo (s : ℕ → ℝ) (a : ℝ) :=
@@ -1078,12 +929,12 @@ def ConvergesTo (s : ℕ → ℝ) (a : ℝ) :=
 \end{lstlisting}
 where \lstinline[language=lean]|s| is a sequence
 and \lstinline[language=lean]|a| is the limit point.
-
 More generally, these concepts are formalized in topology.
 In standard textbooks, a topological space
 is defined as a set equipped with a collection of open sets
 satisfying certain axioms. This is reflected in
 Mathlib's \lstinline[language=lean]|TopologicalSpace| type class:
+\newpage
 \begin{lstlisting}[language=lean]
 class TopologicalSpace (α : Type*) where
   IsOpen : Set α → Prop
@@ -1091,7 +942,6 @@ class TopologicalSpace (α : Type*) where
   isOpen_inter : ∀ s t, IsOpen s → IsOpen t → IsOpen (s ∩ t)
   isOpen_sUnion : ∀ s, (∀ t ∈ s, IsOpen t) → IsOpen (sUnion s)
 \end{lstlisting}
-
 Recall that Lean treats sets as predicates
 (\lstinline[language=lean]|Set α := α → Prop|),
 where set membership is function application.
@@ -1102,8 +952,11 @@ they are open. The three axioms correspond to the standard topological axioms:
   \item The intersection of two open sets is open (\lstinline[language=lean]|isOpen_inter|)
   \item The union of any collection of open sets is open (\lstinline[language=lean]|isOpen_sUnion|)
 \end{itemize}
+\begin{note}
+  The empty set is open, as it is the union of an empty collection of open sets.
+\end{note}
 Using this structure, global continuity can be defined in terms
-of open sets, anmd indeed this is how it is defined in Mathlib:
+of open sets, and, indeed, this is how it is defined in Mathlib:
 \begin{lstlisting}[language=lean]
 structure Continuous (f : X → Y) : Prop where
   isOpen_preimage : ∀ s, IsOpen s → IsOpen (f ⁻¹' s)
@@ -1116,9 +969,9 @@ across all topological spaces and, by extension, metric spaces.
 
 \subsubsection{Limits and Convergence with Filters}
 
-The concept of a lmit is quiet extended, there are many
+The concept of a limit is quiet extended, there are many
 types of limits to consider.
-For intance the limit of a function at a point,
+For intance the limit of a sequence or a function at a point,
 limits at infinity (from above or below), one-sided limits (from the left or right)
 and so on.
 Defining each of these separately would require a
@@ -1134,6 +987,7 @@ frequently often into a single framework.
 Intuitively, a filter represents a notion of "sufficiently large" subsets.
 More fomrally, a filter $F$ on a type $X$ is a collection of subsets
 of $X$ satisfying three axioms:
+\newpage
 \begin{lstlisting}[language=lean]
 structure Filter (α : Type*) where
   sets : Set (Set α)
@@ -1141,23 +995,25 @@ structure Filter (α : Type*) where
   sets_of_superset {x y} : x ∈ sets → x ⊆ y → y ∈ sets
   inter_sets {x y} : x ∈ sets → y ∈ sets → x ∩ y ∈ sets
 \end{lstlisting}
-The field sets suggest to thinof a filter as
+The field sets suggests to think of a filter as
 a collection sets. The three axioms correspond to:
-\begin{enumerate}
+\begin{itemize}
   \item  $X \in F$ (the whole space is in the filter)
   \item  If $U \in F$ and $U \subseteq V$, then $V \in F$
         (supersets of "large" sets are "large")
   \item  If $U, V \in F$, then $U \cap V \in F$
         (finite intersections of "large" sets are "large")
-\end{enumerate}
+\end{itemize}
 Note that if $F$ is a filter that contains the empty set,
 then it contains all subsets of $X$.
-Filters are quiet categorical objects and we are going to
+Filters are quiet categorical objects, and we are going
 to intuivetly make use of them instead of descibing it fomrally.
-In particular we are going to use some of the following concetps:
+In particular, we are going to use some of the following concetps:
 \begin{itemize}
-  \item \textbf{Neighborhood filter} \lstinline[language=lean]|𝓝 x|: In a topological space,
+  \item \textbf{Neighborhood filter} \lstinline[language=lean]|𝓝 x|:
+        In a topological space,
         this filter contains all neighborhoods of the point $x$.
+        This recall the standard defintion of neighborhoods in topology.
         A set is in \lstinline[language=lean]|𝓝 x| if it contains an
         open set containing $x$. This captures the idea of "near $x$."
   \item \textbf{At top filter} \lstinline[language=lean]|atTop : Filter ℕ|: Contains sets that
@@ -1168,14 +1024,14 @@ In particular we are going to use some of the following concetps:
   \item \lstinline[language=lean]|∀ᶠ x in f, p x| (\lstinline[language=lean]|f.Eventually p|):
         "Eventually in filter $f$, property $p$ holds."
         This means there exists some set $U \in f$ such that $p$ holds for all $x \in U$.
-        For example, \lstinline[language=lean]|∀ᶠ n in atTop, n > 100| means
-        "for all sufficiently large $n$, we have $n > 100$."
+        % For example, \lstinline[language=lean]|∀ᶠ n in atTop, n > 100| means
+        % "for all sufficiently large $n$, we have $n > 100$."
   \item \lstinline[language=lean]|∃ᶠ x in f, p x| (\lstinline[language=lean]|f.Frequently p|):
         "Frequently in filter $f$, property $p$ holds." This means for every set $U \in f$, there exists
         some $x \in U$ where $p$ holds. This captures the idea that $p$ holds "infinitely often" or
         "arbitrarily close."
-        For example, \lstinline[language=lean]|∃ᶠ n in atTop, Even n| means
-        "there are arbitrarily large even numbers."
+        % For example, \lstinline[language=lean]|∃ᶠ n in atTop, Even n| means
+        % "there are arbitrarily large even numbers."
   \item \lstinline[language=lean]|Tendsto f l₁ l₂|: "Function $f$ tends from filter
         $l_1$ to filter $l_2$." This is used for convergence.
 \end{itemize}
@@ -1208,7 +1064,7 @@ theorem Continuous.tendsto (hf : Continuous f) (x) :
   Similar to how a topological space can be defined via a basis of open sets,
   a filter can be defined via a basis of sets.
   A basis  $B$ for a filter $F$ is a nonemprty collection of sets wich
-  preserve intersectiohns;
+  preserve intersections;
   for any two sets $U, V \in B$, there exists a set $W \in B$ such
   that $W \subseteq U \cap V$.
   \begin{lstlisting}[language=lean]
@@ -1220,7 +1076,6 @@ theorem Continuous.tendsto (hf : Continuous f) (x) :
   Given a basis, we can not only generate a filter,
   but also help proving properties about it, restricitng to one basis only.
   To better understand the proof, we can expand it slightly:
-  \newpage
   \begin{lstlisting}[language=lean]
 theorem Continuous'.tendsto (hf : Continuous f) (x) :
     Tendsto f (𝓝 x) (𝓝 (f x)) := by
@@ -1231,7 +1086,6 @@ theorem Continuous'.tendsto (hf : Continuous f) (x) :
   · exact ⟨hft_in, ht_open.preimage hf⟩
   · exact Subset.rfl
 \end{lstlisting}
-
   The statemnt \lstinline[language=lean]|Tendsto f (𝓝 x) (𝓝 (f x))| is reformulation of
   continuity in terms of neighborhood filters \lstinline[language=lean]|𝓝 x|.
   Meaning that for every neighborhood of $f(x)$, there exists a neighborhood of $x$
@@ -1239,9 +1093,6 @@ theorem Continuous'.tendsto (hf : Continuous f) (x) :
   In particular the neighborhood filter \lstinline[language=lean]|𝓝 x| has a basis
   consisting of all open sets containing the point $x$,
   wich is stated by \lstinline[language=lean]|nhds_basis_opens x|.
-  This recall the standard defintion of neighborhoods in topology;
-  a set is a neighborhood of $x$
-  if it contains an open set containing $x$.
   Thus the line
   \lstinline[language=lean]|rw [(nhds_basis_opens x).tendsto_iff (nhds_basis_opens (f x))]|
   restricts the goal in terms of these basis open sets.
@@ -1250,12 +1101,13 @@ theorem Continuous'.tendsto (hf : Continuous f) (x) :
   Next, we introduce an arbitrary open neighborhood $t$ of $f(x)$
   using \lstinline[language=lean]|intro t ⟨hft_in, ht_open⟩|.
   The natural choice for the witness neighborhood $s$ is
-  \lstinline[language=lean]|f ⁻¹' t|, which contains $x$ because $f(x) \in t$.
-  We construct this using \lstinline[language=lean]|use f ⁻¹' t|.
-  The first part of the goal is to show that $x \in f^{-1}(t)$
+  given by \lstinline[language=lean]|use f ⁻¹' t|.
+  Now, the first part of the goal is to show that $x \in f^{-1}(t)$
   and that $f^{-1}(t)$ is open.
-  This is done using \lstinline[language=lean]|constructor; exact ⟨hft_in, ht_open.preimage hf⟩|,
-  leveraging the global continuity of $f$: since $t$ is open and $f$ is continuous,
+  This is done using
+  \lstinline[language=lean]|constructor; exact ⟨hft_in, ht_open.preimage hf⟩|.
+  With \lstinline[language=lean]|ht_open.preimage hf| we are
+  leveraging the global continuity of $f$. Since $t$ is open and $f$ is continuous,
   the preimage $f^{-1}(t)$ is also open.
   The second part of the goal is to show that $\forall x \in f^{-1}(t), f(x) \in t$,
   which always holds by the definition of preimage; \lstinline[language=lean]|exact Subset.rfl|.
