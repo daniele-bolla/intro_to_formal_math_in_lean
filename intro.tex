@@ -10,12 +10,13 @@ To achieve a goal, a programmer must write a program that meets given specificat
 There are two primary approaches: \textbf{program derivation} and \textbf{program verification}
 (\cite{nordstrom1990programming} Section 1.1).
 In \textbf{program verification}, the programmer first writes a program and then proves it meets
-the specifications. This approach checks for errors at \textbf{run-time} when the code executes.
+the specifications. This approach checks for errors at \textbf{run-time}, when the code executes.
 In \textbf{program derivation}, the programmer writes a proof that a program with certain properties exists,
 then extracts a program from that proof. This approach enables specification
 checking at \textbf{compilation-time}, catching errors while typing, thus, before execution.
-This distinction corresponds to \textbf{dynamic} versus \textbf{static} \textbf{type systems}.
-Most programming languages combine both approaches; providing basic types for annotation and compile-time checking,
+This distinction corresponds to \textbf{dynamic} versus \textbf{static type systems}.
+Most programming languages combine both approaches; providing basic types for annotation
+and compile-time checking,
 while leaving the remaining checks to be performed at runtime.
 
 \begin{example}
@@ -23,13 +24,14 @@ while leaving the remaining checks to be performed at runtime.
   they are created. For example, a variable defined as a number can later
   be reassigned to a string:
   \begin{lstlisting}[language=JavaScript]
-    let price = 100; // Javascript internal system recognize this variable as a number
-    price = "100";   // "100" transform the number 100 to a string. This is valid in JavaScript
+    let price = 100; // Javascript recognizes this variable as a number
+    price = "100";   // "100" transform the number 100 to a string
   \end{lstlisting}
   TypeScript is a statically typed superset of JavaScript.
   Unlike JavaScript, it performs type checking at compile time.
   This means we can prevent the previous behavior, while writing our code, simply by adding
   a type annotation:
+  \newpage
   \begin{lstlisting}[language=TypeScript]
     let price: number = 100;
     price = "100";  // Error: Type 'string' is not assignable to type 'number'
@@ -41,15 +43,13 @@ Nonetheless, TypeScript, even though it has a sophisticated type system, cannot 
 capture complex mathematical properties. As well as for the most programming languages,
 program specifications can only be enforced at runtime.
 Lean, by contrast, uses a much more powerful type system that enables it to
-express and verify mathematical statements with complete rigor fully during compilation time.
+express and verify mathematical statements with complete rigor, fully during compilation time.
 This makes it particularly suitable as a \textbf{theorem prover} for formalizing mathematics.
 
 Lean's type system is based on \textbf{dependent type theory}, specifically the
 \textbf{Calculus of Inductive Constructions} (CIC) with various extensions.
 It's important to note that \textbf{type theory} is not a single, unified theory, but rather a family of
 related theories with various extensions, ongoing developments, and rich historical ramifications.
-% Creating a language like Lean  careful consideration of which rules and features to include.
-
 Type theory emerged as an alternative foundation for mathematics, addressing paradoxes
 that arose in naive set theory. Consider Russell's famous paradox:
 let $S = \{x \mid x \notin x\}$ be the set of all sets that do not contain themselves.
@@ -79,13 +79,13 @@ Proof irrelevance means that all proofs of the same proposition
 are considered equivalent (definitional equivalent in type theory).
 What matters
 is whether a proposition can be proven, not which specific proof is given.
-This separation between propositions (\textbf{Prop}) and data types (\textbf{Type}) was first
+This separation between propositions
+(\textbf{Prop}) and (\textbf{Type}) was first
 introduced in \textbf{N.G. de Bruijn's AUTOMATH system} (1967)
 (\cite{thompson1999types}, Section 9.1.4, page 334).
-
 For our purposes, we do not need to delve deeply into the theoretical foundations;
 instead, we will introduce the relevant concepts as needed while working with Lean.
-\section{Lean first steps}
+\section{First Steps in Lean}
 
 In the language of type theory, and by extension in Lean, we write \lstinline[language=lean]|x : X|
 to mean that $x$ is a \textbf{term} of type $X$.
@@ -113,15 +113,13 @@ The command \lstinline[language=lean]|#check| allows us to inspect the type of a
 At first glance, one might be tempted to view the colon notation as analogous to the membership
 symbol $\in$ from set theory, treating types as if they were sets.
 While this intuition can be helpful initially, type theory offers a fundamentally richer perspective.
-The crucial insight is the \textbf{Curry-Howard correspondence},
+The crucial insight is the \textbf{Curry-Howard isomorphism},
 also known as the \textbf{propositions-as-types} principle.
 This correspondence establishes a deep connection between mathematical proofs and programs.
 \textbf{Propositions correspond to types}, and \textbf{proofs correspond to terms} inhabiting those types.
-Under this interpretation, a term $x : X$ can be understood in two more ways:
-\begin{itemize}
-  \item As a \textbf{computational object}: $x$ is a program or data structure of type $X$
-  \item As a \textbf{logical object}: $x$ is a proof of the proposition $X$
-\end{itemize}
+Under this interpretation, a term $x : X$ can be,
+as well be understood
+as a \textbf{computational object}: $x$ is a program or data structure of type $X$.
 Lean is a concrete realization of the propositions-as-types principle,
 proving a theorem, within the language, amounts to constructing a term of the appropriate type.
 When we write \lstinline[language=lean]|theorem_name : Proposition|, we are declaring that
@@ -157,15 +155,13 @@ For example, consider proving that $2 + 2 = 4$:
   so this is just applying \lstinline[language=lean]|rfl| again (it's a bit of cheating).
   Here, I used \lstinline[language=lean]|example|, which is handy for defining anonymous
   expressions for demonstration purposes.
-  Before diving into the discussion, here is another keyword, \lstinline[language=lean]|def|,
+  Before diving into the discussion, here is another keyword \lstinline[language=lean]|def|,
   used to introduce definitions and functions.
-
   \begin{lstlisting}[language=Lean]
     def addOne (n : Nat) : Nat := n + 1
 \end{lstlisting}
   This definition expects a natural number as its parameter, written \lstinline[language=lean]|(n : Nat)|
   and returns a natural number.
-    [\href{https://live.lean-lang.org/\#codez=YOUR_ENCODED_URL_HERE}{Run in browser}]
 \end{example}
 Let's now turn to how logic is handled in Lean and how the Curry-Howard
 isomorphism is reflected concretely.

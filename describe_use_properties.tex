@@ -30,7 +30,7 @@ quantifiers required by transitivity.
 Looking at this code, we immediately notice that explicitly
 passing the type argument \lstinline[language=lean]|Nat| is somewhat repetitive.
 Lean allows us to omit it by letting the type inference mechanism fill it in automatically.
-This is achieved by using \textbf{implicit arguments} with curly brackets (we have already used them before):
+This is achieved by using \textbf{implicit arguments} with curly brackets:
 \begin{lstlisting}[language=lean]
 def Transitive {α : Type} (R : α → α → Prop) : Prop :=
   ∀ x y z, R x y → R y z → R x z
@@ -55,7 +55,7 @@ and \lstinline[language=lean]|le_trans|.
 Mathlib is the community‑driven mathematical
 library for Lean, containing a large body of formalized mathematics
 and ongoing development.
-It is the defacto standard library for both programming and proving
+It is the defacto standard library for proving
 in Lean (\cite{mathlib2020}). We will dig into it as we go along.
 The underscores indicate
 unnamed variables that we do not use later. If we had named
@@ -82,7 +82,7 @@ defined as before.
 \end{lstlisting}
   This proof performs the same steps, but is much easier to read.
   Using \lstinline[language=lean]|by| we enter Lean's tactic mode.
-  Move your cursor just before \lstinline[language=lean]|by|.
+  Move your cursor just after \lstinline[language=lean]|by|.
   The goal is initially displayed as \lstinline[language=lean]|⊢ Transitive fun x1 x2 ↦ x1 ≤ x2|.
   The tactic \lstinline[language=lean]|intro| is mainly used to introduce
   variables or hypotheses corresponding to universal quantifiers
@@ -115,7 +115,7 @@ Another way to check source code is
 by using \lstinline[language=lean]|#print Rat.le_trans|.
 \begin{lstlisting}[language=lean]
 variable (a b c : Rat)
-protected lemma le_trans (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
+lemma le_trans (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
   rw [Rat.le_iff_sub_nonneg] at hab hbc
   have := Rat.add_nonneg hab hbc
   simp_rw [sub_eq_add_neg, add_left_comm (b + -a) c (-b), add_comm (b + -a) (-b), add_left_comm (-b) b (-a), add_comm (-b) (-a), add_neg_cancel_comm_assoc, ← sub_eq_add_neg] at this
@@ -168,11 +168,12 @@ After these simplifications we obtain:
 \begin{lstlisting}[language=lean]
   this : 0 ≤ c - a
 \end{lstlisting}
+
 Clearly, the proof relies mostly on \lstinline[language=lean]|Rat.add_nonneg|.
 Mathlib defines \lstinline[language=lean]|Rat| as an instance of
 a linear ordered field, implemented via a normalized fraction
 representation: a pair of integers (numerator and denominator)
-with positive denominator and coprime numerator and denominator \cite{mathlibdoc}.
+with positive denominator and coprime numerator and denominator (\cite{mathlibdoc}).
 To achieve this, it uses a \textbf{structure}.
 In Lean, a structure is a dependent record
 (or product type) type  used to group together related fields
@@ -204,10 +205,10 @@ These proofs are automatically generated
 by Lean's \lstinline[language=lean]|decide| tactic, which can
 solve certain decidable propositions.
 \begin{example}
-  Here is how we can define and manipulate rational numbers in Lean.
+  Here is how we can define rational numbers in Lean.
   \begin{lstlisting}[language=lean]
-    def half : Rat := Rat.mk' 1 2
-    def third : Rat := Rat.mk' 1 3
+    def half : Rat := Rat.mk' 1 2 -- or (1 / 2 : Rat)
+    def third : Rat := Rat.mk' 1 3 -- or (1 / 3 : Rat)
   \end{lstlisting}
 \end{example}
 When working with rational numbers, or more generally with structures,
@@ -234,6 +235,7 @@ implementation of rational numbers from Mathlib's approach, and use it
 to prove the theorem.
 However, we will keep the same convention used in Mathlib.
 Projecting to natural and integers first to return a proof for rationals.
+
 Let's start by creating the structure:
 \newpage
 \begin{lstlisting}[language=lean]
@@ -274,8 +276,7 @@ At this stage, Lean will complain because we haven't yet defined the operations
 Operations such as addition or less-than-or-equal need to be defined for each type
 (addition
 for natural numbers, less-or-equal for integers, and so on).
-This is achieved through \textbf{type classes}, Lean's mechanism for defining and working with
-\textbf{algebraic structures}.
+This is achieved through \textbf{type classes}.
 Type classes provide a powerful and flexible way to specify properties and operations that can be
 shared across different types called \textbf{ad hoc polymorphism}.
 A standard example for ad hoc polymorphism (\cite{wadler_blott_ad_hoc_polymorphism_1988})
@@ -283,33 +284,37 @@ is overloaded multiplication:
 the same symbol \lstinline[language=lean]|*| denotes multiplication of integers
 (e.g., \lstinline[language=lean]|3 * 3|) and of floating-point numbers
 (e.g., \lstinline[language=lean]|3.14 * 3.14|).
-By contrast, parametric polymorphism occurs when a function is defined over a range of types
-but acts uniformly on each of them. For instance, the \lstinline[language=lean]|List.length|
-function applies in the same way to a list of integers and to a list of floating-point numbers.
+% By contrast, parametric polymorphism occurs when a function is defined 
+% over a range of types
+% but acts uniformly on each of them. For instance, 
+% the \lstinline[language=lean]|List.length|
+% function applies in the same way to a list of integers 
+% and to a list of floating-point numbers.
 Lean exposes type classes for common operations like:
-\newpage
 \begin{lstlisting}[language=lean]
 class Add (α : Type u) where
   add : α → α → α
 
-class LE (α : Type u) where
-  le : α → α → Prop
+class LE (α : Type u) where 
+  le : α → α → Prop -- less or equal operartion (≤)
 \end{lstlisting}
 Type classes are, under the hood, just structures where you similarly describe fields
 for each operation.
-The important features of type classes are type inference and instances.
-When we use these operations, the square brackets in their definitions indicate that the type class
-argument is \textbf{instance implicit}; it should be synthesized automatically using
-typeclass resolution.
-We can register instances for specific types:
+The important features of type classes are type inference
+and \textbf{instances}.
+When we extend a type with an instance of a type class,
+Lean will automatically apply
+the new properties defined by the class to it.
+For example we can register addition for naturals or integers:
 \begin{lstlisting}[language=lean]
 instance : Add Nat where
-  add := Nat.add -- addition for natural numbers
+  add := Nat.add -- addition implementation for natural numbers
 
 instance : Add Int where
-  add := Int.add -- addition for integers
+  add := Int.add -- addition implementation for integers
 \end{lstlisting}
-In our case, we define instances for \lstinline[language=lean]|myPreRat|:
+In our case, we define instances for
+\lstinline[language=lean]|myPreRat|:
 \begin{lstlisting}[language=lean]
 instance : LE myPreRat where
   le r₁ r₂ := r₁.num * ↑r₂.den ≤ r₂.num * ↑r₁.den -- ↑ is a coercion from Nat to Int (to be explained later)
@@ -321,8 +326,10 @@ instance : Add myPreRat where
     den_pos := Nat.mul_pos r₁.den_pos r₂.den_pos
   }
 \end{lstlisting}
-Once these instances are defined, Lean can automatically infer which operation to use
-when we write \lstinline[language=lean]|a + b| or \lstinline[language=lean]|a ≤ b|
+Once these instances are defined, Lean can automatically
+infer which operation to use
+when we write \lstinline[language=lean]|a + b|
+or \lstinline[language=lean]|a ≤ b|
 for values of type \lstinline[language=lean]|myPreRat|.
 We also want to define zero within our definition of rational numbers:
 \begin{lstlisting}[language=lean]
@@ -337,7 +344,6 @@ must be transfomer into our
 \lstinline[language=lean]|zero| definition.
 
 Let's finally address the proof:
-\newpage
 \begin{lstlisting}[language=lean]
 lemma add_nonneg (a b : myPreRat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
   simp only [nonneg_iff]
@@ -347,26 +353,32 @@ lemma add_nonneg (a b : myPreRat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
   · exact Int.mul_nonneg hb (Int.natCast_nonneg a.den)
 \end{lstlisting}
 We first simplify using
-\lstinline[language=lean]|nonneg_iff| (to be defined), which states that a rational number is non-negative
+\lstinline[language=lean]|nonneg_iff| (to be defined), which states that a
+rational number is non-negative
 if and only if its numerator is non-negative. This transforms the goal to
 \lstinline[language=lean]|⊢ 0 ≤ a.num → 0 ≤ b.num → 0 ≤ (a + b).num|.
 We then introduce the two hypotheses \lstinline[language=lean]|ha : 0 ≤ a.num| and
 \lstinline[language=lean]|hb : 0 ≤ b.num| using \lstinline[language=lean]|intro|.
 Now we only need to prove that the numerator of their sum is non-negative.
 By our definition of addition for \lstinline[language=lean]|myPreRat|, the numerator of
-\lstinline[language=lean]|a + b| is \lstinline[language=lean]|a.num * ↑b.den + b.num * ↑a.den|.
+\lstinline[language=lean]|a + b| is
+\lstinline[language=lean]|a.num * ↑b.den + b.num * ↑a.den|.
 Since the numerator is an integer, we can use lemmas for integers defined in Mathlib.
 We use \lstinline[language=lean]|apply| to match our goal with the lemma
 \lstinline[language=lean]|Int.add_nonneg| (the relative lemma on integers), which states that the sum of two non-negative
 integers is non-negative. The \lstinline[language=lean]|apply| tactic works backwards:
 given a goal \lstinline[language=lean]|⊢ G| and a lemma
-\lstinline[language=lean]|lemma : P → Q → G|, it replaces the goal with two new subgoals
+\lstinline[language=lean]|lemma : P → Q → G|, it
+replaces the goal with two new subgoals
 \lstinline[language=lean]|⊢ P| and \lstinline[language=lean]|⊢ Q|.
-In our case, \lstinline[language=lean]|Int.add_nonneg| requires proving that both summands
+In our case, \lstinline[language=lean]|Int.add_nonneg|
+requires proving that both summands
 are non-negative.
-We close the first goals with \lstinline[language=lean]|Int.mul_nonneg ha (Int.natCast_nonneg b.den)|,
+We close the first goals with
+\lstinline[language=lean]|Int.mul_nonneg ha (Int.natCast_nonneg b.den)|,
 where \lstinline[language=lean]|ha| provides the non-negativity of the numerator
-\lstinline[language=lean]|a.num|, and \lstinline[language=lean]|Int.natCast_nonneg b.den|
+\lstinline[language=lean]|a.num|, and
+\lstinline[language=lean]|Int.natCast_nonneg b.den|
 provides the non-negativity of the denominator \lstinline[language=lean]|b.den|.
 The \lstinline[language=lean]|Int.natCast_nonneg| is needed to
 \textbf{casts} \lstinline[language=lean]|b.den| from \lstinline[language=lean]|Nat| to
@@ -403,12 +415,16 @@ The backward direction follows symmetrically.
 Here the full proof: [\href{https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQODOMUArgMYzFQCmcIAngArUBKKcA7qldTnHAHbEQcAFxwAkvxi84AEyr9RcAHIoZ8/gH1I+JQAY4AHjkK8/JCCr4wSUjXpMqraTmD9CSfnaUAZAKK0jCxsnNxUMug0UICBBHBQgEEEogC8cdEAdILCAFRwgImECWkacIAmRHHxGUJwOfnpGnhuHl40YgCCsrKBjs4cXDx8SO2pZclwAN4yfJkjMRXZeQVFANRls1XztQoANBMmiiIpM0U5C1s7GtoQuvsqKGkgxOgXuocKTyvnOjIAvnjyAGZwABe3AgSgcwXg11GAkq1z0m12IwAjAiPpcRlg6CZSMB5HAfg0YJ5vGIAPJ/VTwcFONgGUJ9OAQClsa7AqAQPCREAgJACCD8fhUADmmmAfwBAAooGCgjSYABKfQlOJwQAphHADKUoKtrpiZKR+YQSORoEYANwAPjgbiIoNQMgA7XBSKhPEKaAZjoUFMrtVMcki4GxUGa4PhQGAg/AQ3AqAAPWzRx3O138d0atbaopa1YB0Ph8Ch+OJuD2nBcnlB9qafj8wVCuAS3lYGVdFCKsSaoNwQBJhBnSi2+13ecsW7q6DIC5H+egsQBtWsC4Wi8UAXRkNvZpd5qFw/TAYFnEikaQGshrdeFyeL5GPMDuDwvS4brsbknv5hgAGEkIQn/W4Cwb1+Hla8E1vd8H0eRcAN3N8T0/H8/xg4Ug2A0CgA}{link to Lean live}]
 \section{Coercions and Type Casting}
 We extensively used type casting and coercions in this proof, which requires some
-explanation \cite{lewis_madelaine_simplifying_casts_coercions_2020}.
+explanation (\cite{lewis_madelaine_simplifying_casts_coercions_2020}).
 Lean's type system lacks subtyping, means that types
-like \lstinline[language=lean]|ℕ|, \lstinline[language=lean]|ℤ|, and \lstinline[language=lean]|ℚ|
-are distinct and do not have a subtype relationship. In order to translate between these types,
-we need to use explicit type casts or rely on automatic coercions. For example,
-natural numbers (\lstinline[language=lean]|ℕ|) can be coerced to integers (\lstinline[language=lean]|ℤ|),
+like \lstinline[language=lean]|ℕ|, \lstinline[language=lean]|ℤ|,
+and \lstinline[language=lean]|ℚ|
+are distinct and do not have a subtype relationship.
+In order to translate between these types,
+we need to use explicit type casts or rely on automatic coercions.
+For example,
+natural numbers (\lstinline[language=lean]|ℕ|) can be
+coerced to integers (\lstinline[language=lean]|ℤ|),
 and integers can be coerced to rational numbers (\lstinline[language=lean]|ℚ|).
 Casting and coercion are related but distinct concepts:
 \begin{itemize}
@@ -514,6 +530,7 @@ indeed an equivalence relation, which is verified through the
 \lstinline[language=lean]|iseqv| field. Here is how we begin defining the
 rational numbers using the \lstinline[language=lean]|Setoid| typeclass and
 \lstinline[language=lean]|Quotient| type:
+\newpage
 \begin{lstlisting}[language=lean]
 instance myRel : Setoid myPreRat where
   r p q := p.num * q.den = q.num * p.den
@@ -547,11 +564,8 @@ type abbreviation. Unlike \lstinline[language=lean]|def|, which creates a new
 definition that must be unfolded explicitly, with \lstinline[language=lean]|abbrev|
 Lean can automatically treats \lstinline[language=lean]|myRat|
 as \lstinline[language=lean]|Quotient myRel| without requiring manual unfolding.
-\newpage
 We can now propoerly define myRat and adding properties and operations.
 \begin{lstlisting}[language=lean]
-namespace myRat
-
 instance : LE myRat where
   le r₁ r₂ := Quotient.lift₂ (fun a b ↦ a ≤ b) myRel_respects_le r₁ r₂
 
@@ -568,8 +582,6 @@ lemma add_nonneg (a b : myRat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
   induction b using Quotient.ind with | _ b =>
   intro ha hb
   exact myPreRat.add_nonneg a b ha hb
-
-end myRat
 \end{lstlisting}
 Notice how we reuse the previous \lstinline[language=lean]|add_nonneg|
 lemma for the quotient type using \lstinline[language=lean]|Quotient.ind|.
@@ -590,7 +602,6 @@ $x \approx y$ (under the equivalence relation), then $f'(x) = f'(y)$.
 Morover it helps to split the code. First we prove the underlying property on
 \lstinline[language=lean]|myPreRat|, then lift it to the quotient type.
 Here we extract the main proof into a separate theorem:
-\newpage
 \begin{lstlisting}[language=lean]
 private theorem le_respects_equiv_forward
     (a₁ b₁ a₂ b₂ : myPreRat)
@@ -735,7 +746,6 @@ for \lstinline[language=lean]|myPreRat|. The antisymmetry case uses
 \lstinline[language=lean]|Quotient.sound|, which states that if two representatives
 are equivalent (i.e., $a \approx b$), then their quotient equivalence classes are equal
 (i.e., $\llbracket a \rrbracket = \llbracket b \rrbracket$).
-\newpage
 The underlying proofs for \lstinline[language=lean]|myPreRat| are:
 \begin{lstlisting}[language=lean]
 theorem le_refl (a : myPreRat) : a ≤ a := by

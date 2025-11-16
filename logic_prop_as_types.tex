@@ -43,13 +43,14 @@ called \textbf{inference rules}.
     \AxiomC{$P_n$}
     \QuaternaryInfC{$C$}
   \end{prooftree}
-  Where the $P_1, P_2, \ldots, P_n$, above the line, are hypothetical premises and, the hypothetical conclusion $C$ is below the line.
+  Where the $P_1, P_2, \ldots, P_n$, above the line, are hypothetical
+  premises and, the hypothetical conclusion $C$ is below the line.
 \end{example}
 The inference rules needed are, \textbf{introduction rules} wich specify
 how to form compound propositions from simpler ones, and
-\textbf{Elimination rules} needed to derive information about their components.
-Let's look at how we can define some connectives first using
-natural deduction, (from \cite{thompson1999types}, Section 1.1).
+\textbf{elimination rules} needed to derive information about them.
+Let's look at how we can define some connectives, first using
+natural deduction (from \cite{thompson1999types}, Section 1.1).
 \paragraph{Conjunction ($\land$)}
 \paragraph{Introduction Rule}
 \begin{prooftree}
@@ -153,7 +154,7 @@ we can construct new compound types from existing ones.
   \end{prooftree}
 \end{example}
 Technically, there are two more inference rules that we will not consider in this setting:
-\textbf{formation rules}, used to declare that a type is well-formed, and
+\textbf{formation rules}, used to declare that a type is well-defined, and
 \textbf{computation rules}, which specify how a term will be evaluated.
 Moreover, without going too deep into the jargon,
 one specific judgment is
@@ -257,8 +258,7 @@ represents functions from $A$ to $B$.
 Where $f$ is a function that maps any element $x : A$ to an element $\Phi : B$.
 In Lean, lambda abstraction is written using \lstinline[language=lean]|fun| or \lstinline[language=lean]|λ|:
 \begin{lstlisting}[language=lean]
-variable (A : Type*)
-def identityFun : A → A := fun x => x
+def identityFun (A : Type) : A → A := fun x => x
 \end{lstlisting}
 \paragraph{Elimination Rule (application)}
 \begin{prooftree}
@@ -280,16 +280,16 @@ simply as $f \, a$.
 % appearances of the Curry--Howard correspondence, specifically the connection
 % between function application (lambda abstraction) and implication
 % \cite{church1940formulation}. We will not delve into lambda calculus here.
-For functions of multiple variables, we employ \textbf{currying} (named after
-mathematician Haskell Curry). Instead of using product types $(a,b) : A \times B$,
-we represent
-a two-argument function as a function returning another function. A function
-taking inputs $a : A$ and $b : B$ to produce output in $C$ has type:
-$$f : A \to (B \to C) \equiv A \to B \to C$$
-where the arrow associates to the right by convention. Given $a : A$ and $b : B$,
-we apply $f$ sequentially to obtain $f(a)(b) : C$. To simplify notation,
-we write $f(a)(b)$ as $f(a, b)$, and $f \, a \, b$ as $(f \, a) \, b$
-following left-associative application.
+% For functions of multiple variables, we employ \textbf{currying} (named after
+% mathematician Haskell Curry). Instead of using product types $(a,b) : A \times B$,
+% we represent
+% a two-argument function as a function returning another function. A function
+% taking inputs $a : A$ and $b : B$ to produce output in $C$ has type:
+% $$f : A \to (B \to C) \equiv A \to B \to C$$
+% where the arrow associates to the right by convention. Given $a : A$ and $b : B$,
+% we apply $f$ sequentially to obtain $f(a)(b) : C$. To simplify notation,
+% we write $f(a)(b)$ as $f(a, b)$, and $f \, a \, b$ as $(f \, a) \, b$
+% following left-associative application.
 
 % There are two equivalent ways to construct function
 % types: either by direct definition or by using
@@ -425,7 +425,6 @@ following left-associative application.
 %   \end{align*}
 % \end{example}
 % [End Skippable Part]
-
 \section{Curry Howard isomorphism}
 We have been preparing for this argument, and the reader will have surely
 noticed a strong similarity when defining logical connectives
@@ -436,13 +435,7 @@ This is not a coincidence, but rather a fundamental theorem
 first proven by Haskell Curry and William Howard.
 It forms the core of modern type theory and establishes
 a deep connection between logic, computation, and mathematics.
-The isomorphism states:
-\begin{align*}
-  \text{Propositions}        & \leftrightarrow \text{Types}              \\
-  \text{Proofs}              & \leftrightarrow \text{Programs}           \\
-  \text{Proof Normalization} & \leftrightarrow \text{Program Evaluation}
-\end{align*}
-\noindent\textbf{Implication} ($P \Rightarrow Q$) corresponds to the \textbf{function type} ($P \to Q$).
+\textbf{Implication} ($P \Rightarrow Q$) corresponds to the \textbf{function type} ($P \to Q$).
 A proof of an implication is a function that transforms any proof
 of the premise into a proof of the conclusion.
 \noindent\textbf{Conjunction} ($P \land Q$) corresponds
@@ -523,6 +516,7 @@ unfolding each component to be proved step by step.
     \BinaryInfC{$A \land (B \land C)$}
   \end{prooftree}
 \end{example}
+\newpage
 \begin{example}[Lean Implementation]
   Let us now implement the same proof in Lean.
   \begin{lstlisting}[language=lean]
@@ -559,16 +553,14 @@ theorem and_associative {a b c : Prop} : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
   hb : b
   ⊢ a ∧ b ∧ c
 \end{lstlisting}
-  Resembling type judgments, the goal is juxtaposed after the turnstile.
-  What comes before the turnstile ($\vdash$) is the current context.
-  Finally, the \lstinline[language=lean]|show| keyword explicitly states what
-  we are proving and verifies that our provided term has the correct type.
-  In this case, \lstinline[language=lean]|show a ∧ (b ∧ c) from ⟨ha, ⟨hb, hc⟩⟩|
+  Resembling type judgments, the goal is juxtaposed after the turnstile ($\vdash$).
+  What comes before it is the current context.
+  Finally, \lstinline[language=lean]|show a ∧ (b ∧ c) from ⟨ha, ⟨hb, hc⟩⟩|
   asserts that we are constructing a proof of \lstinline[language=lean]|a ∧ (b ∧ c)|
   using the term \lstinline[language=lean]|⟨ha, ⟨hb, hc⟩⟩|.
   The \lstinline[language=lean]|show| keyword makes the proof
   more readable
-  and ensures the provided
+  and ensures that the provided
   proof term matches the stated
   goal up to \textbf{definitional equality}.
   Two types are definitionally equal in Lean when they
@@ -687,7 +679,9 @@ while existential quantifiers correspond to
 \textbf{dependent pair types} (also called Sigma types, written $\Sigma$).
 These are constructs from dependent type theory, which provides a way to interpret
 predicates or, more generally, types depending on some data or variable.
-% This generalizes concepts such as predicates and functions.
+Technically the correspondence is not that immediate and actually Lean implements,
+\lstinline[language=lean]|Exists| and \lstinline[language=lean]|Forall|
+using as inductive types (this follows also for the previously defined connectives).
 This time we are not going to involve deduction rules or type judgments.
 Instead, we will extend the isomorphism
 to quantifiers directly
@@ -695,21 +689,18 @@ by presenting the Lean syntax.
 \begin{example}[Quantifiers in Lean]
   Lean expresses quantifiers as follows:
   \begin{lstlisting}[language=lean]
-  ∀ (x : X), P x
-  Forall (x : X), P x
-  Π (x : X), P x -- Equivalently, using Pi types
-  ∃ x : α, p
-  Exists (λ x : α => p)
-  Σ x : α, p -- Equivalently, using Sigma types
+variable (X : Type) (P : X → Prop)
+ (∀ (x : X), P x) -- ∀ corresponds to Pi type Π
+ (∃ (x : X), P x) -- ∃ corresponds to Sigma type Σ
   \end{lstlisting}
 \end{example}
 \begin{example}[Universal introduction in Lean]
   The \textbf{universal introduction rule} allows us to prove $\forall x, P(x)$
   by proving $P(x)$ for an \textbf{arbitrary} $x$.
-  In Lean, this corresponds to lambda abstraction (constructing a function):
+  In Lean, this corresponds to constructing a function:
   \begin{lstlisting}[language=lean]
   example : ∀ n : Nat, n ≥ 0 :=
-    fun n => Nat.zero_le n -- this is a built-in theorem in Mathlib, we will look into it later.
+    fun n => Nat.zero_le n -- this is a built-in theorem in Lean.
   \end{lstlisting}
 \end{example}
 \begin{example}[Universal elimination in Lean]
@@ -771,37 +762,31 @@ as the \textbf{axiom of choice} or the \textbf{law of excluded middle}
 As a consequence, proof by contradiction does not work in this setting
 without additional justification.
 Constructive logic emphasizes that a statement is only
-considered true if we can explicitly construct
-a proof or provide a \textbf{witness} for it.
+considered true if we can explicitly provide a \textbf{witness} for it.
 This is what makes constructive mathematics inherently \textbf{computable}.
-We already touched on this concept in the previous section.
-In particular, we presented the logical connectives via the
-Brouwer--Heyting--Kolmogorov (BHK) interpretation.
-Following this interpretation, negation is not a primitive type
-but is instead constructed as a function $\text{Prop} \to \text{False}$.
+% We already touched on this concept in the previous section.
+% In particular, we presented the logical connectives via the
+% Brouwer--Heyting--Kolmogorov (BHK) interpretation.
 We also emphasized that, constructively,
 a proof of existence consists of a pair:
 a witness together with a proof that the stated property holds for that witness.
 \begin{example}[Constructive existence proof]
-  We give a constructive proof in Lean that there exist natural numbers
+  We give a \textbf{constructive proof} in Lean that there exist natural numbers
   $a$ and $b$ such that $a + b = 7$:
   \begin{lstlisting}[language=lean]
-  example : ∃ a b : Nat, a + b = 7 := by
-    use 3, 4
-  \end{lstlisting}
-  The \lstinline[language=lean]|use| tactic (from Mathlib) provides
-  explicit witnesses: $a = 3$ and $b = 4$.
-  Lean then automatically evaluates the expression and verifies that
-  $3 + 4 = 7$.
-  This example is simple enough for Lean to complete the proof automatically.
+example : ∃ a b : Nat, a + b = 7 := ⟨3, 4, rfl⟩
+\end{lstlisting}
+  To prove an existential statement, we provide \textbf{witnesses}
+  (concrete values $a = 3$ and $b = 4$) and a \textbf{proof}
+  that the predicate holds ($3 + 4 = 7$).
 \end{example}
 In classical mathematics, one might attempt a proof by contradiction.
 However, this approach is not directly accepted in constructive mathematics,
 as it doesn't provide explicit witnesses for the claimed objects.
 Nonetheless, while constructive at its core, Lean allows users to
 invoke classical principles, such as contraposition or proof by contradiction,
-through tactics like \lstinline[language=lean]|exfalso| or by importing
-\lstinline[language=lean]|Classical|.
+through \textbf{tactics} ((to be explained later))
+like \lstinline[language=lean]|exfalso|.
 \begin{example}[Reasoning from false]
   Here is an example of deriving any proposition from a contradiction:
   \begin{lstlisting}[language=lean]
@@ -814,6 +799,4 @@ through tactics like \lstinline[language=lean]|exfalso| or by importing
   $\vdash \mathsf{False}$, meaning we now need to derive a contradiction.
   Since we already have a false hypothesis $h$,
   we can provide it using the \lstinline[language=lean]|exact| tactic.
-  This principle is known as \textit{ex falso quodlibet}
-  (from falsehood, anything follows).
 \end{example}

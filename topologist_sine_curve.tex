@@ -12,6 +12,12 @@ formalization \href{https://leanprover-community.github.io/mathlib4_docs/Counter
 The topologist's sine curve is defined as the graph of $y = \sin(1/x)$
 for $x \in (0, \infty)$,
 together with the origin $(0, 0)$.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{img/topologist_sine_curve.png}
+  \caption{Topologist's sine curve.}
+  \label{fig:sine-curve-ball}
+\end{figure}
 We define three sets in $\mathbb{R}^2$:
 \begin{itemize}
   \item $S$: the oscillating curve $\{(x, \sin(1/x)) : x > 0\}$
@@ -75,6 +81,7 @@ lemma S_is_conn : IsConnected S := by sorry
 In the file where \lstinline[language=lean]|IsConnected| is defined,
 \texttt{Topology/Connected/Basic.lean}, we see that it requires $S$ to be nonempty and preconnected.
 One can verify this by unfolding \lstinline[language=lean]|IsConnected| in the goal.
+\newpage
 \begin{lstlisting}[language=lean]
 lemma S_is_conn : IsConnected S := by
   unfold IsConnected 
@@ -316,7 +323,6 @@ showing that the origin is a limit point of $S$.
 We construct a sequence $f : \mathbb{N} \to \mathbb{R}^2$ in $S$
 converging to $(0,0)$ using
 \lstinline[language=lean]|Tendsto|:
-\newpage
 \begin{lstlisting}[language=lean]
 lemma T_sub_cls_S : T ⊆ closure S := by
   intro x hx
@@ -477,7 +483,9 @@ $\gamma(0) = x$ and $\gamma(1) = y$.
 We can use the \lstinline[language=lean]|unitInterval| \textbf{subtype} of
 \lstinline[language=lean]|ℝ| representing the interval
 $[0,1]$.
+
 Now let's start with the first part of the proof:
+\newpage
 \begin{lstlisting}[language=lean]
 theorem T_is_not_path_conn : ¬ (IsPathConnected T) := by
   -- Assume we have a path from z = (0, 0) to w = (1, sin(1))
@@ -502,7 +510,8 @@ to our specific points $z$ and $w$.
 Then we extrat a path and store it using
 \lstinline[language=lean]|let p := JoinedIn.somePath p_conn|.
 
-Conrad's paper (\cite{Conrad_connnotpathconn}) defines a time $t_0 \in [0, 1]$
+We have $p(0) \in (0,0)$.
+Conrad's paper (\cite{Conrad_connnotpathconn}) defines a time $t_0 \in (0, 1]$
 as the first time the path $p$ jumps from $(0,0)$ to the graph of $\sin(1/x)$, where
 the x-coordinate map ($x: \mathbb{R}^2 \to \mathbb{R} $) of $p$ is positive.
 $$
@@ -520,6 +529,12 @@ $$
 $$
 to be the last time the path remains at $(0,0)$.
 The same continuity argument applies with this definition.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{img/topologist_sine_curve_with_ball.png}
+  \caption{Topologist's sine curve with ball around $(0,0)$.}
+  \label{fig:sine-curve-ball}
+\end{figure}
 \begin{lstlisting}[language=lean]
 -- Consider the composition of the x-coordinate map with p, which is continuous
 have xcoord_pathcont : Continuous fun t ↦ (p t).1 := continuous_fst.comp p.continuous
@@ -602,7 +617,7 @@ Consequently, they lack of arithmetic properties
 of the real numbers for instance.
 We need to cast them to $\mathbb{R}$
 (with \lstinline[language=lean]|let s₀ := (t₀ : ℝ)|)
-first, then cast back to \lstinline[language=lean]|unitInterval|
+first, then cast back to \lstinline[language=lean]|unitInterval|,
 by providing proofs that the bounds $[0, 1]$ are satisfied (\lstinline[language=lean]|hs₁|, \lstinline[language=lean]|hs₁'|).
 In the second case of the inner statment of have \lstinline[language=lean]|ha : a > 0|,
 if $p(t_1) \in Z$, then $(p\ t_1).1 = 0$ by definition of $Z = \{(0,0)\}$.
@@ -660,6 +675,7 @@ lemma xs_pos_peak_nonneg : ∀ k : ℕ, 0 ≤ xs_pos_peak k := sorry
 lemma sin_xs_pos_peak_eq_one (k : ℕ) : Real.sin ((xs_pos_peak k)⁻¹) = 1 := sorry
 \end{lstlisting}
 The crucial property is that this sequence eventually enters $[0, a]$:
+\newpage
 \begin{lstlisting}[language=lean]
 -- For any k ∈ ℕ, sin(1/xs_pos_peak(k)) = 1
 -- Since xs_pos_peak converges to 0 as k → ∞,
