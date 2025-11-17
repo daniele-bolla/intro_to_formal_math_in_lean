@@ -14,5 +14,6 @@ The work takes inspiration from Konrad Conrad’s exposition:
 📄 *“Connected but Not Path Connected”*  
 🔗 <https://kconrad.math.uconn.edu/blurbs/topology/connnotpathconn.pdf>
 
-The formalized and revisited proof is available as a pull request in Mathlib4: 🔗 [mathlib4#25529](https://github.com/leanprover-community/mathlib4/pull/25529)
+The formalized and revisited proof is available as a pull request in Mathlib4: 🔗 [mathlib4#25529](https://github.com/leanprover-community/mathlib4/pull/25529).
+The edited and merged version is a stronger result than my original work.
 
