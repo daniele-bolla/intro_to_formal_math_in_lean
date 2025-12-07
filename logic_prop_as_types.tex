@@ -22,11 +22,7 @@ Here how connectives are defined in Lean:
     #check And (a b : Prop) : Prop
     #check Or (a b : Prop) : Prop
   \end{lstlisting}
-  \lstinline[language=lean]|Prop| stands for proposition, and it is an
-  essential component of Lean’s type system.
-  We can think of it as a special type whose
-  inhabitants are proofs; somewhat
-  paradoxically, a type of types.
+  \lstinline[language=lean]|Prop| is the proposition type mentioned before.
 \end{example}
 Logic is often formalized through a framework known as the \textbf{natural deduction system},
 developed by Gentzen in the 1930s (\cite{wadler2015propositions}).
@@ -162,8 +158,27 @@ $\Gamma \vdash A \equiv B\ \text{type}$, which means ``types $A$ and $B$ are
 \textbf{judgmentally (or definitionally) equal} in context $\Gamma$.''
 Similarly for terms, $\Gamma \vdash t_1 \equiv t_2 : A$ means ``terms $t_1$ and $t_2$ are
 judgmentally equal of type $A$ in context $\Gamma$.''
+\paragraph{Brief explanation of equality in type theory}
+
 In Lean, the operator \lstinline[language=lean]|:=|
 stands for definitional equality and is used by the kernel to verify proof equality.
+A mathematician proving a theorem applies a series of \textbf{reduction rules} to
+simplify the proof.
+Similarly, one can think of this
+computational reduction process in formal verification.
+However, a computer cannot simply employ the same informal
+approach to equality that a mathematician might use intuitively.
+A rigorous explanation of definitional equality
+goes beyond the scope of this thesis.
+To state it simply: \textbf{two terms are definitionally equal when they
+  reduce to the same normal for}. A \textbf{normal for} represents the most
+reduced state of a term, obtained by systematically applying a
+sequence of reduction rules until no further reductions are possible.
+In contrast, \textbf{propositional equality} requires additional logical
+bridges and propositions to establish equivalence.
+Because it is grounded in logical propositions rather
+than pure computation, propositional equality is not
+directly computable by the type checker and must be explicitly proved.
 
 Let's now construct new types from given types $A$ and $B$.
 \paragraph{Product Type}
@@ -176,7 +191,6 @@ called the \textbf{product type}.
   \AxiomC{$b : B$}
   \BinaryInfC{$(a, b) : A \times B$}
 \end{prooftree}
-\newpage
 In Lean:
 \begin{lstlisting}[language=lean]
 Prod.mk a b : Prod A B   -- or A × B
@@ -239,6 +253,7 @@ Sum.inr b : Sum A B
   \AxiomC{$\begin{array}{c}  g : (B \implies C) \end{array}$}
   \TrinaryInfC{$\mathsf{cases}(p, f, g) : C$}
 \end{prooftree}
+\newpage
 In Lean:
 \begin{lstlisting}[language=lean]
 example (p : Sum A B) (f : A → C) (g : B → C) : C := by
@@ -274,158 +289,8 @@ Functions are a primitive concept in type theory. We can \textbf{apply} a functi
 $f : A \to B$ to an element $a : A$ to obtain an element of $B$, denoted $f(a)$.
 In type theory, it is common to omit the parentheses and write the application
 simply as $f \, a$.
-% Functions can also be introduced through \textbf{lambda abstraction}, a concept
-% from lambda calculus, developed by Alonzo Church in the 1930s. Lambda calculus
-% is fundamental in functional programming and represents one of the first
-% appearances of the Curry--Howard correspondence, specifically the connection
-% between function application (lambda abstraction) and implication
-% \cite{church1940formulation}. We will not delve into lambda calculus here.
-% For functions of multiple variables, we employ \textbf{currying} (named after
-% mathematician Haskell Curry). Instead of using product types $(a,b) : A \times B$,
-% we represent
-% a two-argument function as a function returning another function. A function
-% taking inputs $a : A$ and $b : B$ to produce output in $C$ has type:
-% $$f : A \to (B \to C) \equiv A \to B \to C$$
-% where the arrow associates to the right by convention. Given $a : A$ and $b : B$,
-% we apply $f$ sequentially to obtain $f(a)(b) : C$. To simplify notation,
-% we write $f(a)(b)$ as $f(a, b)$, and $f \, a \, b$ as $(f \, a) \, b$
-% following left-associative application.
 
-% There are two equivalent ways to construct function
-% types: either by direct definition or by using
-% $\lambda$-abstraction.
-% Introducing a function by definition means that
-% we introduce a function by giving it a name (let's say, $f$) 
-% and saying we define $f : A \to B$ by giving an equation
-% \begin{equation} \label{lambda_definition}
-%   f(x) \coloneqq \Phi
-% \end{equation}
-% where $x$ is a variable and $\Phi$ is an expression
-% which may use $x$. In order for this to be valid,
-% we have to check that $\Phi : B$ assuming $x : A$.
-% Now we can compute $f(a)$ by replacing the variable $x$ in $\Phi$ with $a$. As an example,
-% consider the function $f : \mathbb{N} \to \mathbb{N}$ which
-% is defined by $f(x) \coloneqq x + x$. Then $f(2)$ is \textbf{definitionally equal} to $2 + 2$.
-% If we don't want to introduce a name for the
-% function, we can use \textbf{$\lambda$-abstraction}.
-% Given an expression $\Phi$ of type $B$ which
-% may use $x : A$, as above, we write $\lambda(x : A). \Phi$ to
-% indicate the same function defined by
-% (\ref{lambda_definition}). Thus, we have
-% $$ (\lambda(x : A). \Phi) : A \to B. $$
-% % \begin{example}
-% %   The previously defined function  has the typing
-% %   judgment
-% %   $$ (\lambda(x : \mathbb{N}). x + x) : \mathbb{N} \to \mathbb{N}. $$
-% %   As another example, for any types $A$ and $B$
-% %   and any element $y : B$, we have a
-% %   \textbf{constant function}
-% %   $$ (\lambda(x : A). y) : A \to B. $$
-% %   The \textbf{identity function} on any
-% %   type $A$ is given by
-% %   $$ (\lambda(x : A). x) : A \to A. $$
-% % \end{example}
-% [Skippable Part]
-% By convention, the ``scope'' of the variable
-% binding ``$\lambda x.$''
-% is the entire rest of the expression,
-% unless delimited with parentheses.
-% Thus, for instance, $\lambda x. x + x$
-% should be parsed as $\lambda x.(x + x)$,
-% not as $(\lambda x. x) + x$ .
-% Now a $\lambda$-abstraction is a function,
-% so we can apply it to an argument $a : A$.
-% We then have the following computation
-% rule ($\beta$-reduction), which is a
-% \textbf{definitional equality}:
-% $$ (\lambda x. \Phi)(a) \equiv \Phi' $$
-% where $\Phi'$ is the expression $\Phi$ in
-% which all occurrences of $x$ have been
-% replaced by $a$.
-% Continuing the above example, we have
-% $(\lambda x. x + x)(2) \equiv 2 + 2. $
-% % Note that from any function $f : A \to B$,
-% % we can construct a lambda abstraction
-% % function $\lambda x. f(x)$.
-% % Since this is by definition ``the function
-% % that applies $f$ to its argument'' we consider
-% % it to be definitionally
-% % equal to $f$ (\textbf{$\eta$-conversion}):
-% % $$ f \equiv (\lambda x. f(x)). $$
-% % This equality is the uniqueness principle
-% % for function types, because it shows that $f$
-% % is uniquely determined by its values.
-% % The introduction of functions by definitions
-% % with explicit parameters can be reduced to
-% % simple definitions by using $\lambda$-abstraction:
-% % i.e., we can read a definition of $f : A \to B$ by
-% % $$ f(x) \coloneqq \Phi
-% % $$
-% % as
-% % $$ f \coloneqq \lambda x. \Phi. $$
-% When performing calculations involving variables,
-% we must carefully preserve the \textbf{binding structure} of expressions during substitution.
-% Consider the function $f : \mathbb{N} \to (\mathbb{N} \to \mathbb{N})$ defined as:
-% $$ f(x) \coloneqq \lambda y. x + y $$
-% Suppose we have assumed $y : \mathbb{N}$ somewhere in our context. What is $f(y)$?
-% A naive approach would replace $x$ with $y$ directly
-% in the expression $\lambda y. x + y$, yielding $\lambda y. y + y$.
-% However, this substitution is \textbf{semantically incorrect}
-% because it causes \textbf{variable capture}:
-% the free variable $y$ (referring to our assumption)
-% becomes bound by the $\lambda$-abstraction, fundamentally altering the expression's meaning.
-% The correct approach uses \textbf{$\alpha$-conversion} (variable renaming).
-% Since bound variables have only local scope, we can consistently
-% rename them while preserving binding structure.
-% The expression $\lambda y. x + y$ is judgmentally equal to $\lambda z. x + z$ for any fresh variable $z$. Therefore:
-% $$ f(y) \equiv \lambda z. y + z $$
-% This phenomenon parallels familiar mathematical
-% practice: if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$,
-% then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, not the
-% ill-defined $\int_1^2 \frac{dt}{t-t}$.
-% Lambda abstractions bind dummy variables exactly as integrals do.
-% For functions of multiple variables, we employ \textbf{currying}
-% (named after mathematician Haskell Curry).
-% Instead of using product types, we represent a two-argument
-% function as a function returning another function.
-% A function taking inputs $a : A$ and $b : B$ to produce output in $C$ has type:
-% $$ f : A \to (B \to C) \equiv A \to B \to C $$
-% where the arrow associates to the right by convention.
-% Given $a : A$ and $b : B$, we apply $f$ sequentially:
-% first to $a$, then the result to $b$, obtaining $f(a)(b) : C$.
-% To simplify notation and avoid excessive parentheses,
-% we adopt several conventions. We write $f(a)(b)$ as $f(a, b)$
-% for abbreviated application. Without parentheses
-% entirely, $f \, a \, b$ means $(f \, a) \, b$
-% following left-associative application.
-% For multi-parameter definitions,
-% we write $f(x, y) \coloneqq \Phi$ where $\Phi : C$
-% under assumptions $x : A$ and $y : B$.
-% Using $\lambda$-abstraction, such definitions correspond to:
-% $$ f \coloneqq \lambda x. \lambda y. \Phi $$
-% Alternative notation using map symbols:
-% $$ f \coloneqq x \mapsto y \mapsto \Phi $$
-% This currying approach extends naturally to functions of three
-% or more arguments, allowing us to represent any multi-argument
-% function as a sequence of single-argument functions.
-% \begin{example}\mbox{}
-%   \begin{lstlisting}[language=lean]
-% def add : Nat -> (Nat -> Nat) := fun x => (fun y => x + y)
-% #eval add 3 4   -- Output: 7
-% \end{lstlisting}
-%   Theoretically, lambda evaluation proceeds in steps:
-%   \begin{align*}
-%     \text{add } 3\, 4 & \equiv (\text{add } 3)\, 4                         \\
-%                       & \equiv ((\lambda x.\, \lambda y.\, x + y)\, 3)\, 4 \\
-%                       & \equiv ((\lambda y.\, x + y)[x := 3])\, 4          \\
-%                       & \equiv (\lambda y.\, 3 + y)\, 4                    \\
-%                       & \equiv (3 + y)[y := 4]                             \\
-%                       & \equiv 3 + 4                                       \\
-%                       & \equiv 7
-%   \end{align*}
-% \end{example}
-% [End Skippable Part]
-\section{Curry Howard isomorphism}
+\section{The Curry Howard Isomorphism}
 We have been preparing for this argument, and the reader will have surely
 noticed a strong similarity when defining logical connectives
 using deduction rules; they are remarkably similar to types
@@ -433,7 +298,7 @@ constructed using type judgments. For instance, function
 types can be seen as implications.
 This is not a coincidence, but rather a fundamental theorem
 first proven by Haskell Curry and William Howard.
-It forms the core of modern type theory and establishes
+It forms the core of type theory and establishes
 a deep connection between logic, computation, and mathematics.
 \textbf{Implication} ($P \Rightarrow Q$) corresponds to the \textbf{function type} ($P \to Q$).
 A proof of an implication is a function that transforms any proof
@@ -445,6 +310,7 @@ A proof of a conjunction consists of a pair containing proofs of both conjuncts.
 to the \textbf{sum type} ($P + Q$).
 A proof of a disjunction is either a proof of the
 first disjunct or a proof of the second disjunct.
+Same goes for the rest of the connectives.
 Lean uses inference rules and type
 judgments as well as computing connectives using each related type.
 For instance, $A \land B$ can be represented as \lstinline[language=lean]|And(A, B)| or \lstinline[language=lean]|A ∧ B|.
@@ -562,8 +428,8 @@ theorem and_associative {a b c : Prop} : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
   more readable
   and ensures that the provided
   proof term matches the stated
-  goal up to \textbf{definitional equality}.
-  Two types are definitionally equal in Lean when they
+  goal up to definitional equality.
+  As mentioned already, two types (or terms) are definitionally equal in Lean when they
   are identical after computation
   and unfolding of definitions; in other words, when Lean's type checker
   can mechanically verify they are the same without requiring additional proof steps.
@@ -571,10 +437,10 @@ theorem and_associative {a b c : Prop} : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
   equal to \lstinline[language=lean]|a ∧ (b ∧ c)| due to how conjunction
   associates, so \lstinline[language=lean]|show| accepts this statement.
   If we had tried to use \lstinline[language=lean]|show| with a type that
-  was only \textbf{propositionally} equal (requiring a proof to establish equality)
+  was only propositionally equal
   but not definitionally equal, Lean would reject it.
 \end{example}
-\section{Predicate logic and dependency}
+\section{Predicate Logic and Dependency}
 To capture more complex mathematical ideas, we extend our system from
 propositional logic to \textbf{predicate logic}.
 A \textbf{predicate} is a statement or proposition that depends on a variable.
@@ -593,82 +459,13 @@ Thus given an \lstinline[language=lean]|x : α| (an element
 with type \lstinline[language=lean]|α| )
 \lstinline[language=lean]|P(x) : Prop| would be representative of a proposition
 holding for \lstinline[language=lean]|x|.
-% When introducing variables into a formal language we must keep in mind that the specific choice 
-% of a variable name can be substituted without
-% changing the meaning of the predicate or statement. This should feel familiar from mathematics,
-% where the meaning of an expression does not depend on the names we assign to variables.
-% Some variables are \textbf{bound} (constrained), while others remain \textbf{free} 
-% (arbitrary, in programming often called "dummy" variables). 
-% When substituting variables, it is important to ensure that this distinction is preserved.
-% This phenomenon, called \textbf{variable capture}, parallels familiar mathematical practice: 
-% if $f(x) \coloneqq \int_1^2 \frac{dt}{x-t}$, then $f(t)$ equals $\int_1^2 \frac{ds}{t-s}$, 
-% not the ill-defined $\int_1^2 \frac{dt}{t-t}$. The same principle applies to predicate logic. For example, consider
-% [[
-% $\exists y.\,(y > x)$.
-% ]]
-% This states that for a given $x$ there exists a $y$ such that $y > x$. 
-% If we naively substitute $y+1$ for $x$, we would obtain
-% [[
-% $\exists y.\,(y > y+1)$,
-% ]]
-% where the $y$ in $y+1$ has been \textbf{captured} by the quantifier $\exists y$. 
-% This transforms the original statement from "there exists some $y$ greater than the free variable $x$" into the always-false statement 
-% "there exists some $y$ greater than itself plus one."
-% To avoid the probelm, in the above example, we would first rename the bound variable to something fresh 
-% say $z$, obtaining $\exists z.\,(z > x)$, and then safely substitute to get $\exists z.\,(z > y+1)$.
-% \begin{notation}
-%   We use the notation $\phi[t/x]$ for \textbf{substitution}, meaning all occurrences of the free 
-%   variable $x$ in formula (or expression) $\phi$ are replaced by term $t$.
-% \end{notation}
-% We can now present the inference rules for quantifiers.
-% \paragraph{Universal Quantification ($\forall$)}
-% \begin{itemize}
-%     \item Introduction
-%     \begin{prooftree}
-%     \AxiomC{$A$}
-%     \RightLabel{$\forall I$}
-%     \UnaryInfC{$\forall x.\,A$}
-%     \end{prooftree}
-%     The variable $x$ must be arbitrary in the derivation of $A$. 
-%     This rule captures statements like 
-%     $\forall x \in \mathbb{N}$, $x$ has a successor, 
-%     but would not apply to $\forall x \in \mathbb{N}$, $x$ is prime 
-%     (since we cannot derive this for an arbitrary natural number).
-%     \item Elimination
-%     \begin{prooftree}
-%     \AxiomC{$\forall x.\,A$}
-%     \RightLabel{$\forall E$}
-%     \UnaryInfC{$A[t/x]$}
-%     \end{prooftree}
-%     The conclusion $A[t/x]$ represents the substitution of term $t$ for variable $x$ in formula $A$. 
-%     From a proof of $\forall x.\,A(x)$ we can infer $A(t)$ for any term $t$.
-% \end{itemize}
-% \paragraph{Existential Quantification ($\exists$)}
-% \begin{itemize}
-%     \item Introduction
-%     \begin{prooftree}
-%     \AxiomC{$A[t/x]$}
-%     \RightLabel{$\exists I$}
-%     \UnaryInfC{$\exists x.\,A$}
-%     \end{prooftree}
-%     The substitution premise means that if we can find a specific term $t$ for which $A(t)$ holds, 
-%     then we can introduce the existential quantifier. 
-%     The introduction rule requires a witness $t$ for which the predicate holds.
-%     \item Elimination
-%     \begin{prooftree}
-%     \AxiomC{$\exists x.\,A$}
-%     \AxiomC{$[A] \vdash B$}
-%     \RightLabel{$\exists E$}
-%     \BinaryInfC{$B$}
-%     \end{prooftree}
-%     To eliminate an existential quantifier, we assume $A$ holds for some witness 
-%     and derive $B$ without making any assumptions about the specific witness.
-% \end{itemize}
 We can give an informal reading of the quantifiers as infinite logical operations:
 \begin{align*}
   \forall x.\,P(x) & \equiv P(a) \land P(b) \land P(c) \land \ldots \\
   \exists x.\,P(x) & \equiv P(a) \lor P(b) \lor P(c) \lor \ldots
 \end{align*}
+The dot symbol following the quantifier, as in $\forall x.,$, binds
+every occurrence of the variable $x$ in the expression $P(x)$.
 The expression $\forall x.\, P(x)$ can be understood as a generalized form of conjunction.
 It expresses that $P$ holds for all possible values of $x$.
 Similarly, $\exists x.\, P(x)$ is a generalized disjunction, expressing that $P$ holds
@@ -694,14 +491,18 @@ variable (X : Type) (P : X → Prop)
  (∃ (x : X), P x) -- ∃ corresponds to Sigma type Σ
   \end{lstlisting}
 \end{example}
+\newpage
 \begin{example}[Universal introduction in Lean]
   The \textbf{universal introduction rule} allows us to prove $\forall x, P(x)$
   by proving $P(x)$ for an \textbf{arbitrary} $x$.
   In Lean, this corresponds to constructing a function:
   \begin{lstlisting}[language=lean]
   example : ∀ n : Nat, n ≥ 0 :=
-    fun n => Nat.zero_le n -- this is a built-in theorem in Lean.
+    fun n => Nat.zero_le n 
   \end{lstlisting}
+  From the \lstinline[language=lean]|Nat| module in Lean, we use
+  \lstinline[language=lean]|zero_le|, a built-in theorem that already
+  proves the statement.
 \end{example}
 \begin{example}[Universal elimination in Lean]
   The \textbf{universal elimination rule} allows us to instantiate
@@ -722,7 +523,7 @@ variable (X : Type) (P : X → Prop)
     ⟨0, h⟩
   \end{lstlisting}
   Notice that \lstinline[language=lean]|⟨0, h⟩| is a product type holding
-  data (the witness~0) and a proof that it satisfies the property.
+  data (the witness) and a proof that it satisfies the property.
 \end{example}
 \begin{example}[Existential elimination in Lean]
   The \textbf{existential elimination rule}

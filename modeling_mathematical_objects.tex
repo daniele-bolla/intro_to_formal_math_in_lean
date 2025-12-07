@@ -1,6 +1,6 @@
-\chapter{Describe and use properties}
+\chapter{Modeling Mathematical Objects}
 
-It is interesting to note that a relation can be expressed as a function:
+It is interesting to note that a relation, in type theory, can be expressed as a function:
 \lstinline[language=lean]|R : α → α → Prop|.
 Similarly, when defining a predicate (\lstinline[language=lean]|P : α → Prop|) we must first declare
 \lstinline[language=lean]|α : Type| to be some arbitrary type.
@@ -12,7 +12,8 @@ It has the same type for
 both its domain and codomain, this means it can be
 applied to booleans (returning a boolean), numbers (returning a number),
 functions (returning a function), and so on.
-In the same spirit, we can define a transitivity property of a relation as follows:
+In the same spirit, we can define a transitivity property of a
+relation, for a given type \lstinline[language=lean]|α|, as follows:
 \begin{lstlisting}[language=lean]
 def Transitive (α : Type) (R : α → α → Prop) : Prop :=
   ∀ x y z, R x y → R y z → R x z
@@ -96,7 +97,7 @@ defined as before.
   (the specification of \lstinline[language=lean]|Transitive|).
   You can hover over each tactic to see its definition and documentation.
 \end{example}
-\section{Exploring Mathlib (The Rat structure)}
+\section{Exploring Mathlib (The \lstinline[language=lean]|Rat| structure)}
 In these examples we cheated and have used predefined lemmas such as
 \lstinline[language=lean]|Nat.le_trans| and
 \lstinline[language=lean]|Rat.le_trans|, just to simplify the presentation.
@@ -203,7 +204,14 @@ the denominator is nonzero and that the numerator
 and denominator are coprime, respectively.
 These proofs are automatically generated
 by Lean's \lstinline[language=lean]|decide| tactic, which can
-solve certain decidable propositions.
+We will not delve into the type-theoretic formalization of decidability,
+as it lies somewhat outside the scope of standard mathematical practice.
+Roughly speaking, however, a proposition is decidable if
+Lean can run a computation that reduces the
+statement to \lstinline[language=lean]|true|
+or \lstinline[language=lean]|false|.
+We refer the interested reader to \cite[Section 21.4]{nordstrom1990programming}
+for a deeper understanding.
 \begin{example}
   Here is how we can define rational numbers in Lean.
   \begin{lstlisting}[language=lean]
@@ -235,9 +243,7 @@ implementation of rational numbers from Mathlib's approach, and use it
 to prove the theorem.
 However, we will keep the same convention used in Mathlib.
 Projecting to natural and integers first to return a proof for rationals.
-
 Let's start by creating the structure:
-\newpage
 \begin{lstlisting}[language=lean]
 import Mathlib
 
@@ -340,9 +346,8 @@ instance : OfNat myPreRat 0 where
 With \lstinline[language=lean]|OfNat| typeclass we are telling Lean that,
 in a context expecting
 \lstinline[language=lean]|myPreRat|, the number \lstinline[language=lean]|0|
-must be transfomer into our
+must be transfomed into our
 \lstinline[language=lean]|zero| definition.
-
 Let's finally address the proof:
 \begin{lstlisting}[language=lean]
 lemma add_nonneg (a b : myPreRat) : 0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
@@ -416,11 +421,8 @@ Here the full proof: [\href{https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIY
 \section{Coercions and Type Casting}
 We extensively used type casting and coercions in this proof, which requires some
 explanation (\cite{lewis_madelaine_simplifying_casts_coercions_2020}).
-Lean's type system lacks subtyping, means that types
-like \lstinline[language=lean]|ℕ|, \lstinline[language=lean]|ℤ|,
-and \lstinline[language=lean]|ℚ|
-are distinct and do not have a subtype relationship.
-In order to translate between these types,
+In order to translate between types, like \lstinline[language=lean]|ℕ|, \lstinline[language=lean]|ℤ|,
+and \lstinline[language=lean]|ℚ|,
 we need to use explicit type casts or rely on automatic coercions.
 For example,
 natural numbers (\lstinline[language=lean]|ℕ|) can be
@@ -564,7 +566,9 @@ type abbreviation. Unlike \lstinline[language=lean]|def|, which creates a new
 definition that must be unfolded explicitly, with \lstinline[language=lean]|abbrev|
 Lean can automatically treats \lstinline[language=lean]|myRat|
 as \lstinline[language=lean]|Quotient myRel| without requiring manual unfolding.
+
 We can now propoerly define myRat and adding properties and operations.
+\newpage
 \begin{lstlisting}[language=lean]
 instance : LE myRat where
   le r₁ r₂ := Quotient.lift₂ (fun a b ↦ a ≤ b) myRel_respects_le r₁ r₂
@@ -599,9 +603,25 @@ a function from a quotient type, such as $f : \text{Quotient } S \to \beta$
 where $S$ is the setoid, it is necessary to provide an underlying function
 $f' : \alpha \to \beta$ and prove that for all $x, y : \alpha$, if
 $x \approx y$ (under the equivalence relation), then $f'(x) = f'(y)$.
-Morover it helps to split the code. First we prove the underlying property on
+Morover it helps to split the code.
+
+First we prove the underlying property on
 \lstinline[language=lean]|myPreRat|, then lift it to the quotient type.
-Here we extract the main proof into a separate theorem:
+\begin{lstlisting}[language=lean]
+theorem myRel_respects_le (a₁ b₁ a₂ b₂ : myPreRat) :
+    a₁ ≈ a₂ → b₁ ≈ b₂ → (a₁ ≤ b₁) = (a₂ ≤ b₂) := by
+  intro ha hb
+  simp only [eq_iff_iff]
+  constructor
+  · exact le_respects_equiv_forward a₁ b₁ a₂ b₂ ha hb
+  · exact fun h => le_respects_equiv_forward a₂ b₂ a₁ b₁ ha.symm hb.symm h
+\end{lstlisting}
+In \lstinline[language=lean]|myRel_respects_le|, we transform
+the equality of propositions into a biconditional using
+\lstinline[language=lean]|eq_iff_iff|, then prove both directions with
+\lstinline[language=lean]|constructor|. Since both goals are symmetrical,
+we reuse \lstinline[language=lean]|le_respects_equiv_forward|.
+\newpage
 \begin{lstlisting}[language=lean]
 private theorem le_respects_equiv_forward
     (a₁ b₁ a₂ b₂ : myPreRat)
@@ -621,24 +641,12 @@ private theorem le_respects_equiv_forward
     _ = b₁.num * b₂.den * a₁.den * a₂.den := by ring
     _ = b₂.num * b₁.den * a₁.den * a₂.den := by rw [← hb]
     _ = (b₂.num * a₂.den) * (a₁.den * b₁.den) := by ring
-
-theorem myRel_respects_le (a₁ b₁ a₂ b₂ : myPreRat) :
-    a₁ ≈ a₂ → b₁ ≈ b₂ → (a₁ ≤ b₁) = (a₂ ≤ b₂) := by
-  intro ha hb
-  simp only [eq_iff_iff]
-  constructor
-  · exact le_respects_equiv_forward a₁ b₁ a₂ b₂ ha hb
-  · exact fun h => le_respects_equiv_forward a₂ b₂ a₁ b₁ ha.symm hb.symm h
 \end{lstlisting}
-In \lstinline[language=lean]|myRel_respects_le|, we transform
-the equality of propositions into a biconditional using
-\lstinline[language=lean]|eq_iff_iff|, then prove both directions with
-\lstinline[language=lean]|constructor|. Since both goals are symmetrical,
-we reuse \lstinline[language=lean]|le_respects_equiv_forward|.
 The heart of the proof is in \lstinline[language=lean]|le_respects_equiv_forward|.
 The \lstinline[language=lean]|private| keyword ensures that
 \lstinline[language=lean]|le_respects_equiv_forward| is only accessible
 within the current namespace, keeping our interface clean.
+
 Given $h : a_1 \leq b_1$ (meaning $a_1.\text{num} \cdot b_1.\text{den} \leq b_1.\text{num} \cdot a_1.\text{den}$)
 and equivalences $ha : a_1 \approx a_2$ and $hb : b_1 \approx b_2$
 (meaning $a_1.\text{num} \cdot a_2.\text{den} = a_2.\text{num} \cdot a_1.\text{den}$
@@ -676,7 +684,12 @@ After canceling the common positive factor $(a_1.\text{den} \cdot b_1.\text{den}
 we obtain $a_2.\text{num} \cdot b_2.\text{den} \leq b_2.\text{num} \cdot a_2.\text{den}$,
 which is precisely $a_2 \leq b_2$.
 
-We also need to prove that the addition operation is well-defined on the quotient:
+Throughout the proof, we use the \lstinline[language=lean]|ring| tactic from Mathlib.
+This tactic automates proofs like associativity and commutativity
+in commutative rings (such as $\mathbb{Z}$).
+
+We also need to prove that the addition operation is well-defined
+on the quotient:
 \begin{lstlisting}[language=lean]
 theorem myRel_respects_add (a₁ b₁ a₂ b₂ : myPreRat) :
     a₁ ≈ a₂ → b₁ ≈ b₂ → (a₁ + b₁) ≈ (a₂ + b₂) := by
@@ -718,11 +731,12 @@ for any type \lstinline[language=lean]|α| endowed with a partial ordering.
 Mathlib achieves this through type classes and a carefully constructed algebraic hierarchy.
 We have already touched on this concept when we used type classes such as
 \lstinline[language=lean]|Add| and \lstinline[language=lean]|LE| to define operations
-on \lstinline[language=lean]|myRat|. Aware that rational numbers form a linearly ordered
-set (and hence a partially ordered set), we now enhance \lstinline[language=lean]|myRat|
-with the \lstinline[language=lean]|PartialOrder| type class:
+on \lstinline[language=lean]|myRat|. Aware that rational numbers
+form a totally ordered
+set, we now enhance \lstinline[language=lean]|myRat|
+with the \lstinline[language=lean]|LinearOrder| type class:
 \begin{lstlisting}[language=lean]
-instance : PartialOrder myRat where
+noncomputable instance : LinearOrder myRat where
   le_refl p := by
     induction p using Quotient.ind with | _ a =>
     exact myPreRat.le_refl a
@@ -739,6 +753,16 @@ instance : PartialOrder myRat where
     induction q using Quotient.ind with | _ b =>
     intro hab hba
     exact Quotient.sound (myPreRat.le_antisymm a b hab hba)
+
+  le_total p q := by
+    induction p using Quotient.ind with | _ a =>
+    induction q using Quotient.ind with | _ b =>
+    cases Int.le_total (a.num * b.den) (b.num * a.den) with
+    | inl h => exact Or.inl h
+    | inr h => exact Or.inr h
+
+  toDecidableLE  := Classical.decRel _
+end myRat
 \end{lstlisting}
 The structure follows the same pattern we saw earlier: use \lstinline[language=lean]|Quotient.ind|
 to unwrap quotient values to their representatives, then apply the corresponding proof
@@ -746,6 +770,7 @@ for \lstinline[language=lean]|myPreRat|. The antisymmetry case uses
 \lstinline[language=lean]|Quotient.sound|, which states that if two representatives
 are equivalent (i.e., $a \approx b$), then their quotient equivalence classes are equal
 (i.e., $\llbracket a \rrbracket = \llbracket b \rrbracket$).
+\newpage
 The underlying proofs for \lstinline[language=lean]|myPreRat| are:
 \begin{lstlisting}[language=lean]
 theorem le_refl (a : myPreRat) : a ≤ a := by
@@ -768,7 +793,8 @@ theorem le_antisymm (a b : myPreRat) : a ≤ b → b ≤ a → a ≈ b := by
   exact Int.le_antisymm hab hba
 \end{lstlisting}
 Reflexivity and antisymmetry are straightforward applications of the corresponding
-integer properties. For transitivity, given $hab : a \leq b$ (meaning
+integer properties.
+For transitivity, given $hab : a \leq b$ (meaning
 $a.\text{num} \cdot b.\text{den} \leq b.\text{num} \cdot a.\text{den}$) and
 $hbc : b \leq c$ (meaning $b.\text{num} \cdot c.\text{den} \leq c.\text{num} \cdot b.\text{den}$),
 we need to prove $a \leq c$ (i.e., $a.\text{num} \cdot c.\text{den} \leq c.\text{num} \cdot a.\text{den}$).
@@ -781,13 +807,36 @@ positive factor $c.\text{den}$ to preserve the inequality), rearrange to
 introduce $b.\text{num} \cdot c.\text{den}$, apply $hbc$ (multiplying by
 $a.\text{den}$), and finally rearrange to match the required form. After
 canceling $b.\text{den}$, we obtain $a \leq c$.
-Here the full construction of myRat: [\href{https://live.lean-lang.org/#codez=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}{link to Lean live}]
 
-With the use of type classes such as \lstinline[language=lean]|PartialOrder|,
+Finally, we must address the \lstinline[language=lean]|le_total| field and the
+computational aspects of the instance.
+The property \lstinline[language=lean]|le_total| asserts that the order is total:
+for any $a, b$, either $a \le b$ or $b \le a$.
+By unwrapping the quotient, this reduces to an inequality of integers.
+Since integers are already linearly ordered, we apply \lstinline[language=lean]|Int.le_total|
+to the cross-products of the numerators and denominators.
+
+The field \lstinline[language=lean]|decidableLE := Classical.decRel _| requires special attention.
+In Mathlib, a \lstinline[language=lean]|LinearOrder| is not merely a set of axioms;
+it is a structure that automatically defines
+\lstinline[language=lean]|min| and \lstinline[language=lean]|max| functions.
+By default, \lstinline[language=lean]|min a b| is defined as
+\lstinline[language=lean]|if a ≤ b then a else b|.
+To evaluate this conditional, Lean requires the relation $\le$ to be \textit{decidable}
+(i.e., there must be an algorithm to determine if it is true or false).
+While we could write an explicit comparison algorithm for our rationals,
+we opted for a concise mathematical approach using \lstinline[language=lean]|Classical.decRel|.
+This invokes classical logic, where every proposition is intrinsically true or false.
+However, because this relies on the axiom of choice rather than an executable algorithm,
+the resulting functions cannot be computed by the kernel.
+This necessitates marking the entire instance as \lstinline[language=lean]|noncomputable|.
+
+Here the full construction of myRat: [\href{https://live.lean-lang.org/#codez=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}{link to Lean live}]
+
+With the use of type classes such as \lstinline[language=lean]|LinearOrder|,
 we thus enhanced \lstinline[language=lean]|myRat|. This allows us to use general theorems
-about partial orders, such as transitivity of less-or-equal, without
+about linear orders, such as transitivity of less-or-equal, without
 redefining them specifically for \lstinline[language=lean]|myRat|.
-This approach is at the foundation of Mathlib's design philosophy.
 \section{Type Classes and Algebraic Hierarchy}
 
 Structures and type classes are heavily used in Mathlib for
@@ -813,6 +862,7 @@ as an instance of a type class.
 Using structures alone would require explicitly
 passing the structure as an argument to functions
 that need it, which is cumbersome.
+\newpage
 Let's examine a simple example to see the main difference. Using a structure:
 \begin{lstlisting}[language=lean]
 structure Semigroup' (α : Type*) where
@@ -838,7 +888,7 @@ The \lstinline[language=lean]|double| function takes an explicit
 When calling \lstinline[language=lean]|double|, we must explicitly provide the
 semigroup instance, such as \lstinline[language=lean]|Semigroup'_Int| or
 \lstinline[language=lean]|Semigroup'_Rat|.
-\newpage
+
 In contrast, using a type class:
 \begin{lstlisting}[language=lean]
 class Semigroup'' (α : Type*) where
@@ -866,6 +916,7 @@ definition of \lstinline[language=lean]|double'|. This syntax indicates that
 When we call \lstinline[language=lean]|double'|, we do not need to explicitly
 provide the semigroup instance. Instead, Lean automatically infers the appropriate
 instance based on the type of the argument. This is the power of instance resolution.
+
 We chose the semigroup example because it is simple yet demonstrates how algebraic
 structures can be extended. A semigroup can be extended to a monoid or a group by
 adding more properties. Using structures and type classes, we can implement this
@@ -903,19 +954,20 @@ algebraic hierarchy, we refer the reader to \cite{mathlib2020}.
 
 \subsubsection{Analysis and the \lstinline[language=lean]|TopologicalSpace| Class}
 
-We have roughly seen how Lean constructively builds the rational numbers
-from naturals and integers.
-However, when dealing with real numbers, the approach includes
-the use of the axiom of choice, which, as discussed in our section on
-constructive mathematics, is not directly computable.
-When constructive methods are insufficient, Lean provides classical
-axioms through the \lstinline[language=lean]|Classical| module.
-Real numbers in Mathlib are constructed as equivalence classes of Cauchy
-sequences of rational numbers \cite{mathlibdoc}.
-This construction, combined with the reliance on classical axioms, comes
-at the cost of computability.
-Most operations on real numbers must be
-marked \lstinline[language=lean]|noncomputable|, indicating they cannot
+We have briefly seen how one can build rational numbers from
+natural numbers and integers using quotient types.
+In our implementation of \lstinline[language=lean]|myRat|, we
+invoked \lstinline[language=lean]|Classical| axioms merely for brevity,
+to avoid writing an explicit decision procedure for the inequality.
+However, when moving to real numbers, reliance on non-constructive tools
+becomes much more unavoidable.
+In Mathlib, real numbers are defined as equivalence classes of
+Cauchy sequences of rational numbers \cite{mathlibdoc}.
+Although experimental libraries for computable reals in Lean exist, such as the
+exact real arithmetic implementation by Christiansen and Licata \cite{christiansen2022computing},
+the standard \lstinline[language=lean]|Real| type used for topology relies
+on classical axioms. Consequently, most operations on it are marked as
+\lstinline[language=lean]|noncomputable|, indicating they cannot
 be executed algorithmically.
 For example, the sine function requires this marker:
 \begin{lstlisting}[language=lean]
@@ -923,10 +975,10 @@ noncomputable def realSin (x : ℝ) : ℝ := Real.sin x
 \end{lstlisting}
 Real numbers are instances of
 various algebraic and topological
-structures like:linear ordered field, normed space, metric space, and
-topological space \cite{mathlib2020}.
+structures like: linear ordered field, normed space, metric space, and
+topological space (\cite{mathlib2020}).
 In the next section, I will present an example of formalization that requires
-working with real numbers and topological spaces.
+working with real numbers their topological space.
 The latter provides
 foundational tools for analysis concepts like continuity and convergence.
 Given that $\mathbb{R}$ is a metric space, these notions in can,
@@ -944,7 +996,6 @@ In standard textbooks, a topological space
 is defined as a set equipped with a collection of open sets
 satisfying certain axioms. This is reflected in
 Mathlib's \lstinline[language=lean]|TopologicalSpace| type class:
-\newpage
 \begin{lstlisting}[language=lean]
 class TopologicalSpace (α : Type*) where
   IsOpen : Set α → Prop
@@ -997,7 +1048,6 @@ frequently often into a single framework.
 Intuitively, a filter represents a notion of "sufficiently large" subsets.
 More fomrally, a filter $F$ on a type $X$ is a collection of subsets
 of $X$ satisfying three axioms:
-\newpage
 \begin{lstlisting}[language=lean]
 structure Filter (α : Type*) where
   sets : Set (Set α)
@@ -1085,6 +1135,7 @@ theorem Continuous.tendsto (hf : Continuous f) (x) :
   \end{lstlisting}
   Given a basis, we can not only generate a filter,
   but also help proving properties about it, restricitng to one basis only.
+  \newpage
   To better understand the proof, we can expand it slightly:
   \begin{lstlisting}[language=lean]
 theorem Continuous'.tendsto (hf : Continuous f) (x) :

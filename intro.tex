@@ -59,7 +59,7 @@ and by restricting which constructions are well-formed.
 
 \textbf{Dependent type theory}, the framework underlying Lean, extends basic type systems
 by allowing types to depend on values. For instance, one can define the type of vectors
-of length $n$, where $n$ is itself a value. This capability makes dependent type theory
+of length $n$, where $n$ is a value (a natural number). This capability makes dependent type theory
 particularly expressive for formalizing mathematics.
 
 Various proof assistants have been developed based on different variants of type theory,
@@ -71,14 +71,11 @@ such as \textbf{structures}, natural numbers, lists, and trees.
 Another important addition in Lean are \textbf{quotient types},
 which facilitate working with equivalence relations.
 
-A fundamental design feature of Lean is its \textbf{universe hierarchy} of types,
-with \textbf{Prop}
-(the proposition type) as a distinguished universe at the bottom.
-The \textbf{Prop} universe exhibits \textbf{proof irrelevance}.
-Proof irrelevance means that all proofs of the same proposition
-are considered equivalent (definitional equivalent in type theory).
-What matters
-is whether a proposition can be proven, not which specific proof is given.
+A fundamental design feature of Lean is its type structure, where \textbf{Prop} (the proposition type)
+plays a special role and exhibits \textbf{proof irrelevance}.
+Proof irrelevance means that all proofs of a given proposition are treated
+as definitionally equivalent in type theory.
+What matters is simply whether a proposition is provable, not which specific proof is provided.
 This separation between propositions
 (\textbf{Prop}) and (\textbf{Type}) was first
 introduced in \textbf{N.G. de Bruijn's AUTOMATH system} (1967)
@@ -124,7 +121,8 @@ Lean is a concrete realization of the propositions-as-types principle,
 proving a theorem, within the language, amounts to constructing a term of the appropriate type.
 When we write \lstinline[language=lean]|theorem_name : Proposition|, we are declaring that
 \lstinline[language=lean]|theorem_name| is a proof (term) of \lstinline[language=lean]|Proposition| (type).
-For example, consider proving that $2 + 2 = 4$:
+For example, consider proving that $2 + 2 = 4$.
+\newpage
 \begin{example}\mbox{}
 
   \begin{lstlisting}[language=Lean]
@@ -132,7 +130,6 @@ For example, consider proving that $2 + 2 = 4$:
 \end{lstlisting}
   Lean's syntax is designed to resemble the language of mathematics.
   Here, we use the \lstinline[language=lean]|theorem| keyword to encapsulate our proof,
-  of the statement/proposition $2 + 2 = 4$,
   giving it the name \lstinline[language=lean]|two_plus_two_eq_four|.
   This allows us to reference and reuse this result later in our code.
   After the semicolon, \lstinline[language=lean]|:|, we introduce the
