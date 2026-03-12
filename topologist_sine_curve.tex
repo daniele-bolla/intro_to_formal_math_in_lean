@@ -1,10 +1,29 @@
 \chapter{Formalizing the topologist's sine curve}
-
+\section{Motivation}
 As part of my thesis work, with the help and revision from Prof David Loeffler,
-I have formalized a well-known counterexample in topology:
+I have formalized a foundational counterexample in topology:
 the \textbf{topologist’s sine curve}.
 This classic example illustrates a space that is \textbf{connected}
 but not \textbf{path-connected}.
+
+The topologist's sine curve elegantly bridges basic
+point-set concepts with algebraic topology.
+While Mathlib's broader topology library is quite mature,
+specific counterexamples are often added later to
+stress-test stabilized APIs, such as those for paths and connectedness.
+
+Translating the informal proof into Lean revealed interesting contrasts.
+Showing that $(0,0) \in \overline{S}$ using filters closely mirrored the informal argument,
+reflecting Lean's robust filter engine. Conversely, manipulating paths proved tedious.
+In standard mathematics, we seamlessly apply real arithmetic to the
+path domain $[0,1] \subset \mathbb{R}$.
+In Mathlib, however, this domain is the \lstinline[language=lean]|unitInterval| subtype.
+Because subtypes do not automatically inherit their base type's arithmetic operations,
+one is forced to constantly cast variables back and forth
+between \lstinline[language=lean]|unitInterval| and \lstinline[language=lean]|ℝ|.
+This friction is not an inherent limitation of formal proof,
+but rather a contingency of Mathlib's current design choices.
+\section{Introduction to the topologist's sine curve}
 My original proof follows Conrad's paper (\cite{Conrad_connnotpathconn}),
 with a few modifications
 and some differences from the final
@@ -203,7 +222,7 @@ equivalent to \lstinline[language=lean]|f (g h)|.
 % \lstinline[language=lean]|(inv_is_continuous_on_pos_real)|
 % is equivalent to
 % \lstinline[language=lean]|Real.continuous_sin.comp_continuousOn (inv_is_continuous_on_pos_real)|.
-We can inline these two lemmas into the main proof to get a final one-liner:
+We can inline these two lemmas into the main proof to get a final single proof term:
 \begin{lstlisting}[language=lean]
 lemma S_is_conn : IsConnected S :=
   isConnected_Ioi.image sine_curve <| continuous_id.continuousOn.prodMk <|
@@ -282,6 +301,11 @@ A useful tool is Loogle (similar to Haskell's Hoogle),
 which helps you find theorems by their type signature or name patterns.
 You can access it at \url{https://loogle.lean-lang.org/} or
 use it directly in VS Code.
+Separately, Lean 4 has powerful built-in library search capabilities.
+By appending a question mark to certain tactics, Lean will automatically
+search the imported library for applicable lemmas. For instance, t
+he tactic exact? (or apply?) searches for theorems that can directly
+close (or make progress on) the current goal
 Depending on the previous work in the file,
 Lean can already unify the goal with available
 theorems and suggest the next step.
@@ -346,12 +370,23 @@ lemma T_sub_cls_S : T ⊆ closure S := by
       -- Apply sequential characterization of closure
       exact mem_closure_of_tendsto hf hf'
 \end{lstlisting}
-The proof is already reduced as much as possible.
+This proof is presented in a relatively compact form.
+For our purposes, this level of reduction strikes a balance between brevity and readability.
 Let's break down what's happening in without getting into details.
 Using \lstinline[language=lean]|let|, we define
 $f(n) = \left(\frac{1}{n\pi}, 0\right)$,
 which we will show converges to $(0,0)$
 and stays in $S$.
+A subtle but highly convenient Mathlib design decision aids this simplification.
+In traditional mathematics, simplifying $1/(1/x)$ to $x$ requires proving $x \neq 0$.
+In Lean, however, division by zero is defined such that $1/0 = 0$.
+While initially alarming to mathematicians, this convention
+makes the map $x \mapsto x^{-1}$ a total function on $\mathbb{R}$.
+Consequently, the theorem \lstinline[language=lean]|inv_inv|
+(which states $(x^{-1})^{-1} = x$) holds unconditionally.
+This allows the \lstinline[language=lean]|simp| tactic to cleanly resolve
+the nested inverses in $\sin(1/(1/n\pi))$
+without demanding a tedious side-proof of non-zero-ness.
 
 \begin{itemize}
 
@@ -467,6 +502,7 @@ In mathematics, we normally define a path-connected space as follows.
 The interval $[0, 1]$ is the standard choice for the domain of paths.
 % In Mathlib, \lstinline[language=lean]|PathConnectedSpace X| is a type class that asserts the entire
 % topological space $X$ is path-connected, while
+\newpage
 \lstinline[language=lean]|IsPathConnected S| is a predicate used to infer that a subset $S$
 of a topological space is path-connected.
 \begin{lstlisting}[language=lean]
@@ -665,9 +701,17 @@ Therefore, $(x, \sin(1/x)) = (x, 1)$ when
 $$
   x = \frac{2}{(4k + 1)\pi}
 $$
-for $k \in \mathbb{N}$. As $k \to \infty$, these $x$-values approach 0,
+for $k \in \mathbb{N}$.
+As $k \to \infty$, these $x$-values approach 0,
 so infinitely many of them lie in any interval $[0, a]$.
 We define this sequence and establish its key properties:
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{img/sine_curve_peaks.png}
+  \caption{The sequence \texttt{xs\_pos\_peak} isolating the points where the curve reaches its maximum $y$-value of $1$ as $x$ approaches $0$.}
+  \label{fig:sine-curve-peaks}
+\end{figure}
 \begin{lstlisting}[language=lean]
 noncomputable def xs_pos_peak := fun (k : ℕ) => 2/((4 * k + 1) * Real.pi)
 lemma xs_pos_peak_tendsto_zero : Tendsto xs_pos_peak atTop (𝓝 0) := sorry
@@ -759,5 +803,19 @@ This showcases the power of proof assistants and formal reasoning.
 Mathematics becomes not only more rigorous but also automatically verifiable.
 Furthermore, the formalization becomes a learning tool in its own right.
 Future readers can inspect each part of the code.
+
+
+Formalizing counterexamples like the topologist's sine curve paves
+the way for deeper developments in algebraic topology within Lean.
+As path-connectedness is intimately tied to homotopies,
+this space provides a natural testing ground for Mathlib's
+fundamental group API, $\pi_1(X, x_0)$.
+A logical next step is formalizing the Warsaw circle—a closed variant
+connecting the sine curve's endpoints with an arc.
+This space famously exhibits a trivial fundamental group but a
+non-trivial first singular homology group. Ultimately, expanding
+he library of formalized topological oddities ensures
+Mathlib's algebraic topology machinery can robustly handle
+the edge cases of mathematical reality.
 Here the full proof: [\href{https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQEwCmAdnAEoFLpwDKB8AYsOjAVHACr4ToQDmAnjhwATAgDM4kAM4B9KBSoAuALw06AOgCSEYHAAUABjiK4gXEIAlDiIQiAYwjgArjCRZ0BOKIlTgRAjNtHKAA3DxU4MUcSAA84QDLCfWiAGjIFdR8SPWjAbwIATvNLLxpjNXg9UzgAdbNzY1U9DP9AkIJagHI2yQhZeUoRcTgALRLaMorqizq4AG99AxSDWoBffol2Ebp9cZqp6jhAKiIhoQBaY444YCk4eyI/WxZhHHcQECQOGSlHLAD0WT2TdaAMKJrjxPvJiuEsII4BciDAoBA4LFUNEcDDbEgpAQrii4AB3YBoNFwAA+sKoKL2ygAfHACNEkPc4J8sFiYD9ukEPJTiWTfGwUcMacSYTCoHi4ABtQUAXRFovc8AkJkAqIRwQBJhGYqlrwpESCQafo9CQAFSpSjqMDAcx5BaWUWi1BIUJwVDKjjEYRSGCIiQoThgfSAVg3ALs7czttUh0IdovkYl8HktCOECAA1jIiKgvXAAPwyOAsIhen0BGzejNZqTyh30xnwQvFiAyXzBGT+/AyABerAg6ns4GrMb0jGYrHU7E93t77bAMhAjnQpaI3s65AtVpk0gLk5LRBQAGFMeyZ22YAH7TGnS63Z0TIAAIkABbhwEi+OAzlISEiACCIIaooYOYXjUcoBkRwwDxJAoGzSUCFCOFHEodB+BkXhjzPfA4AMGV8UJVBn1dIgALpBkmUAC/JjTgM013QS1rVtIiYRbTdunUcA2D0edFy3PQADkUD7I9mKkViwAFIhamo2ihPMJIGLgKFmVAQNJTEFJGgCIJQhSJiWxSSSMgzFA5wXTdgBlQBL8kHWsmRAAgQA5MF/AgMQZAbKdXQkG8cDQAhoDs95LiXEgTE0KR9xsO4HnOFRiVC8LbgIe4CGEdIvjZByuX0S54si5KZG0YB1FAJBeA8dTmhdAAeEl5RuGBfEcCBHFkYAUrqhqmqkAB5IgkwgFNUzgar5Uk9qiEa5qPl8PsHFnMaJu6khhodeL6vGzqeqKohgkAAIJrhsNaFubNqDo65qevlPQ9TgfNcUNPwZGclD4BRAp9AUlxnCbNlanYD4vh+P4TjOdZLjgHiIHgAAFFBUGOG5cseU44GcJhCX4OBnleJ47NeZ9oHs0q21ZD4ixmN4sBKUwlhKQA0Aj0JAUiwcxabgQBTIlJLAySjRSB2RrwEzfLofHql0sQAR0cYhbA8V89k+Ww8LQFB8VQYh9vAbpkpwtACzVxSiH3TTZauSgIP4K4AEYrBsfswGcVx3E8AZolkaRNwoQbdSifQvbgFVakNAAmAB6PQ9AAFkouBBoAajgS3aiotIrUsLG3ldoSPaQdM3JLbsERKCci3czP3cIHO33QwM9FDTDIz/aM40F4vGxm8B9F4KZrr9ioEiDuAQ6NKOzTjhOk/NGjU4vGE823EvdwPQSTxnYkfA7mwkKlYRgFbAhxeMxddOZVAIAlOujFUOu9AHs1DCpt6FPXsA5Rhaz4FbqcZuXdlOLgAfqoegXr2O289GzNm2qeAMXYexDRqg6T+Pp1Ank4kub0k8pJbkAXnJsK9hDCDQeyKAwBeCoHgPmS2cD5SIJAWWX+JkZwRCaiBLcODjpCHTkiN23Rs7pmsAlLu94Y4lBVAsOAgATIi4VnCug0vaqB7nAYUMId6tn4X4LuegFLWCgPZcaIBaiaIxtIQku90Zp1xm8AyZceEyJkPvR6fhfYiMjBgjIRprFu09jHG0+RFEJymP+GEV4wiJG4Z4yuqYfF+MklaQe/84Dx0GnfW+GDU4BOjDCZ+UoPG8JlAAbgiMAAg6ACHPwKcQogvA15KSlGgS4ek0gGSQPgwy9DFwwDxE2K0DSLQGQ3Co1ynS5SrDgJ2KmlQKjhEMHaG2dhZoOzcB4IoEoTCmAmVMcqxt9CJyED5PyIAAqyGsOyMAsMgolAADX6FCjDNAOVEpRXYLUdJxJkYAEEpCfFsvibkzoPBvFObrMQCIDmdnqPMeuBZER4mUHoS2alfBwoKMSYJroxkmDGT+dY4QupQC2mwKAYh0Aor+a6FZ+I4BYqmLiraVBSLwrgKRAuTZmAOIIJ0UwKRCXoHMpZRicJC5zQisSJAYAwBbxubDe5SUUoACsdB+GEJoEgKshW3DXoQWwwBKDAG7JIc5YzUBjIlKgPExJFSSCmAAKQVclZV6QHAEFuXhNVhEYTIxuD4UQbAfIa2MfVGwcBnJ6w8NEew0Ad57hYHAV4gYCS6zACkAkitGJXHmp1ElLow0QAjZuWGdUSirTOlca68AEh6EDDAcw6hKHhHTZNMQ3p26BjAN/Q6Gb3VnAtTAPavr0BHgLKADwvrAV4TBoG31/BjhIGiJcc1mwe0lCiISZVLAQiUA2dQMCMx4BkgrQWatlDVAGBWDCC12bc2ju7j7eAhp91Vpra8s4vqL1QV8CgDwwar0q0XWDAwmbuRgB7TIWIJh707UPX4owMUHR6GyqCPKGReCKhsEmAgxVSpInDVBPNaA6rVqkFu2ctkDmkQhQpJA2J8B8rgMjPQABmdQQdagWsAK3AfjLYhyDkzDG810ZBokCO2GSaPAYhIPGMmbxAAtwHAWkRgFZKydDAJ9TC2CIQLLCWpO0UiLvjlJmUKQSQkjAHoKttHJCmYg0ZoaCcuMqbVnYYd+sr1g1fBTdTwaoDNOAM1WzA9IJNTJtM+uxIIBYBcK+UiMmUioCkzFmA5kSiAGAiOAMm5MpDvAWFIO90H1j2pVVLGp5Q5bKJWgxlaIM2c4wPGDooEB0GIbYdQsFiAwAQugJCFYvTNjEGIEScDEANeAE1thmYvT9YrW24tby8u1HzDYfwTp0AuWkCp7tgBAgnkk5/5g7vlCd1mDY5QaSCTunbOqsnaCybdc5kHtOm9p6dfrRs4DmZZXdkwWHaoXwtIEizAdb8X1uJZMCl/7OnNu0kXXAQA5ESeEuHl97BWZNRnlBaqQe0pmLtWXAWoHqB2LuBQ4FGRAV1wlYMEDdPotRiGgDGpAJP7b9oDW6hUmwpCbfCCAV8DQHupa47Ua2DpUWoHRzIUQzAkBCRKEYSR6OEl85q6oZpBC1EEC7j2pjNb3pGO6CY4IZj5TC/Z9LiRzIOeqHcHOV8Iudpi+KS4KXzKZCW4W4b0lIv1ttBMMbyRtbVBc6IM7/wxDSHwHUOoeUzUPCkXZzF2Prp2dtBo+iOhUBHD3GgPKAA7bzQMm8MaSlQj1lyzA1IA/R0kQACYQ0C+DAfghAZr+FZfYAgT2HSivFRjVlAfBw5/fvoVlyvi9ZxD2Qm61a2L6CWyt7oropMz1FDnjvW9WVPRdy5Rxehl0wFXeTi0LvHE9oXw6HPvh4SIjIV9mMl5SV4hA7hvCYHAyJy16oP38kMZZMlJsloSa2/X9dFJWA3sVrU+w412Fr3rwIGa2iBeh7TklRWiDsQPmZRKH3RfyPUwheQAJjHFClGr2AIPktn/xwP71QCA1t1RBwLPXfWISJBP0AOvCdm9021l15yky4ymADyDyDzEHIRukHGF0w29z2ll3N0xn8AD210xloNwlqA1yDiY0HDwMlC3XCygPUBK2QOy3h1LBeB0PLH3hSFcFkCelVw0QUkwD3DoNQHMBIJkOsNwifS7U2DeFUFfQISvX+w+3/UuzqSuHnHQRpw6zPg/2dgkGDUXXp2EBhEXQK3+xUykERG8MCPgCwFlhID2GTTwidCuH9V3lDX2gjXfRYHnXgDeCmUrXW0PQA0AJKDeDk2wNFDCwixIFImSFdGiE0BiyQP3mB0tW8J/H+EbkHAxCxDyKCgdVsmdTnH8m8PjVQEHD5CIApCpFpDIOoCWNhAFCFGpEHGRk0AkCqMpSGB0wc30CqMg2PSIlRSfyuyuKwJ5hUNQEGHsMu2oGSNYM+xSDqi8x3nuF8HVwh0+xuPd2YPe0kSxwt38EI23X8NBKYODwUDQO8NWVqEkUswfggPUIbxbx4JbxEgFHcARO5CL16CUH0FRJ2FpExLROxLr1xIgCb3ZAJMnzIXW0fRwKsMgicIdGfjeHzylEZjgGrxRGQOwmakBM6M0BU3YH1gw1DQrT0ElDuyuxlDejBgRgeW1miP2jhF+2XCwN1KQFlLVjjD8ilAhSQGwmBGiCVJVO0zVORSCVJU0FsFsEehckl2+BZHyndNclt3+xMFGC0HdKNLgFtOw08NhjgA6FKFDNsDANROUGrDigim1JSjdI9JZDZEHHDmynTJlT9MTL0HX2dzgI5MTmrQVJuiwxzRw1HTqim3WnOnEjzNIlVPcD4NmPsizMJIHychLwrJrRkldAoJA3MmP30A7IBzgFH1/jsmLP7NLMHPLNdH+xHK5SJUnLW02ByRkSFglilkcwEyRGOAp3QCliuDxDNLKkRU42iEDgThU0KmgNUzfCIAxkGh/DVARSIDhRDn3M9j0EiSfMF2eykXLi8RuFCCgFKiuCpyMExGEU1EADwiFTNAXzHycESCMqR1WEf4opK4XQGnNgbIyCmxLxXQG7S04wp7RA92XI1yVgEAFqQPLMz0tsGQSmEHC4ERbSdmfxWHICyuXQIYjQLM8MlHB0Fog0xlHiGLHiYHeoereEYbdQUbSsfrES3OHcJsVAhmfnPMhSfI/XOvAoGA+HWQUixCTi1eB0KPOnWIShHieUZuRxUiS3V4JArs/gmQFIHSjMdMrufy3MGQZPRgkJErUJaRLxDiGdfxHiN6IwArN4IeRXV0HiWslcucGdOQEhMffMGQBfFQySLQow5kAGZlYwkmMw4KmKqCnOIKgRcfbCH9VAOdB0bkmwlTCGCUPEUTenE+UI5WesW84ieHXbYdToV8B08HG0rTe7eXefSqlNUaizGANoJ8vQE0JIHZGEWSv7NoeLY6scs5Ta/o0HTocSmABMpM2c+9LapjcA6S5on7SLYAGLEhAgL65SpERizEZinRNi4suy7it3F0EwHSvin8Dwh/WMzoEMySxdZMuADip6b0/6b4Di4Dbwjq+UQ6tozak6nskm6IP6+EhyrEAsU6shNoHs+UZGagU+CUSta64oY0SGTTQYP8t7dazpBcGI14VMUNMJXhPi49BfYXXwGQf4AY9m4Yj/UYzEbEfVBGKYp1M5EjGmnWRY6/ZY1YxRdYkiF6TY/W7Y10XYkk10exVAkwNmvxYLRYXYDQEjKaSpFDQPYAXrfrF462qGsWg83QY9JonAjEdARM6G4AOSB0eoNmyDHmfk7JKMh/CUpDdc+m6IdIfgF4GO2s8FO0LXJ4iUaUW2nsN4mMfMEO8IblIiJOlUjqqQNOqUqxQOz2ZAtlC4Rms4agXwN7B2oYkTSK+Wx2jojIACx82oUi5kfC2IOTAm96tojo0KtWcWP6jqwPM20UZGAAIWcCRD8Sjv0EJwORfXhnrMjQ/VHKSINgnrAohu5FAwPvcLbtEtDsdFJTuM2oeNA0blzzeG/wTA0haGbsqT1N4CgDeTgrgChmTHUEbRen3mztzuv3DsjsdvjqLtUH8OQZADkirrrMvRjM2qmFruoPzoovCUGl0HCDppAzcpLtFIqp/y0k6P/371btiqavsQWy7s7QABFWACiQ1Ck9wqBfjvMATA1JSwHiaM6YtR1XI2gVNGAoB0EpAWa9ZVUwCC6QsXTrwKCSgKtHaIVnbXr0QVaJj1akjpita5i9oFj5QDbXQ1jBxCbGUOixTpAejkD16t6hdP7n7HiRiw7KB0H6gWHQ0E7VAyHyGKHwNomwj67InQGu4bgIGoGu5YH+p4H0ExT9486CHoNVByDgMqCYwv93ZyS2qXokDVtr9ureTRRlidijbiI6x4y3akNPbi9fbBgMKZrrzcJXwZNIi9oGg+7pqTi5q1SPyYjoqUbNskcLxUVNqHIorJqSG4jCtzHrgwm4dctOh4CcDJEFnNsoSDmiECr2Qyy3bHBJK9AOKcy6BQIszOg6apyCGFne1xCtD+wDkirBx8wkcph2SlDLsd7eNTpxp0YUgTNv6Lg00EMoUNqINajbBkWTBorHrytPtagCtqtQX6wjn6aMWtYVM974B4WtrACrgp0oySiPAGUb7CQ2gS1IIIgQVUXtr5hFhaixAOWTBKFTnJqcWLi8X360H/FVASQcXnqzgEmmNuY/6v9yDzraaKCK78xJFaYHazgKtWZwhtFCZ/ATDSZHgcCvnRX47xWj90k5yS7yqD5jWntGmiRvI1Z9lDkgogqTl80IoSg0yEoZVzhYcLlJU7lCzHk6hiRSI/pAoEYkh42jlIYH9zlLIgA}{link to Lean live}]
 
