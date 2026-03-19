@@ -1,0 +1,243 @@
+
+\subsubsection{Analysis and the \lstinline[language=lean]|TopologicalSpace| Class}
+
+We have briefly seen how one can build rational numbers from
+natural numbers and integers using quotient types.
+In our implementation of \lstinline[language=lean]|myRat|, we
+invoked \lstinline[language=lean]|Classical| axioms merely for brevity,
+to avoid writing an explicit decision procedure for the inequality.
+However, when moving to real numbers, reliance on non-constructive tools
+becomes much more unavoidable.
+In Mathlib, real numbers are defined as equivalence classes of
+Cauchy sequences of rational numbers \cite{mathlibdoc}.
+Although experimental libraries for computable reals in Lean exist, such as the
+exact real arithmetic implementation by Christiansen and Licata \cite{christiansen2022computing},
+the standard \lstinline[language=lean]|Real| type used for topology relies
+on classical axioms. Consequently, most operations on it are marked as
+\lstinline[language=lean]|noncomputable|, indicating they cannot
+be executed algorithmically.
+For example, the sine function requires this marker:
+\begin{lstlisting}[language=lean]
+noncomputable def realSin (x : ℝ) : ℝ := Real.sin x
+\end{lstlisting}
+Real numbers are instances of
+various algebraic and topological
+structures like: linear ordered field, normed space, metric space, and
+topological space (\cite{mathlib2020}).
+In the next section, I will present an example of formalization that requires
+working with real numbers their topological space.
+The latter provides
+foundational tools for analysis concepts like continuity and convergence.
+Given that $\mathbb{R}$ is a metric space, these notions in can,
+of course, be defined
+using the familiar $\varepsilon$
+formulation:
+\begin{lstlisting}[language=lean]
+def ConvergesTo (s : ℕ → ℝ) (a : ℝ) :=
+  ∀ ε > 0, ∃ N, ∀ n ≥ N, |s n - a| < ε
+\end{lstlisting}
+where \lstinline[language=lean]|s| is a sequence
+and \lstinline[language=lean]|a| is the limit point.
+More generally, these concepts are formalized in topology.
+In standard textbooks, a topological space
+is defined as a set equipped with a collection of open sets
+satisfying certain axioms. This is reflected in
+Mathlib's \lstinline[language=lean]|TopologicalSpace| type class:
+\begin{lstlisting}[language=lean]
+class TopologicalSpace (α : Type*) where
+  IsOpen : Set α → Prop
+  isOpen_univ : IsOpen univ
+  isOpen_inter : ∀ s t, IsOpen s → IsOpen t → IsOpen (s ∩ t)
+  isOpen_sUnion : ∀ s, (∀ t ∈ s, IsOpen t) → IsOpen (sUnion s)
+\end{lstlisting}
+Recall that Lean treats sets as predicates
+(\lstinline[language=lean]|Set α := α → Prop|),
+where set membership is function application.
+Here, \lstinline[language=lean]|IsOpen| is a predicate on sets indicating whether
+they are open. The three axioms correspond to the standard topological axioms:
+\begin{itemize}
+    \item The whole space is open (\lstinline[language=lean]|isOpen_univ|)
+    \item The intersection of two open sets is open (\lstinline[language=lean]|isOpen_inter|)
+    \item The union of any collection of open sets is open (\lstinline[language=lean]|isOpen_sUnion|)
+\end{itemize}
+\begin{note}
+    The empty set is open, as it is the union of an empty collection of open sets.
+\end{note}
+Using this structure, global continuity can be defined in terms
+of open sets, and, indeed, this is how it is defined in Mathlib:
+\begin{lstlisting}[language=lean]
+structure Continuous (f : X → Y) : Prop where
+  isOpen_preimage : ∀ s, IsOpen s → IsOpen (f ⁻¹' s)
+\end{lstlisting}
+However, when proving results about limits, convergence, and continuity,
+Mathlib uses an alternative way based on \textbf{filters}.
+This approach may seem more abstract initially, but it provides
+a more general and powerful framework that works uniformly
+across all topological spaces and, by extension, metric spaces.
+
+\subsubsection{Limits and Convergence with Filters}
+
+The concept of a limit is quiet extended, there are many
+types of limits to consider.
+For intance the limit of a sequence or a function at a point,
+limits at infinity (from above or below), one-sided limits (from the left or right)
+and so on.
+Defining each of these separately would require a
+huge amount of work to include in Mathlib,
+with significant duplication of theorems and proofs.
+Moreover, many fundamental theorems
+(like the characterization of continuity via limits)
+would need to be reproved for each type of limit.
+Fortunately, Bourbaki solved this issue by introducing the notion
+of \textbf{filters} to unify
+all concepts of limits, convergence, neighborhoods and terms like eventually or
+frequently often into a single framework.
+Intuitively, a filter represents a notion of "sufficiently large" subsets.
+More fomrally, a filter $F$ on a type $X$ is a collection of subsets
+of $X$ satisfying three axioms:
+\begin{lstlisting}[language=lean]
+structure Filter (α : Type*) where
+  sets : Set (Set α)
+  univ_sets : Set.univ ∈ sets
+  sets_of_superset {x y} : x ∈ sets → x ⊆ y → y ∈ sets
+  inter_sets {x y} : x ∈ sets → y ∈ sets → x ∩ y ∈ sets
+\end{lstlisting}
+The field sets suggests to think of a filter as
+a collection sets. The three axioms correspond to:
+\begin{itemize}
+    \item  $X \in F$ (the whole space is in the filter)
+    \item  If $U \in F$ and $U \subseteq V$, then $V \in F$
+          (supersets of "large" sets are "large")
+    \item  If $U, V \in F$, then $U \cap V \in F$
+          (finite intersections of "large" sets are "large")
+\end{itemize}
+Note that if $F$ is a filter that contains the empty set,
+then it contains all subsets of $X$.
+Filters are quiet categorical objects, and we are going
+to intuivetly make use of them instead of descibing it fomrally.
+In particular, we are going to use some of the following concetps:
+\begin{itemize}
+    \item \textbf{Neighborhood filter} \lstinline[language=lean]|𝓝 x|:
+          In a topological space,
+          this filter contains all neighborhoods of the point $x$.
+          This recall the standard defintion of neighborhoods in topology.
+          A set is in \lstinline[language=lean]|𝓝 x| if it contains an
+          open set containing $x$. This captures the idea of "near $x$."
+    \item \textbf{At top filter} \lstinline[language=lean]|atTop : Filter ℕ|: Contains sets that
+          include all sufficiently large natural numbers.
+          Formally, $U \in$ \lstinline[language=lean]|atTop| if and only if there
+          exists $N$ such that $\{n \mid n \geq N\} \subseteq U$.
+          This captures the idea of "$n \to \infty$."
+    \item \lstinline[language=lean]|∀ᶠ x in f, p x| (\lstinline[language=lean]|f.Eventually p|):
+          "Eventually in filter $f$, property $p$ holds."
+          This means there exists some set $U \in f$ such that $p$ holds for all $x \in U$.
+          % For example, \lstinline[language=lean]|∀ᶠ n in atTop, n > 100| means
+          % "for all sufficiently large $n$, we have $n > 100$."
+    \item \lstinline[language=lean]|∃ᶠ x in f, p x| (\lstinline[language=lean]|f.Frequently p|):
+          "Frequently in filter $f$, property $p$ holds." This means for every set $U \in f$, there exists
+          some $x \in U$ where $p$ holds. This captures the idea that $p$ holds "infinitely often" or
+          "arbitrarily close."
+          % For example, \lstinline[language=lean]|∃ᶠ n in atTop, Even n| means
+          % "there are arbitrarily large even numbers."
+    \item \lstinline[language=lean]|Tendsto f l₁ l₂|: "Function $f$ tends from filter
+          $l_1$ to filter $l_2$." This is used for convergence.
+\end{itemize}
+\begin{example}
+    We can express convergence of a sequence $s_n$ to its limit $a$ using filters.
+    \lstinline[language=lean]|Tendsto s atTop (𝓝 a)|; meaning $s_n \to a$ as $n \to \infty$
+\end{example}
+\begin{example}
+    Another more insigthfull example is the definition of local continuity;
+    at a point $x$ or restricted to a subset.
+    As seen before, the structure \lstinline[language=lean]|Continuous|,
+    for global continuity, is defined
+    in terms of open sets. However, Mathlib
+    also provides alternative definitions
+    for local continuity: \lstinline[language=lean]|ContinuousAt|
+    defines continuity at a single point,
+    \lstinline[language=lean]|ContinuousWithinAt| defines continuity within a
+    set at a point, and
+    \lstinline[language=lean]|ContinuousOn| defines continuity on an entire set.
+    All these local characterizations are defined in terms of filters.
+    The connection between the global continuity definition and the filter-based
+    local definitions is established by the following fundamental theorem:
+    \begin{lstlisting}[language=lean]
+theorem Continuous.tendsto (hf : Continuous f) (x) : 
+    Tendsto f (𝓝 x) (𝓝 (f x)) :=
+  ((nhds_basis_opens x).tendsto_iff <| nhds_basis_opens <| f x).2 fun t ⟨hxt, ht⟩ =>
+    ⟨f ⁻¹' t, ⟨hxt, ht.preimage hf⟩, Subset.rfl⟩
+\end{lstlisting}
+    The key concept here is \lstinline[language=lean]|FilterBasis|.
+    Similar to how a topological space can be defined via a basis of open sets,
+    a filter can be defined via a basis of sets.
+    A basis  $B$ for a filter $F$ is a nonemprty collection of sets wich
+    preserve intersections;
+    for any two sets $U, V \in B$, there exists a set $W \in B$ such
+    that $W \subseteq U \cap V$.
+    \begin{lstlisting}[language=lean]
+  structure FilterBasis (α : Type*) where
+    sets : Set (Set α)
+    nonempty : sets.Nonempty
+    inter_sets {x y} : x ∈ sets → y ∈ sets → ∃ z ∈ sets, z ⊆ x ∩ y
+  \end{lstlisting}
+    Given a basis, we can not only generate a filter,
+    but also help proving properties about it, restricitng to one basis only.
+    \newpage
+    To better understand the proof, we can expand it slightly:
+    \begin{lstlisting}[language=lean]
+theorem Continuous'.tendsto (hf : Continuous f) (x) :
+    Tendsto f (𝓝 x) (𝓝 (f x)) := by
+  rw [(nhds_basis_opens x).tendsto_iff (nhds_basis_opens (f x))]
+  intro t ⟨hft_in, ht_open⟩
+  use f ⁻¹' t
+  constructor
+  · exact ⟨hft_in, ht_open.preimage hf⟩
+  · exact Subset.rfl
+\end{lstlisting}
+    The statemnt \lstinline[language=lean]|Tendsto f (𝓝 x) (𝓝 (f x))| is reformulation of
+    continuity in terms of neighborhood filters \lstinline[language=lean]|𝓝 x|.
+    Meaning that for every neighborhood of $f(x)$, there exists a neighborhood of $x$
+    that maps into it under $f$.
+    In particular the neighborhood filter \lstinline[language=lean]|𝓝 x| has a basis
+    consisting of all open sets containing the point $x$,
+    wich is stated by \lstinline[language=lean]|nhds_basis_opens x|.
+    Thus the line
+    \lstinline[language=lean]|rw [(nhds_basis_opens x).tendsto_iff (nhds_basis_opens (f x))]|
+    restricts the goal in terms of these basis open sets.
+    This converts our goal to: for every open neighborhood (set) $t$ of $f(x)$,
+    there exists an open neighborhood $s$ of $x$ with $f^{-1} s \subseteq t$.
+    Next, we introduce an arbitrary open neighborhood $t$ of $f(x)$
+    using \lstinline[language=lean]|intro t ⟨hft_in, ht_open⟩|.
+    The natural choice for the witness neighborhood $s$ is
+    given by \lstinline[language=lean]|use f ⁻¹' t|.
+    Now, the first part of the goal is to show that $x \in f^{-1}(t)$
+    and that $f^{-1}(t)$ is open.
+    This is done using
+    \lstinline[language=lean]|constructor; exact ⟨hft_in, ht_open.preimage hf⟩|.
+    With \lstinline[language=lean]|ht_open.preimage hf| we are
+    leveraging the global continuity of $f$. Since $t$ is open and $f$ is continuous,
+    the preimage $f^{-1}(t)$ is also open.
+    The second part of the goal is to show that $\forall x \in f^{-1}(t), f(x) \in t$,
+    which always holds by the definition of preimage; \lstinline[language=lean]|exact Subset.rfl|.
+    Here the full example: [\href{https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQOJgCmAdnACoEToQDmAnnAGLDoyFRwDKhMOAbkijAkWdITgBvABpwAmnABacAFzk6RAFQBffoOGjxAbQqRqNYAGMk6TmCQXxUgLpxjlM5eu3742U91CImJwABQAZipwMoBJhHIAlKEAHpFScXhohNCEIHAAwhDEMMDEAK4QJQDOAOQ1AHRsxAAmFTAQoagRqvmFxWWVcGEJIYkJyjhw5CTNrQOhgKwbgLs7cCPzS+HLcaMAvHBYdONwUADuriHEqM0A+lhIFcAVlwQkFRv1Uy0Ql8BhEWcXDzc7g8nsQXusRnF/BNijAoG14IAL8g6MC+xAANHBUCiQYBL8gOlXEEUA3gQATqqcF4EwsBRaUBKFlaUAOAHa4IREvZEcjURisY8iMRamAoIRQEgaOIOniJqz2ZyuCUsBUeLUoGF0EA}{link to Lean live}]
+
+    Using this bridge from global to local continuity,
+    we can understand the following connection:
+    \begin{lstlisting}[language=lean]
+def ContinuousAt (f : X → Y) (x : X) :=
+  Tendsto f (𝓝 x) (𝓝 (f x))
+theorem Continuous.continuousAt (h : Continuous f) : ContinuousAt f x :=
+  h.tendsto x
+\end{lstlisting}
+    The remaining local continuity concepts are defined similarly:
+    \begin{lstlisting}[language=lean]
+def ContinuousWithinAt (f : X → Y) (s : Set X) (x : X) : Prop :=
+  Tendsto f (𝓝[s] x) (𝓝 (f x))
+def ContinuousOn (f : X → Y) (s : Set X) : Prop :=
+  ∀ x ∈ s, ContinuousWithinAt f s x
+\end{lstlisting}
+    Note that \lstinline[language=lean]|𝓝[s] x| denotes the neighborhood filter
+    of $x$ restricted
+    to the set $s$, allowing us to study the behavior of functions on arbitrary subsets.
+    Next we will use \lstinline[language=lean]|ContinuousOn| in our formalization.
+\end{example}

@@ -1,0 +1,647 @@
+\chapter{Quotients and Algebraic Hierarchy}
+
+% Chapter orientation paragraph
+In this chapter, we address a fundamental limitation of the
+\lstinline[language=lean]|myPreRat| structure from the previous
+chapter: distinct representations of the same rational number are
+not identified as equal.
+We resolve this using quotient types
+(Section~\ref{sec:quotients}), then step back to examine how
+Mathlib's algebraic hierarchy is built using the type class
+mechanism introduced earlier (Section~\ref{sec:typeclasses}).
+
+\section{Quotients}\label{sec:quotients}
+
+% FIXED: "gopes" → "goes"
+Let us look at what goes wrong with \lstinline[language=lean]|myPreRat|:
+\begin{lstlisting}[language=lean]
+example : myPreRat.mk 2 4 (by decide) ≠ myPreRat.mk 1 2 (by decide) := by
+  simp
+\end{lstlisting}
+This example proves that \lstinline[language=lean]|myPreRat.mk 2 4|
+and \lstinline[language=lean]|myPreRat.mk 1 2| are not equal, even
+though mathematically $\frac{2}{4} = \frac{1}{2}$!
+The name \lstinline[language=lean]|myPreRat| was already alluding to
+the need for further work.
+
+In mathematics, we treat different representations of the same
+rational number as equivalent through an
+\textbf{equivalence relation}~(\cite{algebrology_rationals_2019}).
+We consider fractions like $\frac{1}{2}$, $\frac{2}{4}$, and
+$\frac{3}{6}$ as belonging to the same equivalence class.
+More precisely, mathematics uses \textbf{quotients} to group elements
+of a set by an equivalence relation.
+For instance, the equivalence class
+$\left[\frac{1}{2}\right] = \left\{\ldots, \frac{-2}{-4},
+  \frac{1}{2}, \frac{2}{4}, \frac{3}{6}, \ldots\right\}$
+represents all fractions equivalent to $\frac{1}{2}$.
+The set of rational numbers is the set of such equivalence classes.
+
+% FIXED: P33 — Z* means invertible elements {1,-1}, not Z \ {0}.
+Algebraically, each rational number can be represented as a pair of
+integers $(a, b)$ where $b \neq 0$.
+This construction is formalized by an equivalence relation
+$\sim_{\mathbb{Q}}$:
+
+
+$$
+  \mathbb{Q} = \bigl(\mathbb{Z} \times
+    (\mathbb{Z} \setminus \{0\})\bigr) \big/ {\sim_{\mathbb{Q}}}
+$$
+
+
+The equivalence relation is defined as:
+
+
+$$
+  (a,b) \sim_{\mathbb{Q}} (c,d) \iff ad = bc \quad
+  \text{for all } (a,b),\, (c,d) \in
+  \mathbb{Z} \times (\mathbb{Z} \setminus \{0\})
+$$
+
+
+
+The relation $\sim_{\mathbb{Q}}$ must satisfy reflexivity, symmetry,
+and transitivity.
+Moreover, each operation defined on the quotient set must be
+\textbf{well-defined}; that is, the result must not depend on the
+choice of representatives.
+If we naively define addition as
+
+
+$$
+  (a,b) + (c,d) = (a+c,\, b+d),
+$$
+
+
+we encounter a problem.
+Consider:
+
+
+$$
+  (1,2) + (1,3) = (2,5) \quad \text{and} \quad
+  (1,2) + (2,6) = (3,8).
+$$
+
+
+But $(1,3) \sim_{\mathbb{Q}} (2,6)$ since $1 \cdot 6 = 2 \cdot 3$,
+yet $(2,5) \not\sim_{\mathbb{Q}} (3,8)$ since
+$2 \cdot 8 = 16 \neq 15 = 5 \cdot 3$.
+A well-defined definition for addition is instead:
+
+
+$$
+  (a,b) + (c,d) = (ad+bc,\, bd).
+$$
+
+
+We will verify this in our formalization.
+
+Similarly, in type theory and Lean we have \textbf{quotient types},
+which allow us to construct new types by means of equivalence
+relations.
+We now define proper rational numbers using quotient types in Lean.
+As mentioned earlier, this differs from Mathlib's approach, which
+achieves the same goal by mechanically reducing each rational number
+to a canonical form using coprimality.
+
+We start from the notion of equivalence relations.
+The structure \lstinline[language=lean]|Equivalence| has fields
+\lstinline[language=lean]|refl|, \lstinline[language=lean]|symm|,
+and \lstinline[language=lean]|trans|.
+You can inspect its definition using
+\lstinline[language=lean]|#print Equivalence|.
+The \lstinline[language=lean]|Setoid| type class encapsulates an
+equivalence relation on a given type, requiring that the relation is
+indeed an equivalence via its \lstinline[language=lean]|iseqv| field.
+
+% REVISED: P35 — present well-definedness proofs BEFORE the instances
+% that use them, so dependencies are satisfied in reading order.
+% We first define the Setoid, then the well-definedness proofs,
+% then the quotient operations.
+
+We begin by defining the \lstinline[language=lean]|Setoid| instance
+and the quotient type:
+
+\begin{lstlisting}[language=lean]
+instance myRel : Setoid myPreRat where
+  r p q := p.num * q.den = q.num * p.den
+  iseqv := by
+    constructor
+    · intro p; rfl
+    · rintro ⟨p, p', hp'⟩ ⟨q, q', hq'⟩
+      simp [Eq.comm]
+    · rintro ⟨p, p', hp'⟩ ⟨q, q', hq'⟩ ⟨r, r', hr'⟩ hpq hqr
+      apply mul_left_cancel₀ (mod_cast hq'.ne' : q' ≠ (0 : ℤ))
+      grind
+
+abbrev myRat : Type := Quotient myRel
+\end{lstlisting}
+
+% FIXED: P34 — removed unnecessary simp_all line
+In the \lstinline[language=lean]|iseqv| field, we prove reflexivity,
+symmetry, and transitivity of our relation.
+Reflexivity (\lstinline[language=lean]|intro p; rfl|) is immediate.
+Symmetry uses \lstinline[language=lean]|Eq.comm| to swap the sides of
+the equation.
+For transitivity, the key step involves canceling the common factor
+\lstinline[language=lean]|q.den| using
+\lstinline[language=lean]|mul_left_cancel₀| (left multiplication
+cancellation for integers), which states that if
+$a \cdot b = a \cdot c$ and $a \neq 0$, then $b = c$.
+The expression
+\lstinline[language=lean]|mod_cast hq'.ne' : q' ≠ (0 : ℤ)| takes
+\lstinline[language=lean]|hq'| (which states
+\lstinline[language=lean]|0 < q.den| as a natural number) and casts
+it to a proof that \lstinline[language=lean]|q.den ≠ 0| as an
+integer.
+Finally, \lstinline[language=lean]|abbrev| is a Lean keyword that
+creates a type abbreviation.
+Unlike \lstinline[language=lean]|def|, which creates a new definition
+that must be unfolded explicitly, with
+\lstinline[language=lean]|abbrev| Lean automatically treats
+\lstinline[language=lean]|myRat| as
+\lstinline[language=lean]|Quotient myRel| without requiring manual
+unfolding.
+
+Before defining operations on \lstinline[language=lean]|myRat|, we
+must prove that our operations are well-defined on the quotient, that
+is, that the result does not depend on the choice of representative.
+This is achieved using \lstinline[language=lean]|Quotient.lift₂|: to
+define a function from a quotient type, we must provide an underlying
+function on the representatives and a proof that equivalent
+representatives yield the same result.
+
+We first prove that the ordering respects the equivalence relation.
+The heart of the proof is the forward direction:
+
+\begin{lstlisting}[language=lean]
+private theorem le_respects_equiv_forward
+    (a₁ b₁ a₂ b₂ : myPreRat)
+    (ha : a₁ ≈ a₂) (hb : b₁ ≈ b₂)
+    (h : a₁ ≤ b₁) : a₂ ≤ b₂ := by
+  have pos_prod : (0 : Int) < (a₁.den * b₁.den) :=
+    myPreRat.den_prod_pos a₁ b₁
+  have pos_prod2 : 0 < (a₂.den * b₂.den : Int) :=
+    myPreRat.den_prod_pos a₂ b₂
+  apply Int.le_of_mul_le_mul_right _ pos_prod
+  calc (a₂.num * b₂.den) * (a₁.den * b₁.den)
+      = a₂.num * a₁.den * b₂.den * b₁.den := by ring
+    _ = a₁.num * a₂.den * b₂.den * b₁.den := by rw [← ha]
+    _ = a₁.num * b₁.den * (a₂.den * b₂.den) := by ring
+    _ ≤ b₁.num * a₁.den * (a₂.den * b₂.den) :=
+        Int.mul_le_mul_of_nonneg_right h (Int.le_of_lt pos_prod2)
+    _ = b₁.num * b₂.den * a₁.den * a₂.den := by ring
+    _ = b₂.num * b₁.den * a₁.den * a₂.den := by rw [← hb]
+    _ = (b₂.num * a₂.den) * (a₁.den * b₁.den) := by ring
+\end{lstlisting}
+
+Given $h : a_1 \leq b_1$ (meaning
+$a_1.\text{num} \cdot b_1.\text{den} \leq
+  b_1.\text{num} \cdot a_1.\text{den}$) and equivalences
+$ha : a_1 \approx a_2$ and $hb : b_1 \approx b_2$, we need to prove
+$a_2 \leq b_2$.
+The strategy is to introduce a common positive factor and use the
+given information.
+We apply \lstinline[language=lean]|Int.le_of_mul_le_mul_right|, which
+states that to prove $X \leq Y$, it suffices to prove
+$X \cdot Z \leq Y \cdot Z$ for positive $Z$, then cancel $Z$.
+We choose $Z = a_1.\text{den} \cdot b_1.\text{den}$ (shown positive
+by \lstinline[language=lean]|pos_prod|).
+The \lstinline[language=lean]|calc| block proceeds as follows: we
+rearrange the left side and substitute using $ha$, apply $h$
+(multiplying by the positive factor $a_2.\text{den} \cdot
+  b_2.\text{den}$ to preserve the inequality), rearrange and
+substitute using $hb$, and finally rearrange to match the required
+form.
+After canceling the common factor, we obtain $a_2 \leq b_2$.
+
+Throughout the proof, we use the \lstinline[language=lean]|ring|
+tactic from Mathlib, which automates proofs of equalities in
+commutative rings (such as $\mathbb{Z}$).
+
+The full well-definedness proof for ordering uses symmetry to avoid
+duplication:
+
+\begin{lstlisting}[language=lean]
+theorem myRel_respects_le (a₁ b₁ a₂ b₂ : myPreRat) :
+    a₁ ≈ a₂ → b₁ ≈ b₂ → (a₁ ≤ b₁) = (a₂ ≤ b₂) := by
+  intro ha hb
+  simp only [eq_iff_iff]
+  constructor
+  · exact le_respects_equiv_forward a₁ b₁ a₂ b₂ ha hb
+  · exact fun h =>
+      le_respects_equiv_forward a₂ b₂ a₁ b₁ ha.symm hb.symm h
+\end{lstlisting}
+
+We transform the equality of propositions into a biconditional using
+\lstinline[language=lean]|eq_iff_iff|, then prove both directions
+with \lstinline[language=lean]|constructor|.
+Since both goals are symmetric, we reuse
+\lstinline[language=lean]|le_respects_equiv_forward|.
+
+We also prove that addition is well-defined:
+
+\begin{lstlisting}[language=lean]
+theorem myRel_respects_add (a₁ b₁ a₂ b₂ : myPreRat) :
+    a₁ ≈ a₂ → b₁ ≈ b₂ → (a₁ + b₁) ≈ (a₂ + b₂) := by
+  intro ha hb
+  calc (a₁.num * b₁.den + b₁.num * a₁.den) * (a₂.den * b₂.den)
+      = a₁.num * b₁.den * a₂.den * b₂.den
+        + b₁.num * a₁.den * a₂.den * b₂.den := by ring
+    _ = a₂.num * a₁.den * b₁.den * b₂.den
+        + b₂.num * b₁.den * a₁.den * a₂.den := by rw [← ha, ← hb]; ring
+    _ = (a₂.num * b₂.den + b₂.num * a₂.den) * (a₁.den * b₁.den)
+        := by ring
+\end{lstlisting}
+
+We need to show that if $a_1 \approx a_2$ and $b_1 \approx b_2$,
+then $(a_1 + b_1) \approx (a_2 + b_2)$.
+By unfolding the addition definition and the relation, we must prove:
+\begin{align*}
+       & (a_1.\text{num} \cdot b_1.\text{den} +
+  b_1.\text{num} \cdot a_1.\text{den}) \cdot
+  (a_2.\text{den} \cdot b_2.\text{den})         \\
+  = \; & (a_2.\text{num} \cdot b_2.\text{den} +
+  b_2.\text{num} \cdot a_2.\text{den}) \cdot
+  (a_1.\text{den} \cdot b_1.\text{den})
+\end{align*}
+The \lstinline[language=lean]|calc| proof proceeds in three steps.
+First, we distribute the product over the sum using
+\lstinline[language=lean]|ring|.
+Next, we apply the equivalences $ha$ and $hb$ using
+\lstinline[language=lean]|rw [← ha, ← hb]|, which substitutes
+$a_1.\text{num} \cdot a_2.\text{den}$ with
+$a_2.\text{num} \cdot a_1.\text{den}$ and similarly for $b$.
+Finally, we factor back into sum-times-product form using
+\lstinline[language=lean]|ring|.
+
+Now that we have established well-definedness, we can define
+operations on the quotient type \lstinline[language=lean]|myRat|:
+\newpage
+\begin{lstlisting}[language=lean]
+instance : LE myRat where
+  le r₁ r₂ := Quotient.lift₂ (fun a b ↦ a ≤ b)
+    myRel_respects_le r₁ r₂
+
+instance : Add myRat where
+  add r₁ r₂ := Quotient.lift₂ (fun a b ↦ ⟦a + b⟧)
+    (fun a₁ b₁ a₂ b₂ ha hb ↦
+      Quotient.sound (myRel_respects_add a₁ b₁ a₂ b₂ ha hb))
+    r₁ r₂
+
+instance : OfNat myRat 0 where
+  ofNat := ⟦myPreRat.zero⟧
+
+lemma add_nonneg (a b : myRat) :
+    0 ≤ a → 0 ≤ b → 0 ≤ a + b := by
+  induction a using Quotient.ind with | _ a =>
+  induction b using Quotient.ind with | _ b =>
+  intro ha hb
+  exact myPreRat.add_nonneg a b ha hb
+\end{lstlisting}
+
+Notice how we reuse the previous
+\lstinline[language=lean]|add_nonneg| lemma for the quotient type.
+The syntax
+\lstinline[language=lean]|induction a using Quotient.ind with _ a =>|
+unwraps the quotient value \lstinline[language=lean]|a : myRat| to
+its underlying representative
+\lstinline[language=lean]|a : myPreRat|.
+
+We have now constructed
+\lstinline[language=lean]|myRat.add_nonneg|.
+However, our original discussion was about proving transitivity of
+the less-or-equal operator.
+In our earlier work with natural numbers, we used
+\lstinline[language=lean]|Nat.le_trans|, a theorem specifically for
+natural numbers.
+However, the transitivity property holds not only for naturals but
+also for integers, reals, and any partially ordered set.
+
+% REVISED: P38 — corrected explanation: le_trans is not doing a clever
+% general argument. It's about consistent interface, not avoiding
+% duplication in *proving* transitivity.
+Rather than having each piece of downstream code call a different
+type-specific lemma (\lstinline[language=lean]|Nat.le_trans|,
+\lstinline[language=lean]|Rat.le_trans|, etc.), Mathlib provides a
+general lemma \lstinline[language=lean]|le_trans| that works for any
+type endowed with a partial order.
+It is important to understand what this generality achieves: the
+general \lstinline[language=lean]|le_trans| is not performing a
+clever argument---it is simply retrieving the transitivity proof that
+was supplied as part of the partial order structure.
+We still need to provide a new proof of transitivity whenever we
+create a new \lstinline[language=lean]|PartialOrder| instance.
+The benefit is \emph{downstream}: any code that uses transitivity
+can call the single lemma \lstinline[language=lean]|le_trans| rather
+than needing to know which specific type it is working with.
+This provides a consistent interface for all ordered types.
+
+Mathlib achieves this through type classes and a carefully
+constructed algebraic hierarchy.
+We already used type classes such as \lstinline[language=lean]|Add|
+and \lstinline[language=lean]|LE| to define operations on
+\lstinline[language=lean]|myPreRat|.
+Knowing that rational numbers form a totally ordered set, we can
+enhance \lstinline[language=lean]|myRat| with the
+\lstinline[language=lean]|LinearOrder| type class:
+
+% ADDED: P40 — note about Mathlib version compatibility
+\begin{remark}
+  The following code was developed and tested with Mathlib version
+  4.24.0.
+  Later versions of Mathlib may introduce instances (such as
+  \lstinline[language=lean]|Quotient.instPreorder|) that conflict
+  with the order structure defined here.
+  This is a consequence of Mathlib's ongoing development and not a
+  fundamental issue with the construction.
+\end{remark}
+
+\begin{lstlisting}[language=lean]
+noncomputable instance : LinearOrder myRat where
+  le_refl p := by
+    induction p using Quotient.ind with | _ a =>
+    exact myPreRat.le_refl a
+
+  le_trans p q r := by
+    induction p using Quotient.ind with | _ a =>
+    induction q using Quotient.ind with | _ b =>
+    induction r using Quotient.ind with | _ c =>
+    intro hab hbc
+    exact myPreRat.le_trans a b c hab hbc
+
+  le_antisymm p q := by
+    induction p using Quotient.ind with | _ a =>
+    induction q using Quotient.ind with | _ b =>
+    intro hab hba
+    exact Quotient.sound (myPreRat.le_antisymm a b hab hba)
+
+  le_total p q := by
+    induction p using Quotient.ind with | _ a =>
+    induction q using Quotient.ind with | _ b =>
+    cases Int.le_total (a.num * b.den) (b.num * a.den) with
+    | inl h => exact Or.inl h
+    | inr h => exact Or.inr h
+
+  toDecidableLE := Classical.decRel _
+end myRat
+\end{lstlisting}
+
+The structure follows the same pattern: use
+\lstinline[language=lean]|Quotient.ind| to unwrap quotient values to
+their representatives, then apply the corresponding proof for
+\lstinline[language=lean]|myPreRat|.
+The antisymmetry case uses
+\lstinline[language=lean]|Quotient.sound|, which states that if two
+representatives are equivalent ($a \approx b$), then their
+equivalence classes are equal
+($\llbracket a \rrbracket = \llbracket b \rrbracket$).
+
+\newpage
+The underlying proofs for \lstinline[language=lean]|myPreRat| are:
+\begin{lstlisting}[language=lean]
+theorem le_refl (a : myPreRat) : a ≤ a := by
+  exact Int.le_refl _
+
+theorem le_trans (a b c : myPreRat) :
+    a ≤ b → b ≤ c → a ≤ c := by
+  intro hab hbc
+  apply Int.le_of_mul_le_mul_right _ b.den_pos_int
+  calc (a.num * c.den) * b.den
+      = (a.num * b.den) * c.den := by ring
+    _ ≤ (b.num * a.den) * c.den :=
+        Int.mul_le_mul_of_nonneg_right hab
+          (Int.le_of_lt c.den_pos_int)
+    _ = (b.num * c.den) * a.den := by ring
+    _ ≤ (c.num * b.den) * a.den :=
+        Int.mul_le_mul_of_nonneg_right hbc
+          (Int.le_of_lt a.den_pos_int)
+    _ = (c.num * a.den) * b.den := by ring
+
+theorem le_antisymm (a b : myPreRat) :
+    a ≤ b → b ≤ a → a ≈ b := by
+  intro hab hba
+  exact Int.le_antisymm hab hba
+\end{lstlisting}
+
+Reflexivity and antisymmetry are straightforward applications of the
+corresponding integer properties.
+For transitivity, given $hab : a \leq b$ and $hbc : b \leq c$, we
+need to prove $a \leq c$.
+The strategy is to introduce a common positive factor
+$b.\text{den}$, prove the inequality with this factor, then cancel it
+using \lstinline[language=lean]|Int.le_of_mul_le_mul_right|.
+The \lstinline[language=lean]|calc| chain rearranges terms, applies
+$hab$ and $hbc$ (multiplying by positive factors to preserve the
+inequalities), and rearranges to match the required form.
+
+The property \lstinline[language=lean]|le_total| asserts that the
+order is total: for any $a, b$, either $a \le b$ or $b \le a$.
+By unwrapping the quotient, this reduces to an inequality of
+integers, and we apply \lstinline[language=lean]|Int.le_total|.
+
+The field
+\lstinline[language=lean]|toDecidableLE := Classical.decRel _|
+requires special attention.
+In Mathlib, a \lstinline[language=lean]|LinearOrder| is not merely a
+set of axioms; it also defines
+\lstinline[language=lean]|min| and \lstinline[language=lean]|max|
+functions.
+By default, \lstinline[language=lean]|min a b| is defined as
+\lstinline[language=lean]|if a ≤ b then a else b|.
+To evaluate this conditional, Lean requires the relation $\le$ to be
+\emph{decidable} (i.e., there must be an algorithm to determine
+whether it holds).
+While we could write an explicit comparison algorithm for our
+rationals, we opted for a concise approach using
+\lstinline[language=lean]|Classical.decRel|, which invokes classical
+logic to treat every proposition as decidable.
+Because this relies on the axiom of choice rather than an executable
+algorithm, the resulting functions cannot be computed by the kernel,
+necessitating the \lstinline[language=lean]|noncomputable| marker.
+
+Here is the full construction of \lstinline[language=lean]|myRat|:
+[\href{https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQODOMUArgMYzFQCmcIAngArUBKKcA7qldTnHAHbEQcAFxwAkvxi84AEyr9RcAHIoZ8/gH1I+JQAY4AHjkK8/JCCr4wSUjXpMqraTmD9CSfnaUAZAKK0jCxsnNxUMug0UICBBHBQgEEEogC8cdEAdILCAFRwgImECWkacIAmRHHxGUJwOfnpGnhuHl40YgCCsrKBjs4cXDx8SO2pZclwAN4yfJkjMRXZeQVFANRls1XztQoANBMmiiIpM0U5C1s7GtoQuvsqKGkgxOgXuocKTyvnOjIAvnjyAGZwABe3AgSgcwXg11GAkq1z0m12IwAjAiPpcRlg6CZSMB5HAfg0YJ5vGIAPJ/VTwcFONgGUJ9OAQClsa7AqAQPCREAgJACCD8fhUADmmmAfwBAAooGCgjSYABKfQlOJwQAphHADKUoKtrpiZKR+YQSORoEYANwAPjgbiIoNQMgA7XBSKhPEKaAZjoUFMrtVMcki4GxUGa4PhQGAg/AQ3AqAAPWzRx3O138d0atbaopa1YB0Ph8Ch+OJuD2nBcnlB9qafj8wVCuAS3lYGVdFCKsSaoNwQBJhBnSi2+13ecsW7q6DIC5H+egsQBtWsC4Wi8UAXRkNvZpd5qFw/TAYFnEikaQGshrdeFyeL5GPMDuDwvS4brsbknv5hgAGEkIQn/W4Cwb1+Hla8E1vd8H0eRcAN3N8T0/H8/xg4Ug2A0CgA}{link to Lean live}]
+
+% ADDED: transition
+With the use of type classes such as
+\lstinline[language=lean]|LinearOrder|, we enhanced
+\lstinline[language=lean]|myRat| so that general theorems about
+linear orders apply to it automatically.
+In the next section, we examine this mechanism more carefully and
+discuss Mathlib's broader algebraic hierarchy.
+
+\section{Type Classes and Algebraic Hierarchy}\label{sec:typeclasses}
+
+Structures and type classes are heavily used in Mathlib for providing
+properties such as ordered rings, fields, metric spaces, and
+topological spaces, which we refer to as
+\textbf{algebraic structures}.
+An algebraic structure is defined by a carrier type and a set of
+operations and properties.
+We write $C\;\alpha$ where $\alpha$ is the \textbf{carrier type}
+(the underlying set of elements) and $C$ is the \textbf{structure}
+(the operations and properties defined on that type).
+For example, in a group structure
+$\text{Group}\;\alpha$, $\alpha$ is the carrier type (such as
+$\mathbb{Z}$ or $\mathbb{Q}$), and $\text{Group}$ defines the
+multiplication, identity element, and inverse operation on $\alpha$.
+
+% REVISED: P40 — noted that type classes can take multiple type arguments
+Note that this is a simplified picture: type classes can take multiple
+type arguments or additional non-type arguments.
+For instance, \lstinline[language=lean]|Module ℚ ℝ| takes two types
+(\lstinline[language=lean]|ℚ| as the scalar ring and
+\lstinline[language=lean]|ℝ| as the module), and
+\lstinline[language=lean]|OfNat α n| takes a type and a natural
+number.
+
+Under the hood, a type class is a structure.
+The main difference between the two is that type classes use
+\textbf{instance resolution}: a mechanism that allows Lean to
+automatically infer properties about a type when the latter is
+declared as an instance of a type class.
+Using structures alone would require explicitly passing the structure
+as an argument to functions that need it, which is cumbersome.
+
+\newpage
+Let us examine a simple example to see the main difference.
+Using a structure:
+\begin{lstlisting}[language=lean]
+structure Semigroup' (α : Type*) where
+  mul : α → α → α
+  mul_assoc : ∀ a b c : α,
+    mul (mul a b) c = mul a (mul b c)
+
+def double {α : Type*} (s : Semigroup' α) (x : α) : α :=
+  s.mul x x
+
+def Semigroup'_Int : Semigroup' ℤ where
+  mul := (· + ·)
+  mul_assoc := Int.add_assoc
+
+def Semigroup'_Rat : Semigroup' ℚ where
+  mul := (· + ·)
+  mul_assoc := Rat.add_assoc
+
+#eval double Semigroup'_Int (-2)    -- -4
+#eval double Semigroup'_Rat (1/2)   -- 1
+\end{lstlisting}
+The \lstinline[language=lean]|double| function takes an explicit
+\lstinline[language=lean]|Semigroup' α| argument to perform the
+doubling operation.
+When calling \lstinline[language=lean]|double|, we must explicitly
+provide the semigroup instance, such as
+\lstinline[language=lean]|Semigroup'_Int| or
+\lstinline[language=lean]|Semigroup'_Rat|.
+
+In contrast, using a type class:
+\begin{lstlisting}[language=lean]
+class Semigroup'' (α : Type*) where
+  mul : α → α → α
+  mul_assoc : ∀ a b c : α,
+    mul (mul a b) c = mul a (mul b c)
+
+instance : Semigroup'' ℤ where
+  mul := (· + ·)
+  mul_assoc := Int.add_assoc
+
+instance : Semigroup'' ℚ where
+  mul := (· + ·)
+  mul_assoc := Rat.add_assoc
+
+def double' {α : Type*} [Semigroup'' α] (x : α) : α :=
+  Semigroup''.mul x x
+
+#eval double' (-2 : ℤ)    -- -4
+#eval double' (1/2 : ℚ)   -- 1
+\end{lstlisting}
+
+Notice the square brackets
+\lstinline[language=lean]|[Semigroup'' α]| in the definition of
+\lstinline[language=lean]|double'|.
+This syntax indicates that \lstinline[language=lean]|Semigroup'' α|
+is a type class constraint.
+When we call \lstinline[language=lean]|double'|, we do not need to
+explicitly provide the semigroup instance.
+Instead, Lean automatically infers the appropriate instance based on
+the type of the argument.
+This is the power of instance resolution.
+
+We chose the semigroup example because it is simple yet demonstrates
+how algebraic structures can be extended.
+A semigroup can be extended to a monoid or a group by adding more
+properties.
+Using structures and type classes, we can implement this inheritance
+pattern:
+
+\begin{lstlisting}[language=lean]
+class Group'' (α : Type*) extends Semigroup'' α where
+  one : α
+  left_id : ∀ a : α, mul one a = a
+  right_id : ∀ a : α, mul a one = a
+  inv : α → α
+  left_inv : ∀ a : α, mul (inv a) a = one
+  right_inv : ∀ a : α, mul a (inv a) = one
+
+instance : Group'' ℤ where
+  -- omitted
+
+instance : Group'' ℚ where
+  -- omitted
+
+theorem mul_cancel₀ {α : Type*} [Group'' α] (a b c : α)
+    (h : Semigroup''.mul a b = Semigroup''.mul a c) :
+    b = c := by sorry
+\end{lstlisting}
+
+Now we can state the cancellation law once and use it for any type
+that is an instance of \lstinline[language=lean]|Group''|.
+We have already demonstrated this principle when discussing
+transitivity of the less-or-equal relation and when enhancing
+\lstinline[language=lean]|myRat| with the
+\lstinline[language=lean]|LinearOrder| structure.
+
+% ADDED: P42 — discussion of disadvantages of type class system
+\paragraph{Limitations of type classes.}
+While type classes are powerful, they are not without drawbacks.
+Two important limitations are worth noting:
+\begin{itemize}
+  \item \textbf{Performance.}
+        Instance resolution can be slow, especially in large projects
+        like Mathlib where the hierarchy of type classes is deep and
+        highly interconnected.
+        Lean must search through many candidate instances to find the
+        right one, and this search can become expensive.
+  \item \textbf{Conflicting instances.}
+        If two different instances of the same type class are registered
+        for the same type, the results can be unpredictable or lead to
+        subtle errors.
+        For example, a type might carry two different orderings, but
+        Lean's instance resolution will silently pick one, potentially
+        leading to confusion.
+        Mathlib takes great care to avoid such conflicts, but they can
+        arise when combining independently developed libraries.
+\end{itemize}
+
+\paragraph{Mathlib's algebraic hierarchy.}
+Mathlib builds an extensive algebraic hierarchy using type classes.
+This hierarchy is far from being a simple tree; there are different
+nuances and technical approaches that are beyond the scope of this
+thesis.
+For a detailed discussion on the design and implementation of
+Mathlib's algebraic hierarchy, we refer the reader
+to~\cite{mathlib2020}.
+
+% ADDED: Chapter closing paragraph
+In this chapter, we have seen how quotient types allow us to identify
+equivalent representations, turning
+\lstinline[language=lean]|myPreRat| into the well-behaved type
+\lstinline[language=lean]|myRat|.
+We then examined how Mathlib's algebraic hierarchy, built on type
+classes and instance resolution, provides a consistent and extensible
+framework for organizing mathematical structures.
+In the next chapter, we turn to how topology and analysis are
+formalized in Lean, building on the type class machinery introduced
+here.
