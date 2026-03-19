@@ -8,9 +8,6 @@ the Curry--Howard correspondence (Section~\ref{sec:first_steps}).
 A detailed treatment of the Curry--Howard correspondence and its
 logical foundations follows in Chapter~2.
 
-This thesis serves as a brief starting point for understanding how
-mathematical proofs can be formalized in Lean, as well as being an
-introduction to the language itself.
 Lean is both a \textbf{functional programming language} and a
 \textbf{theorem prover}.
 We focus primarily on its role as a theorem prover.
@@ -38,7 +35,7 @@ such checks are deferred to runtime.
 Most mainstream programming languages occupy a middle ground,
 providing basic types for compile-time checking while leaving more
 complex specifications to be enforced at runtime.
-
+\newpage
 \begin{example}
   In a dynamically typed language like JavaScript, variables can
   change type after they are created.
@@ -52,7 +49,6 @@ complex specifications to be enforced at runtime.
   Unlike JavaScript, it performs type checking at compile time.
   This means we can prevent the previous behavior, while writing our
   code, simply by adding a type annotation:
-  \newpage
   \begin{lstlisting}[language=TypeScript]
     let price: number = 100;
     price = "100";  // Error: Type 'string' is not assignable to type 'number'
@@ -81,7 +77,7 @@ interaction.
 
 Lean's type system is based on \textbf{dependent type theory},
 specifically the \textbf{Calculus of Inductive Constructions} (CIC)
-with various extensions.
+with various extensions~\cite{carneiro2019type}.
 It is important to note that \textbf{type theory} is not a single,
 unified theory, but rather a family of related theories with various
 extensions, ongoing developments, and rich historical ramifications.
@@ -122,7 +118,11 @@ constructors.
 A key type-theoretic distinction between Lean and Coq is that Lean
 additionally supports \textbf{quotient types} as a built-in
 primitive, which facilitates working with equivalence relations
-(see Section~3.3).
+(see Section~\ref{sec:quotients}).
+For a detailed formal account of Lean's type theory, including its
+treatment of universes, definitional equality, and the kernel's
+trusted code base, we refer the reader
+to~\cite{carneiro2019type}.
 
 A fundamental design feature of Lean is its type structure, where
 \textbf{Prop} (the type of propositions) plays a special role and
@@ -196,8 +196,6 @@ When we write
 declaring that \lstinline[language=lean]|theorem_name| is a proof
 (term) of \lstinline[language=lean]|Proposition| (type).
 For example, consider proving that $2 + 2 = 4$.
-
-\newpage
 \begin{example}\mbox{}
   \begin{lstlisting}[language=Lean]
     theorem two_plus_two_eq_four : 2 + 2 = 4 := rfl

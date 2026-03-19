@@ -1,6 +1,5 @@
 \chapter{Topology in Lean}\label{ch:topology_in_lean}
 
-% Chapter orientation paragraph
 In this chapter, we examine how topology is formalized in Lean and
 Mathlib, building on the type class machinery introduced in the
 previous chapters.
@@ -11,8 +10,8 @@ We then introduce Mathlib's
 \lstinline[language=lean]|TopologicalSpace| type class and the
 definition of continuity in terms of open sets.
 In Section~\ref{sec:filters}, we discuss
-filters---Mathlib's central tool for reasoning uniformly about
-limits, convergence, and continuity---and show how they connect
+filters (Mathlib's central tool for reasoning uniformly about
+limits, convergence, and continuity) and show how they connect
 global and local notions of continuity.
 Finally, in Section~\ref{sec:connectivity}, we recall the
 definitions of connectedness and path-connectedness that will be
@@ -21,7 +20,6 @@ needed in the next chapter.
 \section{Real Numbers and Topological
   Spaces}\label{sec:reals_and_topspaces}
 
-% REVISED: P42 — removed computable reals red herring entirely.
 In the previous chapters, we built rational numbers from integers
 using quotient types.
 In Mathlib, real numbers are constructed by a similar process: they
@@ -33,8 +31,8 @@ classical axioms were used only for convenience (to avoid writing a
 decision procedure for inequality), the standard
 \lstinline[language=lean]|Real| type relies on classical axioms more
 fundamentally.
-Many operations on real numbers---such as the sine function, the
-exponential, or division---are defined using the axiom of choice and
+Many operations on real numbers, such as the sine function, the
+exponential, or division, are defined using the axiom of choice and
 do not correspond to executable algorithms.
 Consequently, they are marked as
 \lstinline[language=lean]|noncomputable|:
@@ -73,7 +71,6 @@ collection $\mathcal{T}$ of subsets of $X$, called \textbf{open
   \item The union of any collection of open sets is open.
 \end{itemize}
 
-% REVISED: P43 — fixed TopologicalSpace definition with proper types
 This is reflected in Mathlib's
 \lstinline[language=lean]|TopologicalSpace| type class:
 \begin{lstlisting}[language=lean]
@@ -121,13 +118,11 @@ This approach may seem more abstract initially, but it provides a
 more general and powerful framework that works uniformly across all
 topological spaces and, by extension, metric spaces.
 
-% Section transition
 We now introduce filters and explain why Mathlib adopts them as the
 primary language for reasoning about convergence.
 
 \section{Filters}\label{sec:filters}
 
-% REVISED: P44 — fixed all typos throughout this section
 The concept of a limit is quite broad: there are many types of
 limits to consider.
 For instance, the limit of a sequence or a function at a point,
@@ -215,7 +210,6 @@ In particular, we will use the following concepts:
         This is used for convergence.
 \end{itemize}
 
-% ADDED: P45 — the actual definition of Tendsto, which was missing
 \subsection{The \lstinline[language=lean]|Tendsto| predicate}
 
 The predicate \lstinline[language=lean]|Tendsto| is the key
@@ -305,7 +299,6 @@ structure FilterBasis (α : Type*) where
 Given a basis, we can generate a filter and prove properties
 about it by working only with basis elements.
 
-\newpage
 To better understand the proof, we can expand it using tactic
 mode:
 \begin{lstlisting}[language=lean]
@@ -330,13 +323,13 @@ We introduce an arbitrary open neighborhood $t$ of $f(x)$ using
 \lstinline[language=lean]|intro t ⟨hft_in, ht_open⟩|.
 The natural witness is the preimage
 \lstinline[language=lean]|f ⁻¹' t|.
-The first subgoal---that $x \in f^{-1}(t)$ and $f^{-1}(t)$ is
-open---follows from \lstinline[language=lean]|hft_in| and from
+The first subgoal, that $x \in f^{-1}(t)$ and $f^{-1}(t)$ is
+open, follows from \lstinline[language=lean]|hft_in| and from
 \lstinline[language=lean]|ht_open.preimage hf|, which uses the
 global continuity of $f$ to conclude that the preimage of an
 open set is open.
-The second subgoal---that
-$\forall\, x \in f^{-1}(t),\, f(x) \in t$---holds by definition
+The second subgoal, that
+$\forall\, x \in f^{-1}(t),\, f(x) \in t$, holds by definition
 of preimage.
 
 Here is the full example:
@@ -366,7 +359,6 @@ to study the behavior of functions on arbitrary subsets.
 We will use \lstinline[language=lean]|ContinuousOn| in the next
 chapter.
 
-% Section transition
 Having introduced the topological machinery available in Mathlib, we
 now turn to the specific topological concepts needed for our
 formalization: connectedness and path-connectedness.
@@ -516,7 +508,6 @@ Intuitively, adding limit points to a connected set cannot
 disconnect it, because any open set that meets the added points
 must also meet the original set.
 
-% Chapter closing paragraph
 In this chapter, we have surveyed how Lean and Mathlib formalize
 topology: from the \lstinline[language=lean]|TopologicalSpace| type
 class and the definition of continuity, through filters as a uniform

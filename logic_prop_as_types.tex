@@ -392,7 +392,7 @@ This is not a coincidence: it is an instance of the
 \textbf{Curry--Howard correspondence}, a deep connection between
 logic and computation discovered independently by Haskell Curry
 (1930s--50s) and William Howard (1969).
-It establishes a systematic dictionary between proofs and programs:
+It establishes a systematic dictionary between proofs and programs (\cite{thompson1999types}):
 
 \begin{center}
   \begin{tabular}{lll}
@@ -489,7 +489,6 @@ To prove a compound statement, one typically follows a
   \end{prooftree}
 \end{example}
 
-\newpage
 \begin{example}[Lean Implementation]
   Let us now implement the same proof in Lean.
   \begin{lstlisting}[language=lean]
@@ -514,8 +513,8 @@ theorem and_associative {a b c : Prop} : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
   \lstinline[language=lean]|fun| keyword.
   The \lstinline[language=lean]|have| keyword introduces local lemmas
   within our proof, allowing us to break down complex reasoning into
-  manageable intermediate steps---mirroring the natural deduction
-  proof tree from before.
+  manageable intermediate steps (mirroring the natural deduction
+  proof tree from before).
 
   Just before the \lstinline[language=lean]|show| keyword, the
   infoview displays the following context and goal:
@@ -542,7 +541,7 @@ theorem and_associative {a b c : Prop} : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
   \lstinline[language=lean]|⊢ a ∧ b ∧ c| and the statement
   \lstinline[language=lean]|a ∧ (b ∧ c)| are \emph{syntactically
     identical}, because \lstinline[language=lean]|∧| is
-  right-associative---no reduction rules are needed.
+  right-associative: no reduction rules are needed.
   If we had used \lstinline[language=lean]|show| with a type that was
   only \emph{propositionally} equal to the goal (but not
   definitionally equal), Lean would reject it.
@@ -560,7 +559,8 @@ propositional logic to \textbf{predicate logic}.
 A \textbf{predicate} is a proposition that depends on a variable.
 In propositional logic we represent a proposition simply by $P$.
 In predicate logic, a predicate is written as $P(a)$,
-where $a$ is a variable---notice that a predicate is simply a
+where $a$ is a variable.
+Notice that a predicate is simply a
 function from elements to propositions.
 
 This extension allows us to introduce \textbf{quantifiers}:
@@ -615,7 +615,6 @@ variable (X : Type) (P : X → Prop)
   $\forall x,\, P(x)$ by proving $P(x)$ for an \textbf{arbitrary}
   $x$.
   In Lean, this corresponds to constructing a dependent function:
-  \newpage
   \begin{lstlisting}[language=lean]
   example : ∀ n : Nat, n ≥ 0 :=
     fun n => Nat.zero_le n
@@ -633,7 +632,7 @@ variable (X : Type) (P : X → Prop)
     h 5
   \end{lstlisting}
 \end{example}
-
+\newpage
 \begin{example}[Existential introduction in Lean]
   To prove an existential statement, we provide a \textbf{witness}
   together with a proof that the witness satisfies the predicate:
@@ -645,24 +644,27 @@ variable (X : Type) (P : X → Prop)
   holding the witness ($0$) and a proof that $0 < x$.
 \end{example}
 
-% REVISED: Replaced trivial existential elimination example with a meaningful one
 \begin{example}[Existential elimination in Lean]
   The \textbf{existential elimination rule} allows us to use an
   existential hypothesis $\exists x,\, P(x)$ by extracting a witness
   and the associated proof.
-  In Lean, this is done using pattern matching with
-  \lstinline[language=lean]|obtain|:
+  In Lean, this can be done in term mode using pattern matching
+  via \lstinline[language=lean]|match|:
   \begin{lstlisting}[language=lean]
-  example (h : ∃ n : Nat, n + n = 10) : ∃ m : Nat, m = 5 := by
-    obtain ⟨n, hn⟩ := h
-    exact ⟨n, by omega⟩
+  example (h : ∃ n : Nat, n + n = 10) : ∃ m : Nat, 10 = m + m :=
+    match h with
+    | ⟨n, hn⟩ => ⟨n, hn.symm⟩
   \end{lstlisting}
-  Here \lstinline[language=lean]|obtain ⟨n, hn⟩ := h| destructs the
-  existential hypothesis into a witness \lstinline[language=lean]|n|
-  and a proof \lstinline[language=lean]|hn : n + n = 10|.
-  We then provide a new existential proof with witness
-  \lstinline[language=lean]|n| and let the \lstinline[language=lean]|omega|
-  tactic verify the arithmetic.
+  The \lstinline[language=lean]|match| expression destructs the
+  existential hypothesis \lstinline[language=lean]|h| into a witness
+  \lstinline[language=lean]|n : Nat| and a proof
+  \lstinline[language=lean]|hn : n + n = 10|.
+  We then construct the new existential proof with the same witness
+  \lstinline[language=lean]|n| and the reversed equality
+  \lstinline[language=lean]|hn.symm : 10 = n + n|.
+  This mirrors the logical pattern: given
+  $\exists n,\, n + n = 10$, we produce $\exists m,\, 10 = m + m$
+  using the same witness.
 \end{example}
 
 We have now extended the Curry--Howard correspondence from
@@ -680,8 +682,8 @@ While this pairing is the most common in practice, it is important to
 note that neither association is inherent.
 Intuitionistic set theories (such as IZF) exist, and on the other
 hand, Russell and Whitehead's type theory in
-\emph{Principia Mathematica}---historically the first type
-theory---is entirely classical.
+\emph{Principia Mathematica} (historically the first type
+theory) is entirely classical.
 Lean's type theory is constructive by default, but classical axioms
 can be invoked when needed.
 
@@ -733,7 +735,6 @@ anything follows) is \emph{fully valid in constructive logic}.
 It corresponds to the elimination rule for the empty type
 $\bot$: if we have a proof of $\bot$ (falsehood), we can derive any
 proposition.
-\newpage
 In Lean, the \lstinline[language=lean]|exfalso| tactic applies this
 principle:
 
@@ -771,7 +772,7 @@ contradiction in order to conclude $P$:
   We then apply the double negation hypothesis $h$ to
   \lstinline[language=lean]|hnp| to obtain the required
   contradiction.
-  This proof is not constructively valid---it relies on the law of
+  This proof is not constructively valid since it relies on the law of
   excluded middle.
 \end{example}
 

@@ -1,7 +1,6 @@
 \chapter{Formalizing the Topologist's Sine
   Curve}\label{ch:topologist_sine_curve}
 
-% Chapter orientation paragraph
 In this chapter, we put the tools developed in the previous chapters
 to work by formalizing a classical counterexample in topology: the
 \textbf{topologist's sine curve}, a space that is connected but not
@@ -31,16 +30,13 @@ does not imply path-connectedness
 (recall Definitions~\ref{def:connected}
 and~\ref{def:path_connected}).
 While conceptually simple, the proof involves a satisfying mix of
-topological and analytical techniques---continuity arguments, filter
+topological and analytical techniques; continuity arguments, filter
 reasoning, the intermediate value property for connected sets, and
-$\varepsilon$-$\delta$ estimates---making it a good test of the
+$\varepsilon$-$\delta$ estimates, making it a good test of the
 library's capabilities.
 Moreover, at the time of this work, Mathlib's
 \texttt{Counterexamples} directory did not yet contain this classic
 example.
-While Mathlib's broader topology library is quite mature, specific
-counterexamples are often added later to stress-test stabilized
-APIs, such as those for paths and connectedness.
 
 \paragraph{Observations on the formalization process.}
 Translating the informal proof into Lean revealed interesting
@@ -68,7 +64,7 @@ A second noteworthy design decision is Mathlib's convention that
 division by zero yields zero: $1/0 = 0$.
 While initially alarming to mathematicians, this makes
 $x \mapsto x^{-1}$ a total function on $\mathbb{R}$, so the
-identity $(x^{-1})^{-1} = x$ holds unconditionally---including at
+identity $(x^{-1})^{-1} = x$ holds unconditionally, including at
 $x = 0$.
 This convention simplifies several steps in our proof where nested
 inverses appear.

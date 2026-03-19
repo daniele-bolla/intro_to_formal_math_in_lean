@@ -1,10 +1,8 @@
 \chapter{Quotients and Algebraic Hierarchy}
 
-% Chapter orientation paragraph
 In this chapter, we address a fundamental limitation of the
 \lstinline[language=lean]|myPreRat| structure from the previous
-chapter: distinct representations of the same rational number are
-not identified as equal.
+chapter.
 We resolve this using quotient types
 (Section~\ref{sec:quotients}), then step back to examine how
 Mathlib's algebraic hierarchy is built using the type class
@@ -12,7 +10,6 @@ mechanism introduced earlier (Section~\ref{sec:typeclasses}).
 
 \section{Quotients}\label{sec:quotients}
 
-% FIXED: "gopes" → "goes"
 Let us look at what goes wrong with \lstinline[language=lean]|myPreRat|:
 \begin{lstlisting}[language=lean]
 example : myPreRat.mk 2 4 (by decide) ≠ myPreRat.mk 1 2 (by decide) := by
@@ -37,7 +34,6 @@ $\left[\frac{1}{2}\right] = \left\{\ldots, \frac{-2}{-4},
 represents all fractions equivalent to $\frac{1}{2}$.
 The set of rational numbers is the set of such equivalence classes.
 
-% FIXED: P33 — Z* means invertible elements {1,-1}, not Z \ {0}.
 Algebraically, each rational number can be represented as a pair of
 integers $(a, b)$ where $b \neq 0$.
 This construction is formalized by an equivalence relation
@@ -115,11 +111,6 @@ The \lstinline[language=lean]|Setoid| type class encapsulates an
 equivalence relation on a given type, requiring that the relation is
 indeed an equivalence via its \lstinline[language=lean]|iseqv| field.
 
-% REVISED: P35 — present well-definedness proofs BEFORE the instances
-% that use them, so dependencies are satisfied in reading order.
-% We first define the Setoid, then the well-definedness proofs,
-% then the quotient operations.
-
 We begin by defining the \lstinline[language=lean]|Setoid| instance
 and the quotient type:
 
@@ -138,7 +129,6 @@ instance myRel : Setoid myPreRat where
 abbrev myRat : Type := Quotient myRel
 \end{lstlisting}
 
-% FIXED: P34 — removed unnecessary simp_all line
 In the \lstinline[language=lean]|iseqv| field, we prove reflexivity,
 symmetry, and transitivity of our relation.
 Reflexivity (\lstinline[language=lean]|intro p; rfl|) is immediate.
@@ -319,9 +309,6 @@ natural numbers.
 However, the transitivity property holds not only for naturals but
 also for integers, reals, and any partially ordered set.
 
-% REVISED: P38 — corrected explanation: le_trans is not doing a clever
-% general argument. It's about consistent interface, not avoiding
-% duplication in *proving* transitivity.
 Rather than having each piece of downstream code call a different
 type-specific lemma (\lstinline[language=lean]|Nat.le_trans|,
 \lstinline[language=lean]|Rat.le_trans|, etc.), Mathlib provides a
@@ -347,7 +334,6 @@ Knowing that rational numbers form a totally ordered set, we can
 enhance \lstinline[language=lean]|myRat| with the
 \lstinline[language=lean]|LinearOrder| type class:
 
-% ADDED: P40 — note about Mathlib version compatibility
 \begin{remark}
   The following code was developed and tested with Mathlib version
   4.24.0.
@@ -464,7 +450,6 @@ necessitating the \lstinline[language=lean]|noncomputable| marker.
 Here is the full construction of \lstinline[language=lean]|myRat|:
 [\href{https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQODOMUArgMYzFQCmcIAngArUBKKcA7qldTnHAHbEQcAFxwAkvxi84AEyr9RcAHIoZ8/gH1I+JQAY4AHjkK8/JCCr4wSUjXpMqraTmD9CSfnaUAZAKK0jCxsnNxUMug0UICBBHBQgEEEogC8cdEAdILCAFRwgImECWkacIAmRHHxGUJwOfnpGnhuHl40YgCCsrKBjs4cXDx8SO2pZclwAN4yfJkjMRXZeQVFANRls1XztQoANBMmiiIpM0U5C1s7GtoQuvsqKGkgxOgXuocKTyvnOjIAvnjyAGZwABe3AgSgcwXg11GAkq1z0m12IwAjAiPpcRlg6CZSMB5HAfg0YJ5vGIAPJ/VTwcFONgGUJ9OAQClsa7AqAQPCREAgJACCD8fhUADmmmAfwBAAooGCgjSYABKfQlOJwQAphHADKUoKtrpiZKR+YQSORoEYANwAPjgbiIoNQMgA7XBSKhPEKaAZjoUFMrtVMcki4GxUGa4PhQGAg/AQ3AqAAPWzRx3O138d0atbaopa1YB0Ph8Ch+OJuD2nBcnlB9qafj8wVCuAS3lYGVdFCKsSaoNwQBJhBnSi2+13ecsW7q6DIC5H+egsQBtWsC4Wi8UAXRkNvZpd5qFw/TAYFnEikaQGshrdeFyeL5GPMDuDwvS4brsbknv5hgAGEkIQn/W4Cwb1+Hla8E1vd8H0eRcAN3N8T0/H8/xg4Ug2A0CgA}{link to Lean live}]
 
-% ADDED: transition
 With the use of type classes such as
 \lstinline[language=lean]|LinearOrder|, we enhanced
 \lstinline[language=lean]|myRat| so that general theorems about
@@ -488,7 +473,6 @@ $\text{Group}\;\alpha$, $\alpha$ is the carrier type (such as
 $\mathbb{Z}$ or $\mathbb{Q}$), and $\text{Group}$ defines the
 multiplication, identity element, and inverse operation on $\alpha$.
 
-% REVISED: P40 — noted that type classes can take multiple type arguments
 Note that this is a simplified picture: type classes can take multiple
 type arguments or additional non-type arguments.
 For instance, \lstinline[language=lean]|Module ℚ ℝ| takes two types
@@ -603,7 +587,6 @@ transitivity of the less-or-equal relation and when enhancing
 \lstinline[language=lean]|myRat| with the
 \lstinline[language=lean]|LinearOrder| structure.
 
-% ADDED: P42 — discussion of disadvantages of type class system
 \paragraph{Limitations of type classes.}
 While type classes are powerful, they are not without drawbacks.
 Two important limitations are worth noting:
@@ -634,7 +617,6 @@ For a detailed discussion on the design and implementation of
 Mathlib's algebraic hierarchy, we refer the reader
 to~\cite{mathlib2020}.
 
-% ADDED: Chapter closing paragraph
 In this chapter, we have seen how quotient types allow us to identify
 equivalent representations, turning
 \lstinline[language=lean]|myPreRat| into the well-behaved type
