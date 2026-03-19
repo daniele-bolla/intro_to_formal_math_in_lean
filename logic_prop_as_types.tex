@@ -1,37 +1,60 @@
-\chapter{Logic and Proposition as Types}
+\chapter{Logic and Propositions as Types}
 
-\section{First Order Logic}
+In this chapter, we develop the logical and type-theoretic foundations
+that underpin Lean.
+We begin with propositional logic and its formalization via natural
+deduction (Section~\ref{sec:prop_logic}).
+We then show how types are constructed using analogous inference rules
+(Section~\ref{sec:primitive_types}).
+In Section~\ref{sec:curry_howard}, we make the connection explicit
+via the Curry--Howard correspondence.
+Section~\ref{sec:predicate_logic} extends the picture to predicate
+logic and dependent types, and Section~\ref{sec:constructive} discusses
+the distinction between constructive and classical reasoning.
+
+\section{Propositional Logic and Natural Deduction}\label{sec:prop_logic}
+
 Logic is the study of reasoning, branching into various systems.
-We refer to \textbf{classical logic} as the one that underpins much
-of traditional mathematics.
-It's the logic of truthtables.
-We first introduce \textbf{propositional logic}, which is the simplest
-form of classical logic.
-Later we will extend this to \textbf{predicate (or first-order) logic}, which includes
+We refer to \textbf{classical logic} as the logical system that
+underpins much of traditional mathematics.
+We first introduce \textbf{propositional logic}, the simplest form of
+classical logic.
+Later, in Section~\ref{sec:predicate_logic}, we extend this to
+\textbf{predicate (or first-order) logic}, which adds
 \textbf{predicates} and \textbf{quantifiers}.
-In this setting, a \textbf{proposition} is a statement that is either true or false,
-and a \textbf{proof} is a logical argument that establishes the truth of a
-proposition.
-Propositions can be combined with logical \textbf{connectives} such as ``and'' ($\wedge$),
-``or'' ($\vee$), ``not'' ($\neg$),``false'' ($\bot$), ,``true'' ($\top$)
-``implies'' ($\Rightarrow$),  and ``if and only if'' ($\Leftrightarrow$).
-These connectives allow the creation of complex or compound propositions.
-Here how connectives are defined in Lean:
-\begin{example}[LogicaL connectives in Lean]\mbox{}
+
+In propositional logic, a \textbf{proposition} is a statement that is
+either true or false, and a \textbf{proof} is a logical argument that
+establishes the truth of a proposition.
+Propositions can be combined with logical \textbf{connectives} such as
+``and'' ($\wedge$),
+``or'' ($\vee$),
+``not'' ($\neg$),
+``false'' ($\bot$),
+``true'' ($\top$),
+``implies'' ($\Rightarrow$),
+and ``if and only if'' ($\Leftrightarrow$).
+These connectives allow the creation of compound propositions.
+Here is how some connectives are represented in Lean:
+
+\begin{example}[Logical connectives in Lean]\mbox{}
   \begin{lstlisting}[language=lean]
-    #check And (a b : Prop) : Prop
-    #check Or (a b : Prop) : Prop
+    #check @And  -- And : Prop → Prop → Prop
+    #check @Or   -- Or  : Prop → Prop → Prop
   \end{lstlisting}
-  \lstinline[language=lean]|Prop| is the proposition type mentioned before.
+  \lstinline[language=lean]|Prop| is the type of propositions,
+  introduced in Chapter~1.
 \end{example}
-Logic is often formalized through a framework known as the \textbf{natural deduction system},
-developed by Gentzen in the 1930s (\cite{wadler2015propositions}).
-This approach brings logic closer to a computable, algorithmic system.
-It specifies rules for deriving
-\textbf{conclusions} from \textbf{premises} (assumptions from other propositions),
-called \textbf{inference rules}.
-\begin{example}[Deductive style rule]
-  Here is an hypothetical example of inference rule (\cite{nordstrom1990programming}, page 35).
+
+Logic is often formalized through a framework known as the
+\textbf{natural deduction system}, developed by Gentzen in the 1930s
+(\cite{wadler2015propositions}).
+This approach specifies rules for deriving \textbf{conclusions} from
+\textbf{premises}, called \textbf{inference rules}.
+
+\begin{example}[Inference rule (schematic)]
+  Here is a schematic inference rule
+  (\cite{nordstrom1990programming}, page~35):
   \begin{prooftree}
     \AxiomC{$P_1$}
     \AxiomC{$P_2$}
@@ -39,24 +62,33 @@ called \textbf{inference rules}.
     \AxiomC{$P_n$}
     \QuaternaryInfC{$C$}
   \end{prooftree}
-  Where the $P_1, P_2, \ldots, P_n$, above the line, are hypothetical
-  premises and, the hypothetical conclusion $C$ is below the line.
+  The propositions $P_1, P_2, \ldots, P_n$ above the line are the
+  premises, and the conclusion $C$ appears below the line.
 \end{example}
-The inference rules needed are, \textbf{introduction rules} wich specify
-how to form compound propositions from simpler ones, and
-\textbf{elimination rules} needed to derive information about them.
-Let's look at how we can define some connectives, first using
-natural deduction (from \cite{thompson1999types}, Section 1.1).
-\paragraph{Conjunction ($\land$)}
-\paragraph{Introduction Rule}
+
+The inference rules we need are \textbf{introduction rules}, which
+specify how to form compound propositions from simpler ones, and
+\textbf{elimination rules}, which allow us to extract information
+from compound propositions.
+We now present the rules for the main connectives, following
+\cite{thompson1999types}, Section~1.1.
+
+\subsection*{Conjunction ($\land$)}
+
+\paragraph{Introduction Rule.}
+If we have proofs of both $A$ and $B$, we can form a proof of
+$A \land B$:
 \begin{prooftree}
   \AxiomC{$A$}
   \AxiomC{$B$}
   \RightLabel{$\land$-Intro}
   \BinaryInfC{$A \land B$}
 \end{prooftree}
-\paragraph{Elimination Rule}
-\mbox{}\\[0.5em]
+
+\paragraph{Elimination Rules.}
+From a proof of $A \land B$, we can extract a proof of either
+conjunct:
+
 \noindent
 \begin{minipage}[t]{0.48\textwidth}
   \vspace{0pt}
@@ -74,9 +106,13 @@ natural deduction (from \cite{thompson1999types}, Section 1.1).
     \UnaryInfC{$B$}
   \end{prooftree}
 \end{minipage}
-\paragraph{Disjunction ($\lor$)}
-\paragraph{Introduction Rule}
-\mbox{}\\[0.5em]
+
+\subsection*{Disjunction ($\lor$)}
+
+\paragraph{Introduction Rules.}
+A proof of either $A$ or $B$ suffices to form a proof of
+$A \lor B$:
+
 \noindent
 \begin{minipage}[t]{0.48\textwidth}
   \vspace{0pt}
@@ -94,7 +130,10 @@ natural deduction (from \cite{thompson1999types}, Section 1.1).
     \UnaryInfC{$A \lor B$}
   \end{prooftree}
 \end{minipage}
-\paragraph{ Elimination (Proof by cases)}
+
+\paragraph{Elimination Rule (proof by cases).}
+If $C$ follows from $A$ and also from $B$, then $C$ follows from
+$A \lor B$:
 \begin{prooftree}
   \AxiomC{$A \lor B$}
   \AxiomC{$[A] \vdash C$}
@@ -102,102 +141,137 @@ natural deduction (from \cite{thompson1999types}, Section 1.1).
   \RightLabel{$\lor$-Elim}
   \TrinaryInfC{$C$}
 \end{prooftree}
-\paragraph{Implication ($\to$)}
-\paragraph{Introduction Rule}
+
+\subsection*{Implication ($\to$)}
+
+\paragraph{Introduction Rule.}
+To prove $A \to B$, we assume $A$ and derive $B$:
 \begin{prooftree}
   \AxiomC{$[A] \vdash B$}
   \RightLabel{$\to$-Intro}
   \UnaryInfC{$A \to B$}
 \end{prooftree}
-\paragraph{ Elimination (Modus Ponens)}
+
+\paragraph{Elimination Rule (modus ponens).}
+Given a proof of $A \to B$ and a proof of $A$, we obtain a proof
+of $B$:
 \begin{prooftree}
   \AxiomC{$A \to B$}
   \AxiomC{$A$}
   \RightLabel{$\to$-Elim}
   \BinaryInfC{$B$}
 \end{prooftree}
+
 \begin{notation}
-  We use $A \vdash B$ (called turnstile) to designate a
-  deduction of $B$ from $A$.
-  It is used in judgments and type theory with
-  the meaning of ``entails that''.
-  The square brackets around a premise $[A]$ mean that the premise $A$ is meant to
-  be \textbf{discharged} at the conclusion. The classical example is the
-  introduction rule for the implication connective.
-  To prove an implication $A \to B$, we assume $A$
-  (shown as $[A]$), derive $B$ under this assumption, and then discharge the
-  assumption $A$ to conclude that $A \to B$ holds without the assumption.
+  We use $A \vdash B$ (called the \textbf{turnstile}) to denote a
+  derivation of $B$ from $A$; it can be read as ``$A$ entails $B$.''
+  The square brackets around a premise, as in $[A]$, indicate that
+  the assumption $A$ is \textbf{discharged} (i.e., released) at the
+  conclusion of the rule.
+  To illustrate: the $\to$-Intro rule says that to prove
+  $A \to B$, we temporarily assume $A$, derive $B$ under this
+  assumption, and then \emph{discharge} the assumption---meaning
+  that the conclusion $A \to B$ no longer depends on $A$ being true.
+  The assumption was only needed during the derivation and is consumed
+  by the rule.
 \end{notation}
-\section{Primitive Types}
-Type theory employs this porocedure too,
-by referring to deduction
-rules as \textbf{judments}.
+
+Having introduced the rules of propositional logic, we now turn to
+the type-theoretic side, where analogous rules govern the
+construction of types.
+
+\section{Primitive Types}\label{sec:primitive_types}
+
+Type theory employs a similar system of inference rules, but
+expressed in terms of \textbf{type judgments}.
 A type judgment has the form $\Gamma \vdash t : T$,
 meaning: under \textbf{context} $\Gamma$ (a list of typed variables),
 the term $t$ has type $T$.
-Using formal inference rules in the type judgment
-system, such as \textbf{introduction} and \textbf{elimination} rules,
-we can construct new compound types from existing ones.
-\begin{example}[Judgment style rule]
-  \mbox{}
+Introduction and elimination rules are then inference rules that
+derive new type judgments from existing ones, allowing us to construct
+new compound types from existing ones.
+
+\begin{example}[Type judgment rule (schematic)]
+  A schematic type judgment rule has the following form:
   \begin{prooftree}
-    \AxiomC{$\Gamma \vdash$}
-    \AxiomC{$p_1:P_1$}
-    \AxiomC{$p_2:P_2$}
-    \AxiomC{$\cdots$}
-    \AxiomC{$P_n$}
-    \QuinaryInfC{$C$}
+    \AxiomC{$\Gamma \vdash a : A$}
+    \AxiomC{$\Gamma \vdash b : B$}
+    \BinaryInfC{$\Gamma \vdash c : C$}
   \end{prooftree}
+  Reading: if, under context $\Gamma$, we have a term $a$ of type $A$
+  and a term $b$ of type $B$, then we can construct a term $c$ of
+  type $C$.
 \end{example}
-Technically, there are two more inference rules that we will not consider in this setting:
-\textbf{formation rules}, used to declare that a type is well-defined, and
-\textbf{computation rules}, which specify how a term will be evaluated.
-Moreover, without going too deep into the jargon,
-one specific judgment is
-$\Gamma \vdash A \equiv B\ \text{type}$, which means ``types $A$ and $B$ are
+
+Technically, there are two additional kinds of rules that we will not
+treat in detail here:
+\textbf{formation rules}, which declare that a type is well-defined,
+and \textbf{computation rules}, which specify how terms are evaluated.
+
+Moreover, there is a specific form of judgment for equality:
+$\Gamma \vdash A \equiv B\ \text{type}$ means ``types $A$ and $B$ are
 \textbf{judgmentally (or definitionally) equal} in context $\Gamma$.''
-Similarly for terms, $\Gamma \vdash t_1 \equiv t_2 : A$ means ``terms $t_1$ and $t_2$ are
-judgmentally equal of type $A$ in context $\Gamma$.''
-\paragraph{Brief explanation of equality in type theory}
+Similarly for terms: $\Gamma \vdash t_1 \equiv t_2 : A$ means
+``terms $t_1$ and $t_2$ are judgmentally equal of type $A$ in
+context $\Gamma$.''
 
-In Lean, the operator \lstinline[language=lean]|:=|
-stands for definitional equality and is used by the kernel to verify proof equality.
-A mathematician proving a theorem applies a series of \textbf{reduction rules} to
-simplify the proof.
-Similarly, one can think of this
-computational reduction process in formal verification.
-However, a computer cannot simply employ the same informal
-approach to equality that a mathematician might use intuitively.
-A rigorous explanation of definitional equality
-goes beyond the scope of this thesis.
-To state it simply: \textbf{two terms are definitionally equal when they
-  reduce to the same normal for}. A \textbf{normal for} represents the most
-reduced state of a term, obtained by systematically applying a
-sequence of reduction rules until no further reductions are possible.
-In contrast, \textbf{propositional equality} requires additional logical
-bridges and propositions to establish equivalence.
-Because it is grounded in logical propositions rather
-than pure computation, propositional equality is not
-directly computable by the type checker and must be explicitly proved.
+\paragraph{Brief explanation of equality in type theory.}
 
-Let's now construct new types from given types $A$ and $B$.
-\paragraph{Product Type}
-As a fundamental example, $A \times B$
-denotes the type of pairs $(a, b)$ where $a : A$ and $b : B$,
-called the \textbf{product type}.
-\paragraph{Introduction Rule (pairing)}
+It is important to distinguish two notions of equality in type theory.
+
+\textbf{Definitional (or judgmental) equality} is a relation that
+Lean's kernel can verify automatically, without any additional proof
+steps.
+Informally, two terms are definitionally equal when the kernel can
+reduce them to the same normal form by applying computation rules and
+unfolding definitions.
+A \textbf{normal form} is the most reduced state of a term, obtained
+by systematically applying reduction rules until no further reductions
+are possible.
+For example, $2 + 2$ and $4$ are definitionally equal because both
+reduce to the same normal form.
+
+In Lean, the operator \lstinline[language=lean]|:=| is a
+\textbf{syntactic assignment}: it creates a new definition by binding
+a name to a term.
+For instance, writing \lstinline[language=lean]|def x : Nat := 2 + 2|
+introduces a new name \lstinline[language=lean]|x| and makes
+\lstinline[language=lean]|x| definitionally equal to
+\lstinline[language=lean]|2 + 2| (and hence to
+\lstinline[language=lean]|4|).
+Note that \lstinline[language=lean]|:=| is not a predicate that can be
+evaluated as true or false; it is part of the syntax for creating
+definitions.
+
+In contrast, \textbf{propositional equality} is a statement
+\emph{within} the logic (expressed as a type, e.g.,
+\lstinline[language=lean]|a = b|) that may require an explicit proof.
+Because it is a logical proposition rather than a computation,
+propositional equality is not directly decidable by the type checker
+and must be established by the user.
+
+Let us now construct new types from given types $A$ and $B$.
+
+\subsection*{Product Type}
+
+The type $A \times B$ denotes the type of pairs $(a, b)$ where
+$a : A$ and $b : B$, called the \textbf{product type}.
+
+\paragraph{Introduction Rule (pairing).}
 \begin{prooftree}
   \AxiomC{$a : A$}
   \AxiomC{$b : B$}
   \BinaryInfC{$(a, b) : A \times B$}
 \end{prooftree}
-In Lean:
+
+\noindent In Lean:
 \begin{lstlisting}[language=lean]
 Prod.mk a b : Prod A B   -- or A × B
-(a, b) : A × B           
-⟨a, b⟩ : A × B           
+(a, b) : A × B
+⟨a, b⟩ : A × B
 \end{lstlisting}
-\paragraph{Elimination Rules (projections)}\mbox{}\\[0.5em]
+
+\paragraph{Elimination Rules (projections).}\mbox{}\\[0.5em]
 \noindent
 \begin{minipage}[t]{0.48\textwidth}
   \vspace{0pt}
@@ -219,12 +293,14 @@ Prod.mk a b : Prod A B   -- or A × B
   p.1 : A       -- or Prod.fst p
   p.2 : B       -- or Prod.snd p
 \end{lstlisting}
-\paragraph{Sum Type}
-The \textbf{sum type} $A + B$ (also called a coproduct or disjoint union) consists of values that are
-either of type $A$ (tagged with $\mathsf{inl}$) or
-of type $B$ (tagged with $\mathsf{inr}$).
-\paragraph{Introduction Rules (injections)}
-\mbox{}\\[0.5em]
+
+\subsection*{Sum Type}
+
+The \textbf{sum type} $A + B$ (also called a coproduct or disjoint
+union) consists of values that are either of type $A$ (tagged with
+$\mathsf{inl}$) or of type $B$ (tagged with $\mathsf{inr}$).
+
+\paragraph{Introduction Rules (injections).}\mbox{}\\[0.5em]
 \noindent
 \begin{minipage}[t]{0.48\textwidth}
   \vspace{0pt}
@@ -246,111 +322,141 @@ of type $B$ (tagged with $\mathsf{inr}$).
 Sum.inl a : Sum A B   -- or A ⊕ B
 Sum.inr b : Sum A B
 \end{lstlisting}
-\paragraph{Elimination Rule (case analysis)}
+
+\paragraph{Elimination Rule (case analysis).}
 \begin{prooftree}
   \AxiomC{$p : A + B$}
-  \AxiomC{$\begin{array}{c}  f : (A \implies C) \end{array}$}
-  \AxiomC{$\begin{array}{c}  g : (B \implies C) \end{array}$}
+  \AxiomC{$f : A \to C$}
+  \AxiomC{$g : B \to C$}
   \TrinaryInfC{$\mathsf{cases}(p, f, g) : C$}
 \end{prooftree}
-\newpage
-In Lean:
+
+\noindent In Lean:
 \begin{lstlisting}[language=lean]
 example (p : Sum A B) (f : A → C) (g : B → C) : C := by
   cases p with
-  | inl x => f x
-  | inr y => g y
+  | inl x => exact f x
+  | inr y => exact g y
 \end{lstlisting}
-\paragraph{Function Types}
-The type of the form $A \to B$, used in the sum elimination rule
-represents functions from $A$ to $B$.
-\paragraph{Introduction Rule (function application or lambda abstraction)}
+
+\subsection*{Function Types}
+
+The type $A \to B$ represents functions from $A$ to $B$.
+
+\paragraph{Introduction Rule (lambda abstraction).}
 \begin{prooftree}
-  \AxiomC{$\begin{array}{c} x : A  \vdash  \Phi : B \end{array}$}
-  % \UnaryInfC{$\lambda x.\Phi : A \to B$}
-  \UnaryInfC{$f  : A \to B$}
+  \AxiomC{$x : A \vdash \Phi : B$}
+  \UnaryInfC{$\lambda x.\,\Phi : A \to B$}
 \end{prooftree}
-Where $f$ is a function that maps any element $x : A$ to an element $\Phi : B$.
-In Lean, lambda abstraction is written using \lstinline[language=lean]|fun| or \lstinline[language=lean]|λ|:
+
+\noindent
+Here $\lambda x.\,\Phi$ is a function that maps any element $x : A$
+to the element $\Phi : B$.
+In Lean, lambda abstraction is written using
+\lstinline[language=lean]|fun| or \lstinline[language=lean]|λ|:
 \begin{lstlisting}[language=lean]
 def identityFun (A : Type) : A → A := fun x => x
 \end{lstlisting}
-\paragraph{Elimination Rule (application)}
+
+\paragraph{Elimination Rule (function application).}
 \begin{prooftree}
   \AxiomC{$f : A \to B$}
   \AxiomC{$a : A$}
   \BinaryInfC{$f(a) : B$}
 \end{prooftree}
-In Lean, function application is written using juxtaposition:
+
+\noindent In Lean, function application is written by juxtaposition:
 \begin{lstlisting}[language=lean]
 example (f : A → B) (a : A) : B := f a
 \end{lstlisting}
-Functions are a primitive concept in type theory. We can \textbf{apply} a function
-$f : A \to B$ to an element $a : A$ to obtain an element of $B$, denoted $f(a)$.
-In type theory, it is common to omit the parentheses and write the application
-simply as $f \, a$.
 
-\section{The Curry Howard Isomorphism}
-We have been preparing for this argument, and the reader will have surely
-noticed a strong similarity when defining logical connectives
-using deduction rules; they are remarkably similar to types
-constructed using type judgments. For instance, function
-types can be seen as implications.
-This is not a coincidence, but rather a fundamental theorem
-first proven by Haskell Curry and William Howard.
-It forms the core of type theory and establishes
-a deep connection between logic, computation, and mathematics.
-\textbf{Implication} ($P \Rightarrow Q$) corresponds to the \textbf{function type} ($P \to Q$).
-A proof of an implication is a function that transforms any proof
-of the premise into a proof of the conclusion.
-\noindent\textbf{Conjunction} ($P \land Q$) corresponds
-to the \textbf{product type} ($P \times Q$).
-A proof of a conjunction consists of a pair containing proofs of both conjuncts.
-\noindent\textbf{Disjunction} ($P \lor Q$) corresponds
-to the \textbf{sum type} ($P + Q$).
-A proof of a disjunction is either a proof of the
-first disjunct or a proof of the second disjunct.
-Same goes for the rest of the connectives.
-Lean uses inference rules and type
-judgments as well as computing connectives using each related type.
-For instance, $A \land B$ can be represented as \lstinline[language=lean]|And(A, B)| or \lstinline[language=lean]|A ∧ B|.
-Its introduction rule is constructed by
+Functions are a primitive concept in type theory.
+We can \textbf{apply} a function $f : A \to B$ to an element $a : A$
+to obtain an element of $B$, denoted $f(a)$.
+In type theory, it is common to omit the parentheses and write the
+application simply as $f\, a$.
+
+Having introduced the basic type constructions, we now make explicit
+the correspondence between these types and the logical connectives
+from Section~\ref{sec:prop_logic}.
+
+\section{The Curry--Howard Correspondence}\label{sec:curry_howard}
+
+The reader will have noticed a strong similarity between the
+inference rules for logical connectives
+(Section~\ref{sec:prop_logic}) and the rules for constructing types
+(Section~\ref{sec:primitive_types}).
+For instance, function types mirror implications, product types
+mirror conjunctions, and sum types mirror disjunctions.
+This is not a coincidence: it is an instance of the
+\textbf{Curry--Howard correspondence}, a deep connection between
+logic and computation discovered independently by Haskell Curry
+(1930s--50s) and William Howard (1969).
+It establishes a systematic dictionary between proofs and programs:
+
+\begin{center}
+  \begin{tabular}{lll}
+    \textbf{Logic}                &                       & \textbf{Type Theory}      \\
+    \hline
+    Implication $P \Rightarrow Q$ & $\longleftrightarrow$ & Function type $P \to Q$   \\
+    Conjunction $P \land Q$       & $\longleftrightarrow$ & Product type $P \times Q$ \\
+    Disjunction $P \lor Q$        & $\longleftrightarrow$ & Sum type $P + Q$          \\
+    Proposition                   & $\longleftrightarrow$ & Type                      \\
+    Proof                         & $\longleftrightarrow$ & Term                      \\
+  \end{tabular}
+\end{center}
+
+\noindent
+A proof of an \textbf{implication} $P \Rightarrow Q$ is a function
+that transforms any proof of $P$ into a proof of $Q$.
+A proof of a \textbf{conjunction} $P \land Q$ consists of a pair
+containing proofs of both conjuncts.
+A proof of a \textbf{disjunction} $P \lor Q$ is either a proof of
+$P$ or a proof of $Q$.
+
+Lean realizes this correspondence concretely.
+For instance, $A \land B$ can be represented as
+\lstinline[language=lean]|And A B| or \lstinline[language=lean]|A ∧ B|.
+Its introduction rule is
 \lstinline[language=lean]|And.intro _ _| or simply
-\lstinline[language=lean]|⟨_, _⟩| (underscores are placeholders).
-The pair $A \land B$ can then be consumed using elimination
-rules \lstinline[language=lean]|And.left| and \lstinline[language=lean]|And.right|.
+\lstinline[language=lean]|⟨_, _⟩| (underscores are placeholders for
+the two proofs).
+The compound proposition $A \land B$ can then be decomposed using the
+elimination rules
+\lstinline[language=lean]|And.left| and
+\lstinline[language=lean]|And.right|.
 
 \begin{example}\label{ex:conj_intro_2}
-  Let's look at a simple Lean example:
+  Let us look at a simple Lean example:
   \begin{lstlisting}[language=lean]
     example {a b : Prop} (ha : a) (hb : b) : (a ∧ b) := And.intro ha hb
   \end{lstlisting}
-  Using brackets \lstinline[language=lean]|{ }|, we let Lean infer
-  that $a$ and $b$ are propositions (\lstinline[language=lean]|Prop|).
-  The example means that given a proof of $a$ (\lstinline[language=lean]|ha|)
-  and a proof of $b$  (\lstinline[language=lean]|hb|) ,
-  we can form a proof of $(a \land b)$.
-  \lstinline[language=lean]|And.intro| is implemented as:
+  Using curly brackets \lstinline[language=lean]|{ }|, we let Lean
+  infer that $a$ and $b$ are propositions
+  (\lstinline[language=lean]|Prop|).
+  The example states that given a proof of $a$
+  (\lstinline[language=lean]|ha|) and a proof of $b$
+  (\lstinline[language=lean]|hb|), we can form a proof of
+  $a \land b$.
+  The type of \lstinline[language=lean]|And.intro| is:
   \begin{lstlisting}[language=lean]
-    And.intro : p -> q -> (p ∧ q)
+    And.intro : a → b → a ∧ b
   \end{lstlisting}
-  It says: if you give me a proof of $p$ and a proof of $q$,
-  then I return a proof of $p \land q$.
-  We therefore conclude the proof by directly giving
-  \lstinline[language=lean]|And.intro ha hb|.
-  Here is another way of writing the same statement:
+  It says: given a proof of $a$ and a proof of $b$, it returns a
+  proof of $a \land b$.
+  Here is an equivalent way to write the same statement using
+  anonymous constructor notation:
   \begin{lstlisting}[language=lean]
-    example (ha : a) (hb : b) : And(a, b) := ⟨ha, hb⟩
+    example {a b : Prop} (ha : a) (hb : b) : a ∧ b := ⟨ha, hb⟩
   \end{lstlisting}
 \end{example}
+
 \noindent
-For a more concrete example, let's look at how
-proof normalization using a system of inference rules
-corresponds to computation in Lean.
-To reduce complexity of a \textbf{proof tree} in natural deduction,
-one, tipically, follows a
-\textbf{top-down} approach,
-unfolding each component to be proved step by step.
+For a more concrete example, let us see how building a proof tree in
+natural deduction corresponds to constructing a term in Lean.
+To prove a compound statement, one typically follows a
+\textbf{top-down} approach, decomposing the goal step by step.
+
 \begin{example}[Associativity of Conjunction]
   We prove that $(A \land B) \land C$ implies $A \land (B \land C)$.
   First, from the assumption $(A \land B) \land C$, we can derive $A$:
@@ -382,34 +488,37 @@ unfolding each component to be proved step by step.
     \BinaryInfC{$A \land (B \land C)$}
   \end{prooftree}
 \end{example}
+
 \newpage
 \begin{example}[Lean Implementation]
   Let us now implement the same proof in Lean.
   \begin{lstlisting}[language=lean]
 theorem and_associative {a b c : Prop} : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
-  fun h : (a ∧ b) ∧ c →
+  fun h : (a ∧ b) ∧ c ↦
   -- First, from the assumption (a ∧ b) ∧ c, we can derive a:
   have hab : a ∧ b := h.left
-  have ha : a := hab.left 
-  -- Second, we can derive b ∧ c (here we only extract b and c and combine them in the next step)
+  have ha : a := hab.left
+  -- Second, extract b and c:
   have hc : c := h.right
   have hb : b := hab.right
-  -- Finally, combining these derivations we obtain a ∧ (b ∧ c)
+  -- Finally, combining these derivations we obtain a ∧ (b ∧ c):
   show a ∧ (b ∧ c) from ⟨ha, ⟨hb, hc⟩⟩
-\end{lstlisting}
+  \end{lstlisting}
   We introduce the \lstinline[language=lean]|theorem| with the name
   \lstinline[language=lean]|and_associative|.
-  The type signature \lstinline[language=lean]|(a ∧ b) ∧ c → a ∧ (b ∧ c)|
-  represents our logical implication.
-  Here, we construct the implication proof using a
-  function (following the Curry Howard isomorphism) with the \lstinline[language=lean]|fun| keyword.
-  The \lstinline[language=lean]|have| keyword introduces local
-  lemmas within our proof scope, allowing us to break down complex
-  reasoning into manageable intermediate steps,
-  mirroring our natural deduction proof from before.
-  Just before the keyword \lstinline[language=lean]|show|,
-  the info view displays the following
-  context and goal:
+  The type signature
+  \lstinline[language=lean]|(a ∧ b) ∧ c → a ∧ (b ∧ c)| represents
+  our logical implication.
+  We construct the proof of the implication as a function (following
+  the Curry--Howard correspondence) using the
+  \lstinline[language=lean]|fun| keyword.
+  The \lstinline[language=lean]|have| keyword introduces local lemmas
+  within our proof, allowing us to break down complex reasoning into
+  manageable intermediate steps---mirroring the natural deduction
+  proof tree from before.
+
+  Just before the \lstinline[language=lean]|show| keyword, the
+  infoview displays the following context and goal:
   \begin{lstlisting}[language=lean]
   a b c : Prop
   h : (a ∧ b) ∧ c
@@ -418,176 +527,216 @@ theorem and_associative {a b c : Prop} : (a ∧ b) ∧ c → a ∧ (b ∧ c) :=
   hc : c
   hb : b
   ⊢ a ∧ b ∧ c
-\end{lstlisting}
-  Resembling type judgments, the goal is juxtaposed after the turnstile ($\vdash$).
-  What comes before it is the current context.
-  Finally, \lstinline[language=lean]|show a ∧ (b ∧ c) from ⟨ha, ⟨hb, hc⟩⟩|
-  asserts that we are constructing a proof of \lstinline[language=lean]|a ∧ (b ∧ c)|
-  using the term \lstinline[language=lean]|⟨ha, ⟨hb, hc⟩⟩|.
-  The \lstinline[language=lean]|show| keyword makes the proof
-  more readable
-  and ensures that the provided
-  proof term matches the stated
-  goal up to definitional equality.
-  As mentioned already, two types (or terms) are definitionally equal in Lean when they
-  are identical after computation
-  and unfolding of definitions; in other words, when Lean's type checker
-  can mechanically verify they are the same without requiring additional proof steps.
-  Here, the goal \lstinline[language=lean]|⊢ a ∧ b ∧ c| is definitionally
-  equal to \lstinline[language=lean]|a ∧ (b ∧ c)| due to how conjunction
-  associates, so \lstinline[language=lean]|show| accepts this statement.
-  If we had tried to use \lstinline[language=lean]|show| with a type that
-  was only propositionally equal
-  but not definitionally equal, Lean would reject it.
+  \end{lstlisting}
+  Resembling type judgments, the goal appears after the turnstile
+  ($\vdash$), and the hypotheses above it form the current context.
+
+  Finally,
+  \lstinline[language=lean]|show a ∧ (b ∧ c) from ⟨ha, ⟨hb, hc⟩⟩|
+  asserts that we are constructing a proof of
+  \lstinline[language=lean]|a ∧ (b ∧ c)| using the term
+  \lstinline[language=lean]|⟨ha, ⟨hb, hc⟩⟩|.
+  The \lstinline[language=lean]|show| keyword improves readability and
+  checks that the stated type matches the current goal.
+  Here, the goal displayed as
+  \lstinline[language=lean]|⊢ a ∧ b ∧ c| and the statement
+  \lstinline[language=lean]|a ∧ (b ∧ c)| are \emph{syntactically
+    identical}, because \lstinline[language=lean]|∧| is
+  right-associative---no reduction rules are needed.
+  If we had used \lstinline[language=lean]|show| with a type that was
+  only \emph{propositionally} equal to the goal (but not
+  definitionally equal), Lean would reject it.
 \end{example}
-\section{Predicate Logic and Dependency}
+
+We have now seen the Curry--Howard correspondence for propositional
+connectives.
+To capture more complex mathematical ideas, we need to extend the
+picture to predicates and quantifiers.
+
+\section{Predicate Logic and Dependent Types}\label{sec:predicate_logic}
+
 To capture more complex mathematical ideas, we extend our system from
 propositional logic to \textbf{predicate logic}.
-A \textbf{predicate} is a statement or proposition that depends on a variable.
+A \textbf{predicate} is a proposition that depends on a variable.
 In propositional logic we represent a proposition simply by $P$.
-In predicate logic, this is generalized.
-A predicate is written as $P(a)$,
-where $a$ is a variable. Notice that a predicate is just a function.
+In predicate logic, a predicate is written as $P(a)$,
+where $a$ is a variable---notice that a predicate is simply a
+function from elements to propositions.
+
 This extension allows us to introduce \textbf{quantifiers}:
 $\forall$ (``for all'') and $\exists$ (``there exists'').
-These quantifiers express that a given formula holds either for every object
-or for at least one object, respectively.
-In Lean if \lstinline[language=lean]|α| is any type, we can represent a
-predicate \lstinline[language=lean]|P| on \lstinline[language=lean]|α| as
-an object of type \lstinline[language=lean]|α → Prop|.
-Thus given an \lstinline[language=lean]|x : α| (an element
-with type \lstinline[language=lean]|α| )
-\lstinline[language=lean]|P(x) : Prop| would be representative of a proposition
-holding for \lstinline[language=lean]|x|.
-We can give an informal reading of the quantifiers as infinite logical operations:
+These quantifiers express that a given property holds either for
+every element or for at least one element, respectively.
+In Lean, if \lstinline[language=lean]|α| is any type, we can
+represent a predicate \lstinline[language=lean]|P| on
+\lstinline[language=lean]|α| as an object of type
+\lstinline[language=lean]|α → Prop|.
+Thus, given \lstinline[language=lean]|x : α|, the expression
+\lstinline[language=lean]|P x : Prop| represents the proposition
+that $P$ holds for $x$.
+
+We can give an informal reading of the quantifiers as generalized
+logical operations:
 \begin{align*}
-  \forall x.\,P(x) & \equiv P(a) \land P(b) \land P(c) \land \ldots \\
-  \exists x.\,P(x) & \equiv P(a) \lor P(b) \lor P(c) \lor \ldots
+  \forall x.\,P(x) & \;\sim\; P(a) \land P(b) \land P(c) \land \ldots \\
+  \exists x.\,P(x) & \;\sim\; P(a) \lor P(b) \lor P(c) \lor \ldots
 \end{align*}
-The dot symbol following the quantifier, as in $\forall x.,$, binds
+The dot symbol following the quantifier, as in $\forall x.\,$, binds
 every occurrence of the variable $x$ in the expression $P(x)$.
-The expression $\forall x.\, P(x)$ can be understood as a generalized form of conjunction.
-It expresses that $P$ holds for all possible values of $x$.
-Similarly, $\exists x.\, P(x)$ is a generalized disjunction, expressing that $P$ holds
-for at least one value of $x$.
-Under the Curry-Howard isomorphism, universal quantifiers correspond to
-\textbf{dependent function types} (also called Pi types, written $\Pi$),
-while existential quantifiers correspond to
-\textbf{dependent pair types} (also called Sigma types, written $\Sigma$).
-These are constructs from dependent type theory, which provides a way to interpret
-predicates or, more generally, types depending on some data or variable.
-Technically the correspondence is not that immediate and actually Lean implements,
-\lstinline[language=lean]|Exists| and \lstinline[language=lean]|Forall|
-using as inductive types (this follows also for the previously defined connectives).
-This time we are not going to involve deduction rules or type judgments.
-Instead, we will extend the isomorphism
-to quantifiers directly
-by presenting the Lean syntax.
+The expression $\forall x.\, P(x)$ can be understood as a
+generalized conjunction: $P$ holds for all possible values of $x$.
+Similarly, $\exists x.\, P(x)$ is a generalized disjunction: $P$
+holds for at least one value of $x$.
+
+Under the Curry--Howard correspondence, universal quantification
+corresponds to \textbf{dependent function types} (also called Pi
+types, written $\Pi$), while existential quantification corresponds
+to \textbf{dependent pair types} (also called Sigma types, written
+$\Sigma$).
+These are constructs from dependent type theory, in which types may
+depend on values.
+
+In Lean, \lstinline[language=lean]|∀| is the built-in dependent
+function type (Pi type), while \lstinline[language=lean]|∃| is
+defined as an inductive type.
+We now present the Lean syntax for working with quantifiers directly.
+
 \begin{example}[Quantifiers in Lean]
   Lean expresses quantifiers as follows:
   \begin{lstlisting}[language=lean]
 variable (X : Type) (P : X → Prop)
- (∀ (x : X), P x) -- ∀ corresponds to Pi type Π
- (∃ (x : X), P x) -- ∃ corresponds to Sigma type Σ
+#check (∀ (x : X), P x)  -- Prop (corresponds to Pi type Π)
+#check (∃ (x : X), P x)  -- Prop (corresponds to Sigma type Σ)
   \end{lstlisting}
 \end{example}
-\newpage
+
 \begin{example}[Universal introduction in Lean]
-  The \textbf{universal introduction rule} allows us to prove $\forall x, P(x)$
-  by proving $P(x)$ for an \textbf{arbitrary} $x$.
-  In Lean, this corresponds to constructing a function:
+  The \textbf{universal introduction rule} allows us to prove
+  $\forall x,\, P(x)$ by proving $P(x)$ for an \textbf{arbitrary}
+  $x$.
+  In Lean, this corresponds to constructing a dependent function:
+  \newpage
   \begin{lstlisting}[language=lean]
   example : ∀ n : Nat, n ≥ 0 :=
-    fun n => Nat.zero_le n 
+    fun n => Nat.zero_le n
   \end{lstlisting}
-  From the \lstinline[language=lean]|Nat| module in Lean, we use
-  \lstinline[language=lean]|zero_le|, a built-in theorem that already
-  proves the statement.
+  Here \lstinline[language=lean]|Nat.zero_le| is a built-in lemma
+  proving that $0 \le n$ for every natural number $n$.
 \end{example}
+
 \begin{example}[Universal elimination in Lean]
-  The \textbf{universal elimination rule} allows us to instantiate
-  a universally quantified statement with a specific value.
+  The \textbf{universal elimination rule} allows us to instantiate a
+  universally quantified statement with a specific value.
   In Lean, this is simply function application:
   \begin{lstlisting}[language=lean]
   example (h : ∀ n : Nat, n ≥ 0) : 5 ≥ 0 :=
     h 5
   \end{lstlisting}
 \end{example}
+
 \begin{example}[Existential introduction in Lean]
-  When introducing an \textbf{existential} proof,
-  we need a \textbf{pair} consisting
-  of a witness and a proof that this witness
-  satisfies the statement.
+  To prove an existential statement, we provide a \textbf{witness}
+  together with a proof that the witness satisfies the predicate:
   \begin{lstlisting}[language=lean]
   example (x : Nat) (h : x > 0) : ∃ y, y < x :=
     ⟨0, h⟩
   \end{lstlisting}
-  Notice that \lstinline[language=lean]|⟨0, h⟩| is a product type holding
-  data (the witness) and a proof that it satisfies the property.
+  The term \lstinline[language=lean]|⟨0, h⟩| is a dependent pair
+  holding the witness ($0$) and a proof that $0 < x$.
 \end{example}
+
+% REVISED: Replaced trivial existential elimination example with a meaningful one
 \begin{example}[Existential elimination in Lean]
-  The \textbf{existential elimination rule}
-  (\lstinline[language=lean]|Exists.elim|) allows us to prove a proposition $Q$
-  from $\exists x, P(x)$ by showing that $Q$ follows from $P(w)$
-  for an \textbf{arbitrary} value $w$.
-  The existential quantifier can be interpreted as an infinite disjunction,
-  so existential elimination naturally corresponds to a \textbf{proof by cases}
-  (with a single case).
-  In Lean, this is done using \textbf{pattern matching}
-  with \lstinline[language=lean]|cases|:
+  The \textbf{existential elimination rule} allows us to use an
+  existential hypothesis $\exists x,\, P(x)$ by extracting a witness
+  and the associated proof.
+  In Lean, this is done using pattern matching with
+  \lstinline[language=lean]|obtain|:
   \begin{lstlisting}[language=lean]
-  example (h : ∃ n : Nat, n > 0) : ∃ n : Nat, n > 0 := by
-    cases h with
-    | intro witness proof => ⟨witness, proof⟩
+  example (h : ∃ n : Nat, n + n = 10) : ∃ m : Nat, m = 5 := by
+    obtain ⟨n, hn⟩ := h
+    exact ⟨n, by omega⟩
   \end{lstlisting}
+  Here \lstinline[language=lean]|obtain ⟨n, hn⟩ := h| destructs the
+  existential hypothesis into a witness \lstinline[language=lean]|n|
+  and a proof \lstinline[language=lean]|hn : n + n = 10|.
+  We then provide a new existential proof with witness
+  \lstinline[language=lean]|n| and let the \lstinline[language=lean]|omega|
+  tactic verify the arithmetic.
 \end{example}
 
-\section{Constructive Mathematics}
+We have now extended the Curry--Howard correspondence from
+propositional connectives to quantifiers.
+In the next section, we discuss an important foundational
+distinction: the difference between constructive and classical
+reasoning, and how Lean navigates between the two.
 
-Mathematicians have traditionally worked within \textbf{classical logic},
-using \textbf{sets} as the primary means of structuring mathematical objects.
-In contrast, \textbf{type theory} does not take sets as its primitive notion,
-nor is it built by first applying logic and then adding structure.
-Instead, logic is internal to type theory and is based on \textbf{constructive}
-(or \textbf{intuitionistic}) logic, introduced by Brouwer and formalized by
-Heyting (see, e.g., \cite{girard1989proofs}, Ch 1, page 6).
-A major point of departure from classical logic is that, in constructive logic,
-statements cannot simply be classified as true or false;
-their truth depends on whether a proof exists.
-There are many conjectures, such as the Riemann Hypothesis,
-for which we do not yet know whether a proof or disproof exists,
-so we cannot say whether they are true or false.
-Consequently, constructive logic does not universally accept principles such
-as the \textbf{axiom of choice} or the \textbf{law of excluded middle}
-(every proposition is either true or false) as axioms.
-As a consequence, proof by contradiction does not work in this setting
-without additional justification.
-Constructive logic emphasizes that a statement is only
-considered true if we can explicitly provide a \textbf{witness} for it.
-This is what makes constructive mathematics inherently \textbf{computable}.
-% We already touched on this concept in the previous section.
-% In particular, we presented the logical connectives via the
-% Brouwer--Heyting--Kolmogorov (BHK) interpretation.
-We also emphasized that, constructively,
-a proof of existence consists of a pair:
-a witness together with a proof that the stated property holds for that witness.
+\section{Constructive and Classical Reasoning}\label{sec:constructive}
+
+A common pairing in the foundations of mathematics is:
+\emph{set theory with classical logic} on one side, and
+\emph{type theory with constructive logic} on the other.
+While this pairing is the most common in practice, it is important to
+note that neither association is inherent.
+Intuitionistic set theories (such as IZF) exist, and on the other
+hand, Russell and Whitehead's type theory in
+\emph{Principia Mathematica}---historically the first type
+theory---is entirely classical.
+Lean's type theory is constructive by default, but classical axioms
+can be invoked when needed.
+
+A key point of departure between classical and constructive logic
+concerns the \textbf{law of excluded middle} (LEM): the principle
+that for every proposition $P$, either $P$ or $\lnot P$ holds.
+In classical logic, LEM is taken as an axiom, so every proposition is
+either true or false regardless of whether we can prove which.
+In constructive logic, asserting $P \lor \lnot P$ requires actually
+producing either a proof of $P$ or a proof of $\lnot P$.
+For an open conjecture such as the Riemann Hypothesis, where neither
+a proof nor a disproof is currently known, the constructive
+mathematician cannot assert this disjunction.
+
+Constructive logic emphasizes that a statement is considered true
+only if we can explicitly provide a \textbf{witness} or
+\textbf{construction} for it.
+This is what makes constructive mathematics inherently
+\textbf{computable}: a proof of $\exists x,\, P(x)$ must include a
+concrete $x$ together with a proof that $P(x)$ holds.
+
+\paragraph{Proof by contradiction.}
+It is important to distinguish two forms of reasoning that are often
+both called ``proof by contradiction'':
+\begin{enumerate}
+  \item \textbf{Proof of negation} (constructively valid): to prove
+        $\lnot P$, assume $P$ and derive a contradiction ($\bot$).
+        This is simply the definition of $\lnot P$ as $P \to \bot$ and
+        is fully accepted in constructive logic.
+  \item \textbf{Classical contradiction}: to prove $P$, assume
+        $\lnot P$ and derive a contradiction, then conclude $P$.
+        This requires LEM and is \emph{not} constructively valid.
+\end{enumerate}
+
 \begin{example}[Constructive existence proof]
-  We give a \textbf{constructive proof} in Lean that there exist natural numbers
-  $a$ and $b$ such that $a + b = 7$:
+  We give a constructive proof in Lean that there exist natural
+  numbers $a$ and $b$ such that $a + b = 7$:
   \begin{lstlisting}[language=lean]
 example : ∃ a b : Nat, a + b = 7 := ⟨3, 4, rfl⟩
-\end{lstlisting}
-  To prove an existential statement, we provide \textbf{witnesses}
-  (concrete values $a = 3$ and $b = 4$) and a \textbf{proof}
-  that the predicate holds ($3 + 4 = 7$).
+  \end{lstlisting}
+  To prove the existential statement, we provide witnesses
+  ($a = 3$ and $b = 4$) and a proof that the predicate holds
+  ($3 + 4 = 7$, verified by \lstinline[language=lean]|rfl|).
 \end{example}
-In classical mathematics, one might attempt a proof by contradiction.
-However, this approach is not directly accepted in constructive mathematics,
-as it doesn't provide explicit witnesses for the claimed objects.
-Nonetheless, while constructive at its core, Lean allows users to
-invoke classical principles, such as contraposition or proof by contradiction,
-through \textbf{tactics} ((to be explained later))
-like \lstinline[language=lean]|exfalso|.
+
+\paragraph{Ex falso quodlibet.}
+The principle \textbf{ex falso quodlibet} (from a contradiction,
+anything follows) is \emph{fully valid in constructive logic}.
+It corresponds to the elimination rule for the empty type
+$\bot$: if we have a proof of $\bot$ (falsehood), we can derive any
+proposition.
+\newpage
+In Lean, the \lstinline[language=lean]|exfalso| tactic applies this
+principle:
+
 \begin{example}[Reasoning from false]
   Here is an example of deriving any proposition from a contradiction:
   \begin{lstlisting}[language=lean]
@@ -595,9 +744,41 @@ like \lstinline[language=lean]|exfalso|.
     exfalso
     exact h
   \end{lstlisting}
-  This example takes a proposition $p$ to prove and a false hypothesis $h$.
-  The \lstinline[language=lean]|exfalso| tactic transforms the goal into
-  $\vdash \mathsf{False}$, meaning we now need to derive a contradiction.
-  Since we already have a false hypothesis $h$,
-  we can provide it using the \lstinline[language=lean]|exact| tactic.
+  The \lstinline[language=lean]|exfalso| tactic transforms the goal
+  into $\vdash \mathsf{False}$, meaning we must now produce a proof
+  of falsehood.
+  Since we already have $h : \mathsf{False}$ as a hypothesis, we
+  conclude with \lstinline[language=lean]|exact h|.
 \end{example}
+
+\paragraph{Classical reasoning in Lean.}
+When genuinely classical reasoning is required, Lean provides the
+tactic \lstinline[language=lean]|by_contra|, which invokes the law of
+excluded middle (available in Lean as
+\lstinline[language=lean]|Classical.em|).
+This tactic allows us to assume $\lnot P$ and derive a
+contradiction in order to conclude $P$:
+
+\begin{example}[Classical proof by contradiction]
+  \begin{lstlisting}[language=lean]
+  example (p : Prop) (h : ¬¬p) : p := by
+    by_contra hnp
+    exact h hnp
+  \end{lstlisting}
+  The tactic \lstinline[language=lean]|by_contra hnp| introduces the
+  hypothesis \lstinline[language=lean]|hnp : ¬p| and changes the goal
+  to $\vdash \mathsf{False}$.
+  We then apply the double negation hypothesis $h$ to
+  \lstinline[language=lean]|hnp| to obtain the required
+  contradiction.
+  This proof is not constructively valid---it relies on the law of
+  excluded middle.
+\end{example}
+
+In this chapter, we have seen how logical connectives and quantifiers
+correspond to type-theoretic constructions via the Curry-Howard
+correspondence, and how Lean blends constructive and classical
+reasoning.
+In the next chapter, we turn to how mathematical objects---from
+number systems to algebraic structures---are modeled in Lean and
+Mathlib.
