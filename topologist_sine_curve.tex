@@ -1,5 +1,4 @@
-\chapter{Formalizing the Topologist's Sine
-  Curve}\label{ch:topologist_sine_curve}
+\chapter{Formalizing the Topologist's Sine Curve}\label{ch:topologist_sine_curve}
 
 In this chapter, we put the tools developed in the previous chapters
 to work by formalizing a classical counterexample in topology: the
@@ -23,22 +22,18 @@ The formalization is available in
 \href{https://leanprover-community.github.io/mathlib4_docs/Counterexamples/TopologistsSineCurve.html}{\textbf{Counterexamples
     -- Topologist's Sine Curve}}.
 
-\paragraph{Why this theorem?}
 The topologist's sine curve is one of the most important
 counterexamples in point-set topology: it shows that connectedness
 does not imply path-connectedness
 (recall Definitions~\ref{def:connected}
 and~\ref{def:path_connected}).
-While conceptually simple, the proof involves a satisfying mix of
-topological and analytical techniques; continuity arguments, filter
-reasoning, the intermediate value property for connected sets, and
-$\varepsilon$-$\delta$ estimates, making it a good test of the
+While conceptually simple, the proof involves a mix of
+topological and analytical techniques, making it a good test of the
 library's capabilities.
 Moreover, at the time of this work, Mathlib's
 \texttt{Counterexamples} directory did not yet contain this classic
 example.
 
-\paragraph{Observations on the formalization process.}
 Translating the informal proof into Lean revealed interesting
 contrasts between pen-and-paper and formal reasoning.
 Showing that $(0,0) \in \overline{S}$ using filters closely
@@ -55,10 +50,6 @@ arithmetic operations, one must constantly cast variables back and
 forth between \lstinline[language=lean]|unitInterval| and
 \lstinline[language=lean]|ℝ|, proving at each step that the bounds
 $[0,1]$ are satisfied.
-This friction accounts for a substantial portion of the
-formalization effort but is not an inherent limitation of formal
-proof; it is a consequence of Mathlib's current design choices, and
-future library improvements may reduce it.
 
 A second noteworthy design decision is Mathlib's convention that
 division by zero yields zero: $1/0 = 0$.
@@ -114,6 +105,7 @@ We define three sets in $\mathbb{R}^2$:
   \item $Z$: the singleton set $\{(0, 0)\}$
   \item $T$: their union $S \cup Z$
 \end{itemize}
+\newpage
 In Lean, this is expressed as follows:
 \begin{lstlisting}[language=lean]
 open Real Set
@@ -353,7 +345,6 @@ When $x \in S$, the result follows immediately from
 The case $x \in Z$ requires more work: we must show that the
 origin lies in the closure of $S$.
 
-\paragraph{Finding theorems in Mathlib.}
 At this point in the formalization, one needs to find relevant
 Mathlib lemmas.
 A useful tool is
@@ -685,7 +676,7 @@ inequalities from \lstinline[language=lean]|unitInterval| to
 $\mathbb{R}$ via \lstinline[language=lean]|Subtype.coe_le_coe| and
 \lstinline[language=lean]|Subtype.coe_lt_coe|.
 
-\subsection{The intermediate value argument}
+\subsection{The interval argument}
 
 Next, we observe that the image
 $x(p([t_0, t_1]))$ is connected (as the continuous image of a
@@ -881,7 +872,6 @@ Here is the full proof:
 
 Looking back at the formalization, several observations stand out.
 
-\paragraph{What went smoothly.}
 The connectedness proof translated naturally into Lean.
 Mathlib's library of results about connected sets, continuous
 images, and closures meant that the formal argument closely
@@ -892,10 +882,7 @@ particularly clean: the Mathlib lemma
 exactly the mathematical argument (a converging sequence that
 eventually stays in the set).
 
-\paragraph{What was difficult.}
-The non-path-connectedness proof was substantially more involved,
-and the difficulty was largely \emph{contingent} rather than
-\emph{essential}.
+The non-path-connectedness proof was substantially more involved.
 The most time-consuming aspect was managing the
 \lstinline[language=lean]|unitInterval| subtype.
 In pen-and-paper mathematics, we freely perform arithmetic on
@@ -909,7 +896,6 @@ formal verification.
 Future improvements to the subtype API or automation for bound
 checking could significantly reduce this overhead.
 
-\paragraph{The role of conventions.}
 As noted in Section~\ref{sec:motivation_tsc}, Mathlib's convention
 that $1/0 = 0$ proved helpful in several places.
 The identity $(x^{-1})^{-1} = x$
@@ -925,7 +911,7 @@ Formalizing counterexamples like the topologist's sine curve paves
 the way for deeper developments in algebraic topology within Lean.
 
 \paragraph{The Warsaw circle.}
-A natural next step is formalizing the \textbf{Warsaw circle}---a
+A natural next step is formalizing the \textbf{Warsaw circle}; a
 closed variant obtained by connecting the endpoints of the
 topologist's sine curve with an arc.
 This space famously has a trivial fundamental group
@@ -941,20 +927,19 @@ The topologist's sine curve provides a natural testing ground for
 Mathlib's developing homotopy API.
 In particular, one could formalize the fact that the fundamental
 group of $T$ is trivial (since $T$ is simply connected despite not
-being path-connected in the traditional sense---more precisely,
+being path-connected in the traditional sense. More precisely,
 any loop in $T$ must stay on $S$ and is therefore contractible).
 
-\paragraph{Expanding the counterexample library.}
-More broadly, expanding the library of formalized topological
-counterexamples ensures that Mathlib's algebraic topology machinery
-can robustly handle edge cases.
-Examples such as the long line (connected, locally Euclidean, but
-not second-countable), the Cantor set (compact, totally
-disconnected, uncountable), or the Hawaiian earring (compact,
-path-connected, but with an uncountable fundamental group) would
-each stress-test different parts of the library.
+% \paragraph{Expanding the counterexample library.}
+% More broadly, expanding the library of formalized topological
+% counterexamples ensures that Mathlib's algebraic topology machinery
+% can robustly handle edge cases.
+% Examples such as the long line (connected, locally Euclidean, but
+% not second-countable), the Cantor set (compact, totally
+% disconnected, uncountable), or the Hawaiian earring (compact,
+% path-connected, but with an uncountable fundamental group) would
+% each stress-test different parts of the library.
 
-% Chapter closing paragraph
 In this chapter, we have formalized a complete proof that the
 topologist's sine curve is connected but not path-connected.
 The formalization illustrates both the power and the practical
